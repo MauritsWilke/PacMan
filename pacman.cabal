@@ -71,7 +71,7 @@ executable pacman
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.18.3.0
+    build-depends:    base ^>=4.18.3.0, gloss ^>=1.13.2.2
 
     -- Directories containing source files.
     hs-source-dirs:   app
