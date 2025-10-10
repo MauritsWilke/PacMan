@@ -38,7 +38,7 @@ license:            MIT
 license-file:       LICENSE
 
 -- The package author(s).
-author:             MauritsWilke
+author:             MauritsWilke, ThomasRothfusz
 
 -- An email address to which users can send suggestions, bug reports, and patches.
 maintainer:         mauritswilke@gmail.com
@@ -60,11 +60,13 @@ common warnings
 executable pacman
     -- Import common warning flags.
     import:           warnings
-    hs-source-dirs:   app
+    hs-source-dirs:   app,
+                      app/utils
     main-is:          Main.hs
     other-modules:    Controller,
                       Model,
-                      View
+                      View,
+                      Utils.Count
     build-depends:    base ^>=4.18.3.0, 
                       gloss ^>=1.13.2.2
     default-language: Haskell2010
