@@ -3,6 +3,7 @@
 module Model where
 import GHC.Generics (Generic)
 import Utils.Count
+import Utils.Board
 import Control.Monad.ST (ST)
 
 -- ! Oprecht geen idee hoezo dit niet geimport hoeft te worden met data Board ipv type Board
@@ -31,16 +32,12 @@ data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
 
 data Level s = NoLevel | Level 
   { spawnPosition :: (Int, Int) -- Spawn tile
-  , board         :: Board s
+  , board         :: Board
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic)
 
-data Tile = Wall | Empty | Pellet | PowerPellet | Fruit
-  deriving (Show, Eq)
-
 -- Use (row, col) for indexing
-data Board s = STArray s (Int, Int) Tile
-  deriving (Show)
+
 
 -- Used to maintain movement without inputs
 data Direction = Up | Down | Left | Right
