@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Model where
 import GHC.Generics (Generic)
-import qualified Utils.Count as C
+import Utils.Count
 
 -- ! Oprecht geen idee hoezo dit niet geimport hoeft te worden met data Board ipv type Board
 -- import GHC.Arr (STArray) 

@@ -60,8 +60,7 @@ common warnings
 executable pacman
     -- Import common warning flags.
     import:           warnings
-    hs-source-dirs:   app,
-                      app/utils
+    hs-source-dirs:   app
     main-is:          Main.hs
     other-modules:    Controller,
                       Model,
