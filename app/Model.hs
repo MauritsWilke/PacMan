@@ -3,6 +3,7 @@
 module Model where
 import GHC.Generics (Generic)
 import Utils.Count
+import Control.Monad.ST (ST)
 
 -- ! Oprecht geen idee hoezo dit niet geimport hoeft te worden met data Board ipv type Board
 -- import GHC.Arr (STArray) 
@@ -21,10 +22,14 @@ data GameState s = GameState
   , ghostsEaten  :: Int -- Resets when eating power pellet
   } deriving (Show, Generic)
 
+initialState :: ST s (GameState s)
+initialState = do
+  pure $ GameState Homescreen NoLevel NoPlayer 0 0 0 0 0 0
+
 data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
   deriving (Show, Eq)
 
-data Level s = Level 
+data Level s = NoLevel | Level 
   { spawnPosition :: (Int, Int) -- Spawn tile
   , board         :: Board s
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
@@ -44,7 +49,7 @@ data Direction = Up | Down | Left | Right
 data PlayerMode = Normal | Powered | Dead | Respawning | LevelComplete
   deriving (Show, Eq)
 
-data Player = Player 
+data Player = NoPlayer | Player 
   { position  :: (Double, Double)
   , direction :: Direction
   , mode      :: PlayerMode
