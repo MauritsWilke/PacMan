@@ -7,7 +7,8 @@ import GHC.Generics (Generic)
 -- import GHC.Arr (STArray) 
 
 data GameState s = GameState 
-  { level        :: Level s
+  { scene        :: Scene
+  , level        :: Level s
   , player       :: Player
   -- COUNTERS
   , timer        :: Int -- >=0 
@@ -18,6 +19,9 @@ data GameState s = GameState
   , pelletsEaten :: Int
   , ghostsEaten  :: Int -- Resets when eating power pellet
   } deriving (Show, Generic)
+
+data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
+  deriving (Show, Eq)
 
 data Level s = Level 
   { spawnPosition :: (Int, Int) -- Spawn tile
