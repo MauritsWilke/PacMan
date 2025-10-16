@@ -3,10 +3,10 @@ module View where
 
 import Model (GameState)
 import Graphics.Gloss
-import Control.Monad.ST
 
-view :: ST s (GameState s) -> IO Picture
+
+view :: GameState -> IO Picture
 view = return . viewPure
 
-viewPure :: ST s (GameState s) -> Picture
-viewPure gstate = circle 10
+viewPure :: GameState -> Picture
+viewPure _ = circle 10

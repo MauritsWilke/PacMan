@@ -2,35 +2,34 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Model where
 import GHC.Generics (Generic)
-import Utils.Count
+import Utils.Count (Timer, liveCounter, LiveCounter, ScoreCounter, RoundCounter, roundCounter, timeCounter, scoreCounter)
 import Utils.Board
-import Control.Monad.ST (ST)
 
 -- ! Oprecht geen idee hoezo dit niet geimport hoeft te worden met data Board ipv type Board
 -- import GHC.Arr (STArray) 
 
-data GameState s = GameState 
+data GameState = GameState 
   { scene        :: Scene
-  , level        :: Level s
+  , level        :: Level
   , player       :: Player
   -- COUNTERS
-  , timer        :: Int -- >=0 
-  , lives        :: Int -- >=0
-  , score        :: Int -- >=0
-  , round        :: Int -- > 0
+  , timer        :: Timer -- >=0 
+  , lives        :: LiveCounter -- >=0
+  , score        :: ScoreCounter -- >=0
+  , round        :: RoundCounter -- > 0
   -- ROUND SPECIFIC
   , pelletsEaten :: Int
   , ghostsEaten  :: Int -- Resets when eating power pellet
   } deriving (Show, Generic)
 
-initialState :: ST s (GameState s)
-initialState = do
-  pure $ GameState Homescreen NoLevel NoPlayer 0 0 0 0 0 0
+
+initialState :: GameState
+initialState = GameState {scene = Homescreen, level = NoLevel, player = NoPlayer, timer = timeCounter 0, lives = liveCounter 3, score = scoreCounter 0, Model.round = roundCounter 0, pelletsEaten = 0, ghostsEaten = 0}
 
 data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
   deriving (Show, Eq)
 
-data Level s = NoLevel | Level 
+data Level = NoLevel | Level 
   { spawnPosition :: (Int, Int) -- Spawn tile
   , board         :: Board
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
