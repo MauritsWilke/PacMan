@@ -21,7 +21,7 @@ standardBoard :: Board
 standardBoard = Board {board = I.fromList boardList, width = 10, height = 10}
   where
     boardList = zip coordList emptyTiles
-    coordList = [1..100]
+    coordList = [0..99]
     emptyTiles = replicate (length coordList) Pellet
 
 data Tile = Wall | Empty | Pellet | PowerPellet | Fruit
