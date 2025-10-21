@@ -36,12 +36,13 @@ drawLevel Level{ gameBoard = Board{..} } =
       (tileAsset t)
 
 tileAsset :: Tile -> Picture
-tileAsset Wall        = Color blue  $ rectangleSolid tileWidth tileWidth
+tileAsset Wall        = Color blue  $ rectangleWire tileWidth tileWidth
 tileAsset Empty       = blank
-tileAsset Pellet      = Color white $ rectangleSolid (tileWidth / 4) (tileWidth / 4)
-tileAsset PowerPellet = Color white $ circleSolid (tileWidth / 3)
-tileAsset Fruit       = Color red   $ circleSolid (tileWidth / 4)
-tileAsset GhostSpawn  = Color green $ rectangleSolid tileWidth tileWidth
+tileAsset Pellet      = Color white  $ rectangleSolid (tileWidth / 4) (tileWidth / 4)
+tileAsset PowerPellet = Color white  $ circleSolid (tileWidth / 3)
+tileAsset Fruit       = Color red    $ circleSolid (tileWidth / 4)
+tileAsset GhostSpawn  = Color green  $ rectangleSolid tileWidth tileWidth
+tileAsset GhostExit   = Color orange $ rectangleSolid tileWidth tileWidth
 
 drawPlayer :: Player -> Picture
 drawPlayer NoPlayer = blank
