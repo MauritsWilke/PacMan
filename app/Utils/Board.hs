@@ -1,8 +1,12 @@
 module Utils.Board where
 import qualified Data.IntMap.Lazy as I
 
-data Board = Board {board :: I.IntMap Tile, width :: Int, height:: Int}
-  deriving (Show)
+data Board = Board 
+  { board :: I.IntMap Tile
+  -- , wallMap :: I.IntMap Wall
+  , width :: Int
+  , height:: Int
+  } deriving (Show)
 
 set :: (Int,Int) -> Tile -> Board -> Board
 set (row,col) t (Board m w h) = Board (I.adjustWithKey f (row*col) m) w h
@@ -53,3 +57,14 @@ loadBoardFromFile = do
 
 data Tile = Wall | Empty | Pellet | PowerPellet | Fruit | GhostSpawn
   deriving (Show, Eq)
+
+{-
+Orientation = N | E | S | W
+
+DoubleCorner
+DoubleWall
+DoubleWall
+
+SingleCorner
+SingleWall
+-}

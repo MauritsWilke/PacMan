@@ -27,8 +27,9 @@ drawLevel NoLevel = Color red $ rectangleSolid 10 10
 drawLevel Level{ gameBoard = Board{..} } =
   Pictures . I.elems $ I.mapWithKey tilePic board
   where
-    baseX = -(fromIntegral width * tileWidth / 2)
-    baseY = -(fromIntegral height * tileWidth / 2)
+    -- The 0.5 tilewidth is to properly center tiles
+    baseX = -(fromIntegral width * tileWidth / 2) + (0.5 * tileWidth)
+    baseY = -(fromIntegral height * tileWidth / 2) +  (0.5 * tileWidth)
     tilePic i t = Translate
       (baseX + fromIntegral (i `mod` width) * tileWidth)
       (baseY + fromIntegral (i `div` width) * tileWidth)
