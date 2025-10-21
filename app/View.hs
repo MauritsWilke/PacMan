@@ -15,7 +15,8 @@ view = return . viewPure
 viewPure :: GameState -> Picture
 viewPure gstate = Pictures
   [
-    drawLevel (level gstate)
+    drawLevel (level gstate),
+    drawPlayer (player gstate)
   ]
 
 tileWidth :: Float
@@ -40,3 +41,7 @@ tileAsset Pellet      = Color white $ rectangleSolid (tileWidth / 4) (tileWidth 
 tileAsset PowerPellet = Color white $ circleSolid (tileWidth / 3)
 tileAsset Fruit       = Color red   $ circleSolid (tileWidth / 4)
 tileAsset GhostSpawn  = Color green $ rectangleSolid tileWidth tileWidth
+
+drawPlayer :: Player -> Picture
+drawPlayer NoPlayer = blank
+drawPlayer Player{..} = Color yellow $ circleSolid 10 -- TODO does not take the player position into account now
