@@ -23,17 +23,15 @@ tileWidth = 25.0
 
 drawLevel :: Level -> Picture
 drawLevel NoLevel = Color red $ rectangleSolid 10 10
-drawLevel Level{ gameBoard = Board{..}, ..} = Pictures . I.elems $ I.mapWithKey tileToPicture board
+drawLevel Level{ gameBoard = Board{..} } =
+  Pictures . I.elems $ I.mapWithKey tilePic board
   where
-    baseX = - ((fromIntegral width * tileWidth) / 2)
-    baseY = - ((fromIntegral height * tileWidth) / 2)
-
-    tileToPicture :: Int -> Tile -> Picture
-    tileToPicture i a 
-      = Translate
-        (baseX + fromIntegral (i `mod` width) * tileWidth) -- X translation
-        (baseY + fromIntegral (i `div` width) * tileWidth) -- Y translation
-      $ tileAsset a
+    baseX = -(fromIntegral width * tileWidth / 2)
+    baseY = -(fromIntegral height * tileWidth / 2)
+    tilePic i t = Translate
+      (baseX + fromIntegral (i `mod` width) * tileWidth)
+      (baseY + fromIntegral (i `div` width) * tileWidth)
+      (tileAsset t)
 
 tileAsset :: Tile -> Picture
 tileAsset Wall        = Color blue  $ rectangleSolid tileWidth tileWidth
