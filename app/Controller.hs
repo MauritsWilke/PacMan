@@ -3,13 +3,13 @@ module Controller where
 import Model hiding (Down, Up)
 import Graphics.Gloss.Interface.IO.Game
 import qualified Data.Set as S
+import System.Exit (exitSuccess)
 
 -- 
 step :: Float -> GameState -> IO GameState
-step _ 
-  = return
-  . inputKey
-  -- . debug
+step _ gstate 
+  | shouldQuit gstate = exitSuccess
+  | otherwise         = pure (inputKey gstate)
 
 -- ! CAN CHANGE THE GAMESTATE CURRENTLY
 debug :: GameState -> GameState
@@ -30,4 +30,5 @@ inputKey :: GameState -> GameState
 inputKey gstate = foldl applyKey gstate (S.toList $ keys gstate)
 
 applyKey :: GameState -> Key -> GameState
-applyKey gstate _ = gstate
+applyKey gstate (SpecialKey KeyEsc) = gstate { shouldQuit = True }
+applyKey gstate _                   = gstate

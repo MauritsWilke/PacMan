@@ -21,6 +21,7 @@ data GameState = GameState
   , ghostsEaten  :: Int -- Resets when eating power pellet
   -- GAME CONTROLS
   , keys         :: S.Set Key
+  , shouldQuit   :: Bool
   } deriving (Show, Generic)
 
 
@@ -36,6 +37,7 @@ initialState = GameState
   , pelletsEaten = 0
   , ghostsEaten = 0
   , keys = S.empty
+  , shouldQuit = False
   }
 
 initialLevelTEMP :: Level
