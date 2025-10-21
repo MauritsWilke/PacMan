@@ -41,7 +41,7 @@ initialState = GameState
 initialLevelTEMP :: Level
 initialLevelTEMP = Level 
   { spawnPosition = (0, 0)
-  , gameBoard = standardBoard
+  , gameBoard = realBoard
   , ghosts = []
   }
 
@@ -51,7 +51,7 @@ data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
 
 data Level = NoLevel | Level 
   { spawnPosition :: (Int, Int) -- Spawn tile
-  , gameBoard         :: Board
+  , gameBoard     :: Board
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic)
 

@@ -19,7 +19,7 @@ viewPure gstate = Pictures
   ]
 
 tileWidth :: Float
-tileWidth = 40.0
+tileWidth = 25.0
 
 drawLevel :: Level -> Picture
 drawLevel NoLevel = Color red $ rectangleSolid 10 10
@@ -31,18 +31,16 @@ drawLevel Level{ gameBoard = Board{..}, ..} = Pictures . I.elems $ I.mapWithKey 
     baseY = - ((fromIntegral height * tileWidth) / 2)
 
     tileToPicture :: Int -> Tile -> Picture
-    tileToPicture i Pellet
+    tileToPicture i a
       = Translate
         (baseX + fromIntegral (i `mod` width) * tileWidth) -- X translation
         (baseY + fromIntegral (i `div` width) * tileWidth) -- Y translation
-      $ Color (if even (i `div` 10) then (if even i then red else green) else (if even i then green else red))
-      $ tileAsset Pellet
-
-    tileToPicture _ _    = blank
+      $ tileAsset a
 
 tileAsset :: Tile -> Picture
-tileAsset Wall        = Color blue   $ rectangleSolid tileWidth tileWidth
-tileAsset Empty       = Color green  $ rectangleSolid tileWidth tileWidth
-tileAsset Pellet      = Color yellow $ circle (tileWidth / 3)
-tileAsset PowerPellet = Color orange $ rectangleSolid tileWidth tileWidth
-tileAsset Fruit       = Color yellow $ rectangleSolid tileWidth tileWidth
+tileAsset Wall        = Color blue  $ rectangleSolid tileWidth tileWidth
+tileAsset Empty       = blank
+tileAsset Pellet      = Color white $ rectangleSolid (tileWidth / 4) (tileWidth / 4)
+tileAsset PowerPellet = Color white $ circleSolid (tileWidth / 4)
+tileAsset Fruit       = Color red   $ circleSolid (tileWidth / 4)
+tileAsset GhostSpawn  = Color green $ rectangleSolid tileWidth tileWidth
