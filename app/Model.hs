@@ -4,9 +4,8 @@ module Model where
 import GHC.Generics (Generic)
 import Utils.Count (Timer, liveCounter, LiveCounter, ScoreCounter, RoundCounter, roundCounter, timeCounter, scoreCounter)
 import Utils.Board
-
--- ! Oprecht geen idee hoezo dit niet geimport hoeft te worden met data Board ipv type Board
--- import GHC.Arr (STArray) 
+import qualified Data.Set as S
+import Graphics.Gloss.Interface.IO.Game (Key)
 
 data GameState = GameState 
   { scene        :: Scene
@@ -20,11 +19,24 @@ data GameState = GameState
   -- ROUND SPECIFIC
   , pelletsEaten :: Int
   , ghostsEaten  :: Int -- Resets when eating power pellet
+  -- GAME CONTROLS
+  , keys         :: S.Set Key
   } deriving (Show, Generic)
 
 
 initialState :: GameState
-initialState = GameState {scene = Homescreen, level = NoLevel, player = NoPlayer, timer = timeCounter 0, lives = liveCounter 3, score = scoreCounter 0, Model.round = roundCounter 0, pelletsEaten = 0, ghostsEaten = 0}
+initialState = GameState 
+  { scene = Homescreen
+  , level = NoLevel
+  , player = NoPlayer
+  , timer = timeCounter 0
+  , lives = liveCounter 3
+  , score = scoreCounter 0
+  , Model.round = roundCounter 0
+  , pelletsEaten = 0
+  , ghostsEaten = 0
+  , keys = S.empty
+  }
 
 data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
   deriving (Show, Eq)
@@ -34,9 +46,6 @@ data Level = NoLevel | Level
   , board         :: Board
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic)
-
--- Use (row, col) for indexing
-
 
 -- Used to maintain movement without inputs
 data Direction = Up | Down | Left | Right
