@@ -27,7 +27,7 @@ data GameState = GameState
 initialState :: GameState
 initialState = GameState 
   { scene = Homescreen
-  , level = NoLevel
+  , level = initialLevelTEMP
   , player = NoPlayer
   , timer = timeCounter 0
   , lives = liveCounter 3
@@ -38,12 +38,20 @@ initialState = GameState
   , keys = S.empty
   }
 
+initialLevelTEMP :: Level
+initialLevelTEMP = Level 
+  { spawnPosition = (0, 0)
+  , gameBoard = standardBoard
+  , ghosts = []
+  }
+
+
 data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
   deriving (Show, Eq)
 
 data Level = NoLevel | Level 
   { spawnPosition :: (Int, Int) -- Spawn tile
-  , board         :: Board
+  , gameBoard         :: Board
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic)
 
