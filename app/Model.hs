@@ -22,6 +22,7 @@ data GameState = GameState
   -- GAME CONTROLS
   , keys         :: S.Set Key
   , shouldQuit   :: Bool
+  , debugView    :: Int
   } deriving (Show, Generic)
 
 
@@ -38,6 +39,7 @@ initialState = GameState
   , ghostsEaten = 0
   , keys = S.empty
   , shouldQuit = False
+  , debugView = 0
   }
 
 initialLevelTEMP :: Level

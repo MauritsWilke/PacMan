@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Utils.Board where
 import qualified Data.IntMap.Lazy as I
 
@@ -14,6 +16,9 @@ set (row,col) t (Board m w h) = Board (I.adjustWithKey f (row*col) m) w h
 
 get :: (Int,Int) -> Board -> Maybe Tile
 get (row,col) (Board m _ _) = I.lookup (row*col) m
+
+indexToCoord :: Int -> Board -> (Int, Int)
+indexToCoord i Board{..} = undefined
 
 -- default Tile = Wall -> creates a w*h IntMap Wall after inserting elements of provided list 
 -- for each ((row,col),tile) <- 

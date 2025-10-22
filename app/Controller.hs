@@ -4,10 +4,9 @@ import Model hiding (Down, Up)
 import Graphics.Gloss.Interface.IO.Game
 import qualified Data.Set as S
 import System.Exit (exitSuccess)
-
 -- 
 step :: Float -> GameState -> IO GameState
-step _ gstate 
+step _ gstate
   | shouldQuit gstate = exitSuccess
   | otherwise         = pure (inputKey gstate)
 
@@ -31,4 +30,7 @@ inputKey gstate = foldl applyKey gstate (S.toList $ keys gstate)
 
 applyKey :: GameState -> Key -> GameState
 applyKey gstate (SpecialKey KeyEsc) = gstate { shouldQuit = True }
+applyKey gstate (Char '-')          = gstate { debugView = debugView gstate - 1}
+applyKey gstate (Char '=')          = gstate { debugView = debugView gstate + 1}
+applyKey gstate (Char '0')          = gstate { debugView = 0 }
 applyKey gstate _                   = gstate
