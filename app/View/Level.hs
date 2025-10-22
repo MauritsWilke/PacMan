@@ -34,12 +34,11 @@ drawLevelDebug i Level{ gameBoard = Board{..} }
   where
     debugTranslation = -halfTile + 0.15 * tileWidth
 
-    renderTile j _ = tilePosition width height j debugPic
-      where
-        debugPic = Translate debugTranslation debugTranslation
-                  $ Scale 0.08 0.08
-                  $ Color red
-                  $ Text (show j)
+    renderTile j _ = tilePosition width height j 
+      (Translate debugTranslation debugTranslation
+        $ Scale 0.08 0.08
+        $ Color red
+        $ Text (show j))
 
 tileAsset :: Tile -> Picture
 tileAsset Wall        = Color blue   $ rectangleWire tileWidth tileWidth
