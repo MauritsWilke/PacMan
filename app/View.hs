@@ -19,18 +19,17 @@ viewPure gstate
 viewDefault :: GameState -> Picture
 viewDefault gstate 
   = Pictures
-  [
-    drawLevel (level gstate),
-    drawPlayer (player gstate)
-  ]
+    [ drawLevel (level gstate)
+    , drawPlayer (player gstate) 
+    ]
 
 viewDebug :: GameState -> Picture
 viewDebug gstate 
   = Pictures
-  [
-    drawLevelDebug (debugView gstate) (level gstate)
-  ]
+    [ drawLevelDebug (debugView gstate) (level gstate)
+    ]
 
 drawPlayer :: Player -> Picture
-drawPlayer NoPlayer = blank
-drawPlayer Player{..} = Color yellow $ circleSolid 10 -- TODO does not take the player position into account now
+drawPlayer NoPlayer   = blank
+drawPlayer Player{..} =
+  Color yellow $ circleSolid 10 -- TODO does not take the player position into account now
