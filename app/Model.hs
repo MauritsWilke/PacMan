@@ -7,7 +7,7 @@ import Utils.Board
 import qualified Data.Set as S
 import Graphics.Gloss.Interface.IO.Game (Key)
 
-data GameState = GameState 
+data GameState = GameState
   { scene        :: Scene
   , level        :: Level
   , player       :: Player
@@ -27,10 +27,10 @@ data GameState = GameState
 
 
 initialState :: GameState
-initialState = GameState 
+initialState = GameState
   { scene = Homescreen
   , level = initialLevelTEMP
-  , player = NoPlayer
+  , player = initialPlayerTEMP
   , timer = timeCounter 0
   , lives = liveCounter 3
   , score = scoreCounter 0
@@ -43,30 +43,38 @@ initialState = GameState
   }
 
 initialLevelTEMP :: Level
-initialLevelTEMP = Level 
+initialLevelTEMP = Level
   { spawnPosition = (0, 0)
   , gameBoard = realBoard
   , ghosts = []
   }
 
+initialPlayerTEMP :: Player
+initialPlayerTEMP = Player
+  { tilePosition = spawnPosition initialLevelTEMP
+  , positionOffset = (0, 0)
+  , direction = East
+  , mode = Normal
+  }
 
 data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
   deriving (Show, Eq)
 
-data Level = NoLevel | Level 
+data Level = NoLevel | Level
   { spawnPosition :: (Int, Int) -- Spawn tile
   , gameBoard     :: Board
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic)
 
 -- Used to maintain movement without inputs
-data Direction = Up | Down | Left | Right
+-- Cardinal directions used to prevent conflict with Gloss Up Down
+data Direction = North | South | West | East
   deriving (Show, Eq)
-  
+
 data PlayerMode = Normal | Powered | Dead | Respawning | LevelComplete
   deriving (Show, Eq)
 
-data Player = NoPlayer | Player 
+data Player = NoPlayer | Player
   { tilePosition  :: (Int, Int)
   , positionOffset :: (Double, Double)
   , direction :: Direction
@@ -75,7 +83,7 @@ data Player = NoPlayer | Player
 
 data GhostType = Inky | Blinky | Pinky | Clyde
   deriving (Show, Eq)
-  
+
 data GhostMode = Chase | Scatter | Fright | Spawn
   deriving (Show, Eq)
 

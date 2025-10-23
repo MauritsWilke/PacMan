@@ -8,7 +8,7 @@ import Controller
 main :: IO ()
 main = playIO (InWindow "Pac-Man" (400, 400) (0, 0))
        black
-       30
+       60
        initialState
        view
        input

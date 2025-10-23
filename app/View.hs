@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-} -- godsent
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 -- Convert the game to a picture that can be displayed
@@ -7,6 +6,7 @@ module View where
 import Model
 import Graphics.Gloss
 import View.Level
+import View.Player
 
 view :: GameState -> IO Picture
 view = return . viewPure
@@ -17,19 +17,15 @@ viewPure gstate
   | otherwise             = Pictures [viewDefault gstate, viewDebug gstate]
 
 viewDefault :: GameState -> Picture
-viewDefault gstate 
+viewDefault gstate
   = Pictures
     [ drawLevel (level gstate)
-    , drawPlayer (player gstate) 
+    , drawPlayer (player gstate)
     ]
 
 viewDebug :: GameState -> Picture
-viewDebug gstate 
+viewDebug gstate
   = Pictures
     [ drawLevelDebug (debugView gstate) (level gstate)
+    , drawPlayerDebug (debugView gstate) (player gstate)
     ]
-
-drawPlayer :: Player -> Picture
-drawPlayer NoPlayer   = blank
-drawPlayer Player{..} =
-  Color yellow $ circleSolid 10 -- TODO does not take the player position into account now

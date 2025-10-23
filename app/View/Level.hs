@@ -5,12 +5,6 @@ import Utils.Board
 import Graphics.Gloss
 import qualified Data.IntMap as I
 
-tileWidth :: Float
-tileWidth = 25.0
-
-halfTile :: Float
-halfTile = 0.5 * tileWidth
-
 positionTile :: Int -> Int -> Int -> Picture -> Picture
 positionTile width height i = Translate
     (baseX + fromIntegral (i `mod` width) * tileWidth)
@@ -29,8 +23,8 @@ drawLevel Level{ gameBoard = Board{..} } =
 drawLevelDebug :: Int -> Level -> Picture
 drawLevelDebug _ NoLevel = Color red $ Text "there is no current level"
 drawLevelDebug i Level{ gameBoard = Board{..} }
-  | i <= 0    = blank
-  | otherwise = Pictures $ I.elems $ I.mapWithKey renderTile board
+  | i == 1    = Pictures $ I.elems $ I.mapWithKey renderTile board
+  | otherwise = blank
   where
     debugTranslation = -halfTile + 0.15 * tileWidth
 

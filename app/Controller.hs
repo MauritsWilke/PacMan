@@ -1,6 +1,7 @@
 -- Control the user input (main logic)
+{-# LANGUAGE RecordWildCards #-}
 module Controller where
-import Model hiding (Down, Up)
+import Model
 import Graphics.Gloss.Interface.IO.Game
 import qualified Data.Set as S
 import System.Exit (exitSuccess)
@@ -29,8 +30,23 @@ inputKey :: GameState -> GameState
 inputKey gstate = foldl applyKey gstate (S.toList $ keys gstate)
 
 applyKey :: GameState -> Key -> GameState
+-- META CONTROLS
 applyKey gstate (SpecialKey KeyEsc) = gstate { shouldQuit = True }
-applyKey gstate (Char '-')          = gstate { debugView = debugView gstate - 1}
-applyKey gstate (Char '=')          = gstate { debugView = debugView gstate + 1}
 applyKey gstate (Char '0')          = gstate { debugView = 0 }
+applyKey gstate (Char '1')          = gstate { debugView = 1 }
+applyKey gstate (Char '2')          = gstate { debugView = 2 }
+-- MOVEMENT
+applyKey gstate (Char 'w')          = gstate { player = movePlayer North (player gstate) }
+applyKey gstate (Char 'a')          = gstate { player = movePlayer West  (player gstate) }
+applyKey gstate (Char 's')          = gstate { player = movePlayer South (player gstate) }
+applyKey gstate (Char 'd')          = gstate { player = movePlayer East  (player gstate) }
+-- CATCH ALL
 applyKey gstate _                   = gstate
+
+movePlayer :: Direction -> Player -> Player
+movePlayer _ NoPlayer       = NoPlayer
+movePlayer d p = let (x, y) = tilePosition p in case d of
+  North -> p { tilePosition = (x    , y + 1) }
+  South -> p { tilePosition = (x    , y - 1) }
+  East  -> p { tilePosition = (x + 1, y    ) }
+  West  -> p { tilePosition = (x - 1, y    ) }
