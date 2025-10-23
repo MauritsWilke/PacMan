@@ -11,9 +11,14 @@ view :: GameState -> IO Picture
 view = return . viewPure
 
 viewPure :: GameState -> Picture
-viewPure gstate
-  | debugView gstate == 0 = viewDefault gstate
-  | otherwise             = Pictures [viewDefault gstate, viewDebug gstate]
+viewPure gstate = case scene gstate of
+  Homescreen -> blank
+  LoadGame -> blank
+  ConfigureGame -> blank
+  SinglePlayer -> case debugView gstate of
+    0 -> viewDefault gstate
+    _ -> Pictures [viewDefault gstate, viewDebug gstate]
+  MultiPlayer -> blank
 
 viewDefault :: GameState -> Picture
 viewDefault gstate
