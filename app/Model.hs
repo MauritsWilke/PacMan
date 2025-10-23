@@ -97,16 +97,15 @@ data Ghost = Ghost
   } deriving (Show)
 
 tileWidth :: GameState -> Float
-tileWidth gstate | arS < arB = sW / bW
-                 | otherwise = sH / (3+bH)
- where arS = sW / sH
-       arB = bW / bH
-       bW = fromIntegral $ width $ gameBoard $ level gstate
-       bH = fromIntegral $ height $ gameBoard $ level gstate
-       sW = fromIntegral $ fst (screenSize gstate)
-       sH = fromIntegral $ snd (screenSize gstate)
--- aspectRatio -> if aspectScreen < aspectBoard -> use full width 
-
+tileWidth gstate 
+  | aspectRatioScreen < aspectRatioBoard = screenWidth / boardWidth
+  | otherwise                            = screenHeight / (3 + boardHeight)
+  where aspectRatioScreen = screenWidth / screenHeight
+        aspectRatioBoard  = boardWidth / boardHeight
+        boardWidth        = fromIntegral $ width  $ gameBoard $ level gstate
+        boardHeight       = fromIntegral $ height $ gameBoard $ level gstate
+        screenWidth       = fromIntegral $ fst (screenSize gstate)
+        screenHeight      = fromIntegral $ snd (screenSize gstate)
 
 -- halfTile :: GameState -> Float
 -- halfTile gs = 0.5 * tileWidth gs -- need fixing
