@@ -17,7 +17,14 @@ debug = id
 
 -- Looping input function
 input :: Event -> GameState -> IO GameState
-input e = return . updateKeyRegister e
+input e@(EventKey {}) = return . updateKeyRegister e
+input e@(EventResize {}) = return . resize e
+input _ = return
+
+-- Adjust board to resized window
+resize :: Event-> GameState -> GameState
+resize (EventResize x) gstate = gstate {size = x}
+resize _ gstate = gstate
 
 -- Add or remove keys from active key register
 updateKeyRegister :: Event -> GameState -> GameState
@@ -47,7 +54,7 @@ applyKey gstate _                   = gstate
 movePlayer :: Direction -> Player -> Player
 movePlayer _ NoPlayer       = NoPlayer
 movePlayer d p = let (x, y) = tilePosition p in case d of
-  North -> p { tilePosition = (x    , y + 1) }
+  North -> p { tilePosition = (x    , y + 1) } -- add offset calculation
   South -> p { tilePosition = (x    , y - 1) }
   East  -> p { tilePosition = (x + 1, y    ) }
   West  -> p { tilePosition = (x - 1, y    ) }

@@ -4,27 +4,28 @@ import Model
 import Graphics.Gloss
 import Utils.Board
 
-positionPlayer :: Int -> Int -> Int -> Int -> Picture -> Picture
-positionPlayer x y width height =
-  Translate (dx * tileWidth + halfTile) (dy * tileWidth + halfTile)
+
+positionPlayer :: Float -> Int -> Int -> Int -> Int -> Picture -> Picture
+positionPlayer tileW x y width height =
+  Translate (dx * tileW  + 0.5 * tileW ) (dy * tileW + 0.5* tileW )
   where
     dx = fromIntegral x - (0.5 * fromIntegral width)
     dy = fromIntegral y - (0.5 * fromIntegral height)
 
-drawPlayer :: Board -> Player -> Picture
-drawPlayer _ NoPlayer   = blank
-drawPlayer Board{..} Player{..} = let (x, y) = tilePosition in
-  positionPlayer x y width height
+drawPlayer :: Float -> Board -> Player -> Picture
+drawPlayer _ _ NoPlayer   = blank
+drawPlayer l Board{..} Player{..} = let (x, y) = tilePosition in
+  positionPlayer l x y width height
     $ Color yellow
     $ circleSolid 10
 
-drawPlayerDebug :: Int -> Board -> Player -> Picture
-drawPlayerDebug _ _ NoPlayer = 
+drawPlayerDebug :: Float -> Int -> Board -> Player -> Picture
+drawPlayerDebug _ _ _ NoPlayer =
   Color red $ Text "there is no current level"
-drawPlayerDebug i Board{..} Player{..}
+drawPlayerDebug tileW i Board{..} Player{..}
   | i == 2 = let (x, y) = tilePosition in
-    Translate (-halfTile) halfTile
-      $ positionPlayer x y width height
+    Translate (- (0.5 * tileW)) (0.5 * tileW)
+      $ positionPlayer tileW x y width height
       $ Scale 0.08 0.08
       $ Color red
       $ Text ("(" ++ show x ++ ", " ++ show y ++ ")")

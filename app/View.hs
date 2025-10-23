@@ -17,13 +17,13 @@ viewPure gstate
 viewDefault :: GameState -> Picture
 viewDefault gstate
   = Pictures
-    [ drawLevel (level gstate)
-    , drawPlayer (gameBoard (level gstate)) (player gstate)
+    [ drawLevel (tileWidth gstate) (level gstate)
+    , drawPlayer (tileWidth gstate) (gameBoard (level gstate)) (player gstate)
     ]
 
 viewDebug :: GameState -> Picture
 viewDebug gstate
   = Pictures
-    [ drawLevelDebug (debugView gstate) (level gstate)
-    , drawPlayerDebug (debugView gstate) (gameBoard (level gstate)) (player gstate)
+    [ drawLevelDebug (tileWidth gstate) (debugView gstate) (level gstate)
+    , drawPlayerDebug (tileWidth gstate) (debugView gstate) (gameBoard (level gstate)) (player gstate)
     ]

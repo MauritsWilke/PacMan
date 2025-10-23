@@ -5,48 +5,48 @@ import Utils.Board
 import Graphics.Gloss
 import qualified Data.IntMap as I
 
-positionTile :: Int -> Int -> Int -> Picture -> Picture
-positionTile width height i = Translate
-    (baseX + fromIntegral (i `mod` width) * tileWidth)
-    (baseY + fromIntegral (i `div` width) * tileWidth)
+positionTile :: Float -> Int -> Int -> Int -> Picture -> Picture
+positionTile tileW width height i = Translate
+    (baseX tileW + fromIntegral (i `mod` width) * tileW)
+    (baseY tileW + fromIntegral (i `div` width) * tileW)
   where
-    baseX = -(fromIntegral width * halfTile) + halfTile
-    baseY = -(fromIntegral height * halfTile) + halfTile
+    baseX tileW = -(fromIntegral width * 0.5* tileW) + 0.5* tileW
+    baseY tileW = -(fromIntegral height * 0.5* tileW) + 0.5* tileW
 
-drawLevel :: Level -> Picture
-drawLevel NoLevel = blank
-drawLevel Level{ gameBoard = Board{..} } =
-  Pictures . I.elems $ I.mapWithKey renderTile board
+drawLevel :: Float -> Level -> Picture
+drawLevel _ NoLevel = blank
+drawLevel tileW Level{ gameBoard = Board{..} } =
+  Pictures . I.elems $ I.mapWithKey (renderTile tileW) board
   where
-    renderTile i t = positionTile width height i (tileAsset t)
+    renderTile tileW i t = positionTile tileW width height i (tileAsset tileW t)
 
-drawLevelDebug :: Int -> Level -> Picture
-drawLevelDebug _ NoLevel = Color red $ Text "there is no current level"
-drawLevelDebug i Level{ gameBoard = Board{..} }
-  | i == 1    = Pictures $ I.elems $ I.mapWithKey renderTile board
-  | i == 3    = Pictures $ I.elems $ I.mapWithKey renderTileCoords board
+drawLevelDebug :: Float -> Int -> Level -> Picture
+drawLevelDebug _ _ NoLevel = Color red $ Text "there is no current level"
+drawLevelDebug tileW i Level{ gameBoard = Board{..} }
+  | i == 1    = Pictures $ I.elems $ I.mapWithKey (renderTile tileW) board
+  | i == 3    = Pictures $ I.elems $ I.mapWithKey (renderTileCoords tileW) board
   | otherwise = blank
   where
-    debugTranslation = -halfTile + 0.15 * tileWidth
+    debugTranslation tileW = -(0.5* tileW) + 0.15 * tileW
 
-    renderTileCoords j _ = positionTile width height j
-      (Translate debugTranslation halfTile
+    renderTileCoords tileW j _ = positionTile tileW width height j
+      (Translate (debugTranslation tileW) (0.5* tileW)
         $ Rotate 45
         $ Scale 0.08 0.08
         $ Color red
         $ Text (show (indexToCoord j width)))
 
-    renderTile j _ = positionTile width height j
-      (Translate debugTranslation debugTranslation
+    renderTile tileW j _ = positionTile tileW width height j
+      (Translate (debugTranslation tileW) (debugTranslation tileW)
         $ Scale 0.08 0.08
         $ Color red
         $ Text (show j))
 
-tileAsset :: Tile -> Picture
-tileAsset Wall        = Color blue   $ rectangleWire tileWidth tileWidth
-tileAsset Pellet      = Color white  $ rectangleSolid (tileWidth / 4) (tileWidth / 4)
-tileAsset PowerPellet = Color white  $ circleSolid (tileWidth / 3)
-tileAsset Fruit       = Color red    $ circleSolid (tileWidth / 4)
-tileAsset GhostSpawn  = Color green  $ rectangleSolid tileWidth tileWidth
-tileAsset GhostExit   = Color orange $ rectangleSolid tileWidth tileWidth
-tileAsset Empty       = blank
+tileAsset :: Float -> Tile -> Picture
+tileAsset l Wall        = Color blue   $ rectangleWire l l
+tileAsset l Pellet      = Color white  $ rectangleSolid (l/4) (l/4)
+tileAsset l PowerPellet = Color white  $ circleSolid (l/3)
+tileAsset l Fruit       = Color red    $ circleSolid $ l /4
+tileAsset l GhostSpawn  = Color green  $ rectangleSolid l l
+tileAsset l GhostExit   = Color orange $ rectangleSolid l l
+tileAsset _ Empty       = blank

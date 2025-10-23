@@ -1,11 +1,7 @@
 module Utils.Board where
 import qualified Data.IntMap.Lazy as I
 
-tileWidth :: Float
-tileWidth = 25.0
 
-halfTile :: Float
-halfTile = 0.5 * tileWidth
 
 data Board = Board 
   { board :: I.IntMap Tile
