@@ -44,7 +44,7 @@ initialState = GameState
 
 initialLevelTEMP :: Level
 initialLevelTEMP = Level
-  { spawnPosition = (0, 0)
+  { spawnPosition = (13, 13)
   , gameBoard = realBoard
   , ghosts = []
   }
