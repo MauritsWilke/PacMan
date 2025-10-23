@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-
 -- Convert the game to a picture that can be displayed
 module View where
 
@@ -20,12 +18,12 @@ viewDefault :: GameState -> Picture
 viewDefault gstate
   = Pictures
     [ drawLevel (level gstate)
-    , drawPlayer (player gstate)
+    , drawPlayer (gameBoard (level gstate)) (player gstate)
     ]
 
 viewDebug :: GameState -> Picture
 viewDebug gstate
   = Pictures
     [ drawLevelDebug (debugView gstate) (level gstate)
-    , drawPlayerDebug (debugView gstate) (player gstate)
+    , drawPlayerDebug (debugView gstate) (gameBoard (level gstate)) (player gstate)
     ]
