@@ -29,7 +29,7 @@ data GameState = GameState
 
 initialState :: GameState
 initialState = GameState
-  { scene = Homescreen
+  { scene = SinglePlayer
   , level = initialLevelTEMP
   , player = initialPlayerTEMP
   , timer = timeCounter 0
