@@ -27,22 +27,25 @@ updateKeyRegister _ gstate                     = gstate
 
 -- For each key that is pressed, apply the action bound to that key
 inputKey :: GameState -> GameState
-inputKey gstate = foldl applyKey gstate (S.toList $ keys gstate)
+inputKey gstate = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
 
-applyKey :: GameState -> Key -> GameState
+-- TODO add actions instead of all game logic here
+applyKey :: Scene -> GameState -> Key -> GameState
 -- META CONTROLS
-applyKey gstate (SpecialKey KeyEsc) = gstate { shouldQuit = True }
-applyKey gstate (Char '0')          = gstate { debugView = 0 }
-applyKey gstate (Char '1')          = gstate { debugView = 1 }
-applyKey gstate (Char '2')          = gstate { debugView = 2 }
-applyKey gstate (Char '3')          = gstate { debugView = 3 }
+applyKey _ gstate (SpecialKey KeyEsc)              = gstate { shouldQuit = True }
+applyKey _ gstate (Char '0')                       = gstate { debugView = 0 }
+applyKey _ gstate (Char '1')                       = gstate { debugView = 1 }
+applyKey _ gstate (Char '2')                       = gstate { debugView = 2 }
+applyKey _ gstate (Char '3')                       = gstate { debugView = 3 }
+-- HOMESCREEN
+applyKey Homescreen   gstate (SpecialKey KeySpace) = gstate { scene = SinglePlayer }
 -- MOVEMENT
-applyKey gstate (Char 'w')          = gstate { player = movePlayer North (player gstate) }
-applyKey gstate (Char 'a')          = gstate { player = movePlayer West  (player gstate) }
-applyKey gstate (Char 's')          = gstate { player = movePlayer South (player gstate) }
-applyKey gstate (Char 'd')          = gstate { player = movePlayer East  (player gstate) }
+applyKey SinglePlayer gstate (Char 'w')            = gstate { player = movePlayer North (player gstate) }
+applyKey SinglePlayer gstate (Char 'a')            = gstate { player = movePlayer West  (player gstate) }
+applyKey SinglePlayer gstate (Char 's')            = gstate { player = movePlayer South (player gstate) }
+applyKey SinglePlayer gstate (Char 'd')            = gstate { player = movePlayer East  (player gstate) }
 -- CATCH ALL
-applyKey gstate _                   = gstate
+applyKey _ gstate _                                = gstate
 
 movePlayer :: Direction -> Player -> Player
 movePlayer _ NoPlayer       = NoPlayer

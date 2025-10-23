@@ -70,6 +70,7 @@ executable pacman
                       View.Level,
                       View.Player,
                       View.Score,
+                      View.Homescreen,
     build-depends:    containers ^>=0.6.7, 
                       base ^>=4.18.3.0, 
 

@@ -6,13 +6,14 @@ import Graphics.Gloss
 import View.Level
 import View.Player
 import View.Score (drawScore)
+import View.Homescreen (renderHomescreen)
 
 view :: GameState -> IO Picture
 view = return . viewPure
 
 viewPure :: GameState -> Picture
 viewPure gstate = case scene gstate of
-  Homescreen -> blank
+  Homescreen -> renderHomescreen
   LoadGame -> blank
   ConfigureGame -> blank
   SinglePlayer -> case debugView gstate of
