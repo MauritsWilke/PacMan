@@ -98,7 +98,7 @@ data Ghost = Ghost
 
 tileWidth :: GameState -> Float
 tileWidth gstate | arS < arB = sW / bW
-                 | otherwise = sH / bH
+                 | otherwise = sH / (3+bH)
  where arS = sW / sH
        arB = bW / bH
        bW = fromIntegral $ width $ gameBoard $ level gstate

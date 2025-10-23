@@ -11,9 +11,9 @@ commas = reverse . commas' . reverse
     commas' (x:y:z:xs) = [x, y, z, ','] ++ commas' xs
     commas' xs = xs
 
-drawScore :: Board -> Int -> Picture
-drawScore Board{..} s =
-  Translate ((fromIntegral width - 5) * halfTile) (fromIntegral height * halfTile + 0.5 * halfTile)
+drawScore :: Float -> Board -> Int -> Picture
+drawScore tileW Board{..} s =
+  Translate ((fromIntegral width - 5) * (0.5*tileW)) (fromIntegral height * (0.5*tileW) + (0.5*tileW))
   $ Scale 0.1 0.1
   $ Color white
   $ Text (commas (show s))

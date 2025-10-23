@@ -17,7 +17,7 @@ drawPlayer _ _ NoPlayer   = blank
 drawPlayer l Board{..} Player{..} = let (x, y) = tilePosition in
   positionPlayer l x y width height
     $ Color yellow
-    $ circleSolid 10
+    $ circleSolid (0.5*l)
 
 drawPlayerDebug :: Float -> Int -> Board -> Player -> Picture
 drawPlayerDebug _ _ _ NoPlayer =

@@ -26,7 +26,7 @@ viewDefault gstate
   = Pictures
     [ drawLevel (tileWidth gstate) (level gstate)
     , drawPlayer (tileWidth gstate) (gameBoard (level gstate)) (player gstate)
-    , drawScore (gameBoard (level gstate)) 3333360
+    , drawScore (tileWidth gstate) (gameBoard (level gstate)) 3333360
     ]
 
 viewDebug :: GameState -> Picture
