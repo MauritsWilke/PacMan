@@ -21,6 +21,12 @@ set (row,col) t (Board m w h) = Board (I.adjustWithKey f (row*col) m) w h
 get :: (Int,Int) -> Board -> Maybe Tile
 get (row,col) (Board m _ _) = I.lookup (row*col) m
 
+indexToCoord :: Int -> Int -> (Int, Int)
+indexToCoord i w = (row, col)
+  where
+    row = i `div` w
+    col = i `mod` w
+
 -- default Tile = Wall -> creates a w*h IntMap Wall after inserting elements of provided list 
 -- for each ((row,col),tile) <- 
 -- customBoard :: [((Int,Int),Tile)] -> Int -> Int -> Board

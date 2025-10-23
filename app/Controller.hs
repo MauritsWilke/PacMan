@@ -35,6 +35,7 @@ applyKey gstate (SpecialKey KeyEsc) = gstate { shouldQuit = True }
 applyKey gstate (Char '0')          = gstate { debugView = 0 }
 applyKey gstate (Char '1')          = gstate { debugView = 1 }
 applyKey gstate (Char '2')          = gstate { debugView = 2 }
+applyKey gstate (Char '3')          = gstate { debugView = 3 }
 -- MOVEMENT
 applyKey gstate (Char 'w')          = gstate { player = movePlayer North (player gstate) }
 applyKey gstate (Char 'a')          = gstate { player = movePlayer West  (player gstate) }

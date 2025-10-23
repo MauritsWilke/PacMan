@@ -24,11 +24,19 @@ drawLevelDebug :: Int -> Level -> Picture
 drawLevelDebug _ NoLevel = Color red $ Text "there is no current level"
 drawLevelDebug i Level{ gameBoard = Board{..} }
   | i == 1    = Pictures $ I.elems $ I.mapWithKey renderTile board
+  | i == 3    = Pictures $ I.elems $ I.mapWithKey renderTileCoords board
   | otherwise = blank
   where
     debugTranslation = -halfTile + 0.15 * tileWidth
 
-    renderTile j _ = positionTile width height j 
+    renderTileCoords j _ = positionTile width height j
+      (Translate debugTranslation halfTile
+        $ Rotate 45
+        $ Scale 0.08 0.08
+        $ Color red
+        $ Text (show (indexToCoord j width)))
+
+    renderTile j _ = positionTile width height j
       (Translate debugTranslation debugTranslation
         $ Scale 0.08 0.08
         $ Color red
