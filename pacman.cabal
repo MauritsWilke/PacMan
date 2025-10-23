@@ -67,6 +67,7 @@ executable pacman
                       View,
                       Utils.Count,
                       Utils.Board,
+                      Utils.Text,
                       View.Level,
                       View.Player,
                       View.Score,

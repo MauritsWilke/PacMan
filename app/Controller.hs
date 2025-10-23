@@ -23,7 +23,7 @@ input _ = return
 
 -- Adjust board to resized window
 resize :: Event-> GameState -> GameState
-resize (EventResize x) gstate = gstate {size = x}
+resize (EventResize x) gstate = gstate { screenSize = x }
 resize _ gstate = gstate
 
 -- Add or remove keys from active key register

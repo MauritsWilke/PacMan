@@ -21,7 +21,7 @@ data GameState = GameState
   , ghostsEaten  :: Int -- Resets when eating power pellet
   -- GAME CONTROLS
   , keys         :: S.Set Key
-  , size         :: (Int,Int)
+  , screenSize   :: (Int,Int)
   , shouldQuit   :: Bool
   , debugView    :: Int
   } deriving (Show, Generic)
@@ -39,7 +39,7 @@ initialState = GameState
   , pelletsEaten = 0
   , ghostsEaten = 0
   , keys = S.empty
-  , size = (400,400)
+  , screenSize = (400,400)
   , shouldQuit = False
   , debugView = 0
   }
@@ -103,8 +103,8 @@ tileWidth gstate | arS < arB = sW / bW
        arB = bW / bH
        bW = fromIntegral $ width $ gameBoard $ level gstate
        bH = fromIntegral $ height $ gameBoard $ level gstate
-       sW = fromIntegral $ fst (size gstate)
-       sH = fromIntegral $ snd (size gstate)
+       sW = fromIntegral $ fst (screenSize gstate)
+       sH = fromIntegral $ snd (screenSize gstate)
 -- aspectRatio -> if aspectScreen < aspectBoard -> use full width 
 
 

@@ -1,8 +1,8 @@
 module View.Homescreen where
 import Graphics.Gloss
 
-renderHomescreen :: Picture
-renderHomescreen = Pictures
-  [ Translate (-200) 0 $ Color white $ Text "PacMan"
-  , Translate (-100) (-50) $ Color white $ Scale 0.2 0.2 $ Text "press space to start"  
+renderHomescreen :: Float -> Picture
+renderHomescreen tw = Pictures
+  [ Translate ((-7) * tw) 0     $ Color white $ Scale (tw / 32) (tw / 32)   $ Text "PacMan"
+  , Translate ((-5.25) * tw) (- (tw * 2)) $ Color white $ Scale (tw / 128) (tw / 128) $ Text "press space to start"
   ]
