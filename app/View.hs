@@ -5,6 +5,7 @@ import Model
 import Graphics.Gloss
 import View.Level
 import View.Player
+import View.Score (drawScore)
 
 view :: GameState -> IO Picture
 view = return . viewPure
@@ -19,6 +20,7 @@ viewDefault gstate
   = Pictures
     [ drawLevel (level gstate)
     , drawPlayer (gameBoard (level gstate)) (player gstate)
+    , drawScore (gameBoard (level gstate)) 3333360
     ]
 
 viewDebug :: GameState -> Picture
