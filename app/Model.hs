@@ -67,7 +67,8 @@ data PlayerMode = Normal | Powered | Dead | Respawning | LevelComplete
   deriving (Show, Eq)
 
 data Player = NoPlayer | Player 
-  { position  :: (Double, Double)
+  { tilePosition  :: (Int, Int)
+  , positionOffset :: (Double, Double)
   , direction :: Direction
   , mode      :: PlayerMode
   } deriving (Show)

@@ -11,8 +11,8 @@ tileWidth = 25.0
 halfTile :: Float
 halfTile = 0.5 * tileWidth
 
-tilePosition :: Int -> Int -> Int -> Picture -> Picture
-tilePosition width height i = Translate
+positionTile :: Int -> Int -> Int -> Picture -> Picture
+positionTile width height i = Translate
     (baseX + fromIntegral (i `mod` width) * tileWidth)
     (baseY + fromIntegral (i `div` width) * tileWidth)
   where
@@ -24,7 +24,7 @@ drawLevel NoLevel = blank
 drawLevel Level{ gameBoard = Board{..} } =
   Pictures . I.elems $ I.mapWithKey renderTile board
   where
-    renderTile i t = tilePosition width height i (tileAsset t)
+    renderTile i t = positionTile width height i (tileAsset t)
 
 drawLevelDebug :: Int -> Level -> Picture
 drawLevelDebug _ NoLevel = Color red $ Text "there is no current level"
@@ -34,7 +34,7 @@ drawLevelDebug i Level{ gameBoard = Board{..} }
   where
     debugTranslation = -halfTile + 0.15 * tileWidth
 
-    renderTile j _ = tilePosition width height j 
+    renderTile j _ = positionTile width height j 
       (Translate debugTranslation debugTranslation
         $ Scale 0.08 0.08
         $ Color red
