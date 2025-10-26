@@ -99,13 +99,10 @@ data Ghost = Ghost
 tileWidth :: GameState -> Float
 tileWidth gstate 
   | aspectRatioScreen < aspectRatioBoard = screenWidth / boardWidth
-  | otherwise                            = screenHeight / (3 + boardHeight)
+  | otherwise                            = screenHeight / boardHeight
   where aspectRatioScreen = screenWidth / screenHeight
         aspectRatioBoard  = boardWidth / boardHeight
         boardWidth        = fromIntegral $ width  $ gameBoard $ level gstate
-        boardHeight       = fromIntegral $ height $ gameBoard $ level gstate
+        boardHeight       = fromIntegral $ (3 + (height (gameBoard (level gstate)))) -- additional 3 slots reserved for info display on top and bottom of the screen
         screenWidth       = fromIntegral $ fst (screenSize gstate)
         screenHeight      = fromIntegral $ snd (screenSize gstate)
-
--- halfTile :: GameState -> Float
--- halfTile gs = 0.5 * tileWidth gs -- need fixing
