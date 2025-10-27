@@ -7,6 +7,7 @@ import Utils.Count (Timer, liveCounter, LiveCounter, ScoreCounter, RoundCounter,
 import Utils.Board
 import qualified Data.Set as S
 import Graphics.Gloss.Interface.IO.Game (Key)
+import Text.Printf (vFmt)
 
 data GameState = GameState
   { scene        :: Scene
@@ -47,15 +48,14 @@ initialState = GameState
 
 initialLevelTEMP :: Level
 initialLevelTEMP = Level
-  { spawnPosition = (13, 13)
+  { spawnPosition = (13.5, 14)
   , gameBoard = realBoard
   , ghosts = []
   }
 
 initialPlayerTEMP :: Player
 initialPlayerTEMP = Player
-  { tilePosition = spawnPosition initialLevelTEMP
-  , positionOffset = (0, 0)
+  { position = spawnPosition initialLevelTEMP
   , direction = East
   , mode = Normal
   }
@@ -64,7 +64,7 @@ data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
   deriving (Show, Eq)
 
 data Level = NoLevel | Level
-  { spawnPosition :: (Int, Int) -- Spawn tile
+  { spawnPosition :: (Float, Float) -- Spawn tile
   , gameBoard     :: Board
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic)
@@ -78,8 +78,7 @@ data PlayerMode = Normal | Powered | Dead | Respawning | LevelComplete
   deriving (Show, Eq)
 
 data Player = NoPlayer | Player
-  { tilePosition  :: (Int, Int)
-  , positionOffset :: (Double, Double) -- offset for player
+  { position :: (Float, Float) -- offset for player
   , direction :: Direction
   , mode      :: PlayerMode
   } deriving (Show)
@@ -109,14 +108,14 @@ tileWidth gstate
         screenHeight      = fromIntegral $ snd (screenSize gstate)
 
 move :: GameState -> Direction -> Player
-move gs dir = (player gs) {tilePosition = position}
+move gs dir = (player gs) {position = pos}
   where
-    position =
+    pos =
      case moveIsPossible gs dir of
       Nothing -> getPlayerPosition gs
       Just a -> a   
 
-moveIsPossible :: GameState -> Direction -> Maybe (Int,Int)
+moveIsPossible :: GameState -> Direction -> Maybe (Float,Float)
 moveIsPossible gs dir = let
   (x,y) = getPlayerPosition gs
   (xOff,yOff) =
@@ -125,14 +124,27 @@ moveIsPossible gs dir = let
      South -> (-1,0)
      East -> (0,1)
      West -> (0,-1)
-  desiredPosition = (x+xOff,y+yOff)
+  (desiredX,desiredY) = (x+xOff*0.125,y+yOff*0.125)
+  tileToCheck =
+    case dir of 
+      North -> (floor (desiredX + 0.5), floor desiredY)
+      South -> (floor (desiredX - 0.5), floor desiredY)
+      East  -> (floor desiredX, floor (desiredY + 0.5))
+      West  -> (floor desiredX, floor (desiredY - 0.5))
   b = gameBoard $ level gs
   in
-  case get desiredPosition b of
+  case get tileToCheck b of
    Nothing -> Nothing
    Just Wall -> Nothing
    Just GhostExit -> Nothing
-   Just _ -> Just desiredPosition
+   Just _ -> 
+    case dir of 
+      North -> Just (desiredX, fromInteger (floor desiredY) + 0.5)
+      South -> Just (desiredX, fromInteger (floor desiredY) + 0.5)
+      East  -> Just (fromInteger (floor desiredX) + 0.5,desiredY)
+      West  -> Just (fromInteger (floor desiredX) + 0.5,desiredY) 
 
-getPlayerPosition :: GameState -> (Int, Int)
-getPlayerPosition = tilePosition . player
+-- if up and row 
+
+getPlayerPosition :: GameState -> (Float, Float)
+getPlayerPosition = position . player
