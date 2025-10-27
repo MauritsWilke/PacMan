@@ -15,7 +15,10 @@ set (row,col) t (Board m w h) = Board (I.adjustWithKey f ((row*w)+col) m) w h
     where f _ _ = t
 
 get :: (Int,Int) -> Board -> Maybe Tile
-get (row,col) (Board m w _) = I.lookup ((row*w)+col) m
+get (row,col) (Board m w h) | validIndex =  I.lookup ((row*w)+col) m
+                            | otherwise = Nothing
+ where validIndex = (row < h && row >= 0) && (col < w && col >= 0)
+             
 
 indexToCoord :: Int -> Int -> (Int, Int)
 indexToCoord i w = (row, col)
