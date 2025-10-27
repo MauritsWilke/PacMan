@@ -118,33 +118,47 @@ move gs dir = (player gs) {position = pos}
 moveIsPossible :: GameState -> Direction -> Maybe (Float,Float)
 moveIsPossible gs dir = let
   (x,y) = getPlayerPosition gs
-  (xOff,yOff) =
-   case dir of
-     North -> (1,0)
-     South -> (-1,0)
-     East -> (0,1)
-     West -> (0,-1)
-  (desiredX,desiredY) = (x+xOff*0.125,y+yOff*0.125)
-  tileToCheck =
-    case dir of 
-      North -> (floor (desiredX + 0.5), floor desiredY)
-      South -> (floor (desiredX - 0.5), floor desiredY)
-      East  -> (floor desiredX, floor (desiredY + 0.5))
-      West  -> (floor desiredX, floor (desiredY - 0.5))
+  (xOff,yOff) = directionToTuple dir
+  (desiredX,desiredY) = (x+xOff*0.2,y+yOff*0.2)
+  tileToCheck = getTileToCheck (desiredX,desiredY) dir
   b = gameBoard $ level gs
+  allowedOffset = 0.03
+  closeEnough = 
+    case dir of --check if remainder of fixed variable close enough to 0.5
+      North -> abs (fromInteger (floor y) - y + 0.5) < allowedOffset
+      South -> abs (fromInteger (floor y) - y + 0.5) < allowedOffset
+      East  -> abs (fromInteger (floor x) - x + 0.5) < allowedOffset
+      West  -> abs (fromInteger (floor x) - x + 0.5) < allowedOffset
   in
+  if closeEnough then
   case get tileToCheck b of
-   Nothing -> Nothing
-   Just Wall -> Nothing
-   Just GhostExit -> Nothing
+   Nothing -> Nothing -- should check for wrap-around
+   Just Wall -> Just $ setToMiddle (x,y) -- set to end of allyway
+   Just GhostExit -> Just $ setToMiddle (x,y) -- set to en of allyway
    Just _ -> 
     case dir of 
       North -> Just (desiredX, fromInteger (floor desiredY) + 0.5)
       South -> Just (desiredX, fromInteger (floor desiredY) + 0.5)
       East  -> Just (fromInteger (floor desiredX) + 0.5,desiredY)
       West  -> Just (fromInteger (floor desiredX) + 0.5,desiredY) 
+  else Nothing
 
--- if up and row 
+setToMiddle :: (Float,Float) -> (Float,Float)
+setToMiddle (x,y) = (fromInteger (floor x) + 0.5, fromInteger (floor y) + 0.5)
+
+directionToTuple :: Direction -> (Float,Float)
+directionToTuple dir = 
+  case dir of
+     North -> (1,0)
+     South -> (-1,0)
+     East -> (0,1)
+     West -> (0,-1)
+
+-- based on position and direction
+getTileToCheck :: (Float,Float) -> Direction -> (Int,Int)
+getTileToCheck (x,y) dir | dir == North || dir == South = (floor (x + offset), floor y)
+                         | otherwise                    = (floor x, floor (y + offset))
+ where offset = if dir == North || dir == East then 0.5 else -0.5
 
 getPlayerPosition :: GameState -> (Float, Float)
 getPlayerPosition = position . player
