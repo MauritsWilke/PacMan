@@ -47,17 +47,12 @@ applyKey _ gstate (Char '3')                       = gstate { debugView = 3 }
 -- HOMESCREEN
 applyKey Homescreen   gstate (SpecialKey KeySpace) = gstate { scene = SinglePlayer }
 -- MOVEMENT
-applyKey SinglePlayer gstate (Char 'w')            = gstate { player = movePlayer North (player gstate) }
-applyKey SinglePlayer gstate (Char 'a')            = gstate { player = movePlayer West  (player gstate) }
-applyKey SinglePlayer gstate (Char 's')            = gstate { player = movePlayer South (player gstate) }
-applyKey SinglePlayer gstate (Char 'd')            = gstate { player = movePlayer East  (player gstate) }
+applyKey SinglePlayer gstate (Char 'w')            = gstate { player = movePlayer North gstate }
+applyKey SinglePlayer gstate (Char 'a')            = gstate { player = movePlayer West  gstate }
+applyKey SinglePlayer gstate (Char 's')            = gstate { player = movePlayer South gstate }
+applyKey SinglePlayer gstate (Char 'd')            = gstate { player = movePlayer East  gstate }
 -- CATCH ALL
 applyKey _ gstate _                                = gstate
 
-movePlayer :: Direction -> Player -> Player
-movePlayer _ NoPlayer       = NoPlayer
-movePlayer d p = let (x, y) = tilePosition p in case d of
-  North -> p { tilePosition = (x    , y + 1) } -- add offset calculation
-  South -> p { tilePosition = (x    , y - 1) }
-  East  -> p { tilePosition = (x + 1, y    ) }
-  West  -> p { tilePosition = (x - 1, y    ) }
+movePlayer :: Direction -> GameState -> Player
+movePlayer dir gstate = move gstate dir

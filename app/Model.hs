@@ -1,5 +1,6 @@
 -- All the relevant types
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE BlockArguments #-}
 module Model where
 import GHC.Generics (Generic)
 import Utils.Count (Timer, liveCounter, LiveCounter, ScoreCounter, RoundCounter, roundCounter, timeCounter, scoreCounter)
@@ -78,7 +79,7 @@ data PlayerMode = Normal | Powered | Dead | Respawning | LevelComplete
 
 data Player = NoPlayer | Player
   { tilePosition  :: (Int, Int)
-  , positionOffset :: (Double, Double)
+  , positionOffset :: (Double, Double) -- offset for player
   , direction :: Direction
   , mode      :: PlayerMode
   } deriving (Show)
@@ -97,12 +98,41 @@ data Ghost = Ghost
   } deriving (Show)
 
 tileWidth :: GameState -> Float
-tileWidth gstate 
+tileWidth gstate
   | aspectRatioScreen < aspectRatioBoard = screenWidth / boardWidth
   | otherwise                            = screenHeight / boardHeight
   where aspectRatioScreen = screenWidth / screenHeight
         aspectRatioBoard  = boardWidth / boardHeight
         boardWidth        = fromIntegral $ width  $ gameBoard $ level gstate
-        boardHeight       = fromIntegral $ (3 + (height (gameBoard (level gstate)))) -- additional 3 slots reserved for info display on top and bottom of the screen
+        boardHeight       = fromIntegral (3 + height (gameBoard (level gstate))) -- additional 3 slots reserved for info display on top and bottom of the screen
         screenWidth       = fromIntegral $ fst (screenSize gstate)
         screenHeight      = fromIntegral $ snd (screenSize gstate)
+
+move :: GameState -> Direction -> Player
+move gs dir = (player gs) {tilePosition = position}
+  where
+    position =
+     case moveIsPossible gs dir of
+      Nothing -> getPlayerPosition gs
+      Just a -> a   
+
+moveIsPossible :: GameState -> Direction -> Maybe (Int,Int)
+moveIsPossible gs dir = let
+  (x,y) = getPlayerPosition gs
+  (xOff,yOff) =
+   case dir of
+     North -> (1,0)
+     South -> (-1,0)
+     East -> (0,1)
+     West -> (0,-1)
+  desiredPosition = (x+xOff,y+yOff)
+  b = gameBoard $ level gs
+  in
+  case get desiredPosition b of
+   Nothing -> Nothing
+   Just Wall -> Nothing
+   Just GhostExit -> Nothing
+   Just _ -> Just desiredPosition
+
+getPlayerPosition :: GameState -> (Int, Int)
+getPlayerPosition = tilePosition . player

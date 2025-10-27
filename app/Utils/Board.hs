@@ -11,11 +11,11 @@ data Board = Board
   } deriving (Show)
 
 set :: (Int,Int) -> Tile -> Board -> Board
-set (row,col) t (Board m w h) = Board (I.adjustWithKey f (row*col) m) w h
+set (row,col) t (Board m w h) = Board (I.adjustWithKey f ((row*w)+col) m) w h
     where f _ _ = t
 
 get :: (Int,Int) -> Board -> Maybe Tile
-get (row,col) (Board m _ _) = I.lookup (row*col) m
+get (row,col) (Board m w _) = I.lookup ((row*w)+col) m
 
 indexToCoord :: Int -> Int -> (Int, Int)
 indexToCoord i w = (row, col)

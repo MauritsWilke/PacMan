@@ -15,7 +15,7 @@ positionPlayer tw x y width height =
 drawPlayer :: Float -> Board -> Player -> Picture
 drawPlayer _ _ NoPlayer   = blank
 drawPlayer l Board{..} Player{..} = let (x, y) = tilePosition in
-  positionPlayer l x y width height
+  positionPlayer l y x width height
     $ Color yellow
     $ circleSolid (0.5 * l)
 
@@ -25,7 +25,7 @@ drawPlayerDebug _ _ _ NoPlayer =
 drawPlayerDebug tw i Board{..} Player{..}
   | i == 2 = let (x, y) = tilePosition in
     Translate (- (0.5 * tw)) (0.5 * tw)
-      $ positionPlayer tw x y width height
+      $ positionPlayer tw y x width height
       $ Scale 0.08 0.08
       $ Color red
       $ Text ("(" ++ show x ++ ", " ++ show y ++ ")")
