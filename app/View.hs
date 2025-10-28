@@ -7,6 +7,7 @@ import View.Level
 import View.Player
 import View.Score (drawScore)
 import View.Homescreen (renderHomescreen)
+import View.Lives (drawLives)
 
 view :: GameState -> IO Picture
 view = return . viewPure
@@ -27,6 +28,7 @@ viewDefault gstate
     [ drawLevel (tileWidth gstate) (level gstate)
     , drawPlayer (tileWidth gstate) (gameBoard (level gstate)) (player gstate)
     , drawScore (tileWidth gstate) (gameBoard (level gstate)) 3333360
+    , drawLives (tileWidth gstate) (gameBoard (level gstate)) 3
     ]
 
 viewDebug :: GameState -> Picture

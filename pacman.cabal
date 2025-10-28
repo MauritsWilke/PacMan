@@ -70,6 +70,7 @@ executable pacman
                       Utils.Text,
                       View.Level,
                       View.Player,
+                      View.Lives,
                       View.Score,
                       View.Homescreen,
                       Actions.Move,
