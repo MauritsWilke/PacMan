@@ -119,11 +119,11 @@ data Ghost = Ghost
   } deriving (Show)
 
 -- NAME UTILS
-type TileWidth = Float
+type TileWidth       = Float
 type TileCoordinates = (Int, Int)
-type BoardWidth = Int
-type BoardHeight = Int
-type Score = Int
+type BoardWidth      = Int
+type BoardHeight     = Int
+type Score           = Int
 
 tileWidth :: GameState -> Float
 tileWidth gstate
