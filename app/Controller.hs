@@ -18,14 +18,14 @@ debug = id
 
 -- Looping input function
 input :: Event -> GameState -> IO GameState
-input e@(EventKey {}) = return . updateKeyRegister e
+input e@(EventKey {})    = return . updateKeyRegister e
 input e@(EventResize {}) = return . resize e
-input _ = return
+input _                  = return
 
 -- Adjust board to resized window
 resize :: Event-> GameState -> GameState
 resize (EventResize x) gstate = gstate { screenSize = x }
-resize _ gstate = gstate
+resize _ gstate               = gstate
 
 -- Add or remove keys from active key register
 updateKeyRegister :: Event -> GameState -> GameState
