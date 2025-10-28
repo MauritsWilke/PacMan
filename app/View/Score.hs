@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module View.Score where
-import Utils.Board
 import Graphics.Gloss
+import Model
 
 commas :: String -> String
 commas = reverse . commas' . reverse
@@ -11,7 +11,7 @@ commas = reverse . commas' . reverse
     commas' (x:y:z:xs) = [x, y, z, ','] ++ commas' xs
     commas' xs = xs
 
-drawScore :: Float -> Board -> Int -> Picture
+drawScore :: TileWidth -> Board -> Score -> Picture
 drawScore tw Board{..} s =
   Translate ((fromIntegral width - 5) * (0.5 * tw)) (fromIntegral height * (0.5 * tw) + (0.5 * tw))
   $ Scale (tw / 250) (tw / 250)

@@ -1,7 +1,8 @@
 module View.Homescreen where
 import Graphics.Gloss
+import Model
 
-renderHomescreen :: Float -> Picture
+renderHomescreen :: TileWidth -> Picture
 renderHomescreen tw = Pictures
   [ Translate ((-7) * tw) 0     
     $ Color white 

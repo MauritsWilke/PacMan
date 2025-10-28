@@ -5,7 +5,7 @@ import Utils.Board
 import Graphics.Gloss
 import qualified Data.IntMap as I
 
-positionTile :: Float -> Int -> Int -> Int -> Picture -> Picture
+positionTile :: TileWidth -> BoardWidth -> BoardHeight -> Int -> Picture -> Picture
 positionTile tw width height i = Translate
     (baseX + fromIntegral (i `mod` width) * tw)
     (baseY + fromIntegral (i `div` width) * tw)
@@ -13,14 +13,14 @@ positionTile tw width height i = Translate
     baseX = -(fromIntegral width * 0.5 * tw) + 0.5 * tw
     baseY = -(fromIntegral height * 0.5 * tw) + 0.5 * tw
 
-drawLevel :: Float -> Level -> Picture
+drawLevel :: TileWidth -> Level -> Picture
 drawLevel _ NoLevel = blank
 drawLevel tw Level{ gameBoard = Board{..} } =
   Pictures . I.elems $ I.mapWithKey (renderTile tw) board
   where
     renderTile w i t = positionTile w width height i (tileAsset w t)
 
-drawLevelDebug :: Float -> Int -> Level -> Picture
+drawLevelDebug :: TileWidth -> Int -> Level -> Picture
 drawLevelDebug _ _ NoLevel = Color red $ Text "there is no current level"
 drawLevelDebug tw i Level{ gameBoard = Board{..} }
   | i == 1    = Pictures $ I.elems $ I.mapWithKey renderTile board
@@ -42,7 +42,7 @@ drawLevelDebug tw i Level{ gameBoard = Board{..} }
         $ Color red
         $ Text (show j))
 
-tileAsset :: Float -> Tile -> Picture
+tileAsset :: TileWidth -> Tile -> Picture
 tileAsset l Wall        = Color blue   $ rectangleWire l l
 tileAsset l Pellet      = Color white  $ rectangleSolid (l / 4) (l / 4)
 tileAsset l PowerPellet = Color white  $ circleSolid (l / 3)

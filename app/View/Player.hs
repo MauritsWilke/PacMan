@@ -2,8 +2,6 @@
 module View.Player where
 import Model
 import Graphics.Gloss
-import Utils.Board
-
 
 positionPlayer :: Float -> (Float,Float) -> Int -> Int -> Picture -> Picture
 positionPlayer tw (x,y) width height =
