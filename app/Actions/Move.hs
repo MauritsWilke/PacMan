@@ -40,7 +40,10 @@ getWrapAround (x,y) b
   | onEdge && accesibleOtherSide = Just otherSide -- if the other side of the board has an accesible slot -> return other side
   | otherwise = Nothing
   where
-    onEdge = x <= 0.5 || ceiling (x-0.5) >= integerFromInt (height b) || y <= 0.5 || ceiling (y-0.5) >= integerFromInt (width b)
+    onEdge = x <= 0.5 
+          || y <= 0.5 
+          || ceiling (x - 0.5) >= integerFromInt (height b) 
+          || ceiling (y - 0.5) >= integerFromInt (width  b)
     accesibleOtherSide = -- only true when not a wall | ghostexit | ghostspawn
       case get (floor otherX, floor otherY) b of
        Nothing         -> error "board size seems to be inaccurate"

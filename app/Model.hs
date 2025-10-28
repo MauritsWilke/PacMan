@@ -99,9 +99,9 @@ tileWidth :: GameState -> Float
 tileWidth gstate
   | aspectRatioScreen < aspectRatioBoard = screenWidth / boardWidth
   | otherwise                            = screenHeight / boardHeight
-  where aspectRatioScreen = screenWidth / screenHeight
-        aspectRatioBoard  = boardWidth / boardHeight
+  where boardHeight       = fromIntegral (3 + height (gameBoard (level gstate))) -- additional 3 slots reserved for info display on top and bottom of the screen
         boardWidth        = fromIntegral $ width  $ gameBoard $ level gstate
-        boardHeight       = fromIntegral (3 + height (gameBoard (level gstate))) -- additional 3 slots reserved for info display on top and bottom of the screen
         screenWidth       = fromIntegral $ fst (screenSize gstate)
         screenHeight      = fromIntegral $ snd (screenSize gstate)
+        aspectRatioScreen = screenWidth / screenHeight
+        aspectRatioBoard  = boardWidth  / boardHeight
