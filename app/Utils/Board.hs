@@ -1,8 +1,6 @@
 module Utils.Board where
 import qualified Data.IntMap.Lazy as I
 
-
-
 data Board = Board 
   { board :: I.IntMap Tile
   -- , wallMap :: I.IntMap Wall
@@ -11,20 +9,18 @@ data Board = Board
   } deriving (Show)
 
 set :: (Int,Int) -> Tile -> Board -> Board
-set (row,col) t (Board m w h) = Board (I.adjustWithKey f ((row*w)+col) m) w h
+set (row,col) t (Board m w h) = Board (I.adjustWithKey f ((row * w) + col) m) w h
     where f _ _ = t
 
 get :: (Int,Int) -> Board -> Maybe Tile
-get (row,col) (Board m w h) | validIndex =  I.lookup ((row*w)+col) m
-                            | otherwise = Nothing
+get (row,col) (Board m w h) 
+  | validIndex = I.lookup ((row * w) + col) m
+  | otherwise  = Nothing
  where validIndex = (row < h && row >= 0) && (col < w && col >= 0)
              
 
 indexToCoord :: Int -> Int -> (Int, Int)
-indexToCoord i w = (row, col)
-  where
-    row = i `div` w
-    col = i `mod` w
+indexToCoord i w = (i `div` w, i `mod` w)
 
 -- default Tile = Wall -> creates a w*h IntMap Wall after inserting elements of provided list 
 -- for each ((row,col),tile) <- 
