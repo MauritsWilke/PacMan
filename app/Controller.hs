@@ -5,6 +5,7 @@ import Model
 import Graphics.Gloss.Interface.IO.Game
 import qualified Data.Set as S
 import System.Exit (exitSuccess)
+import Actions.Move
 -- 
 step :: Float -> GameState -> IO GameState
 step _ gstate
@@ -47,12 +48,9 @@ applyKey _ gstate (Char '3')                       = gstate { debugView = 3 }
 -- HOMESCREEN
 applyKey Homescreen   gstate (SpecialKey KeySpace) = gstate { scene = SinglePlayer }
 -- MOVEMENT
-applyKey SinglePlayer gstate (Char 'w')            = gstate { player = movePlayer North gstate }
-applyKey SinglePlayer gstate (Char 'a')            = gstate { player = movePlayer West  gstate }
-applyKey SinglePlayer gstate (Char 's')            = gstate { player = movePlayer South gstate }
-applyKey SinglePlayer gstate (Char 'd')            = gstate { player = movePlayer East  gstate }
+applyKey SinglePlayer gstate (Char 'w')            = gstate { player = move gstate North }
+applyKey SinglePlayer gstate (Char 'a')            = gstate { player = move gstate West  }
+applyKey SinglePlayer gstate (Char 's')            = gstate { player = move gstate South }
+applyKey SinglePlayer gstate (Char 'd')            = gstate { player = move gstate East  }
 -- CATCH ALL
 applyKey _ gstate _                                = gstate
-
-movePlayer :: Direction -> GameState -> Player
-movePlayer dir gstate = move gstate dir
