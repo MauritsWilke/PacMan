@@ -87,7 +87,7 @@ data Level = NoLevel | Level
 data Tile = Wall | Empty | Pellet | PowerPellet | Fruit | GhostSpawn | GhostExit
   deriving (Show, Eq)
 
-data Board = Board 
+data Board = Board
   { board :: I.IntMap Tile
   -- , wallMap :: I.IntMap Wall
   , width :: Int
@@ -115,23 +115,25 @@ data GhostMode = Chase | Scatter | Fright | Spawn
   deriving (Show, Eq)
 
 data Ghost = Ghost
-  { ghostType     :: GhostType
-  , ghostMode     :: GhostMode
-  , ghostPosition :: (Float,Float)
-  , freightTimer  :: C.FreightTimer -- >=0, counts down
-  , releaseTimer  :: C.ReleaseTimer -- >=0, counts down
+  { ghostType      :: GhostType
+  , ghostMode      :: GhostMode
+  , ghostPosition  :: (Float,Float)
+  , ghostDirection :: Direction
+  , destination    :: Maybe (Float,Float)  -- only changed when at destination or when switching mode 
+  , freightTimer   :: C.FreightTimer -- >=0, counts down
+  , releaseTimer   :: C.ReleaseTimer -- >=0, counts down
   } deriving (Show)
 
 standardGhosts :: [Ghost]
 standardGhosts = [
-  (createGhost (1.5,1.5) Blinky),
-  (createGhost (2.5,1.5) Inky),
-  (createGhost (1.5,2.5) Pinky),
-  (createGhost (1.5,3.5) Clyde)
+  createGhost (1.5,1.5) Blinky,
+  createGhost (2.5,1.5) Inky,
+  createGhost (1.5,2.5) Pinky,
+  createGhost (1.5,3.5) Clyde
   ]
 
 createGhost :: (Float,Float) -> GhostType -> Ghost
-createGhost spawn typ = Ghost {ghostType = typ, ghostMode = Scatter, ghostPosition = spawn, Model.freightTimer = (C.freightTimer 0), releaseTimer = (C.releaseTimer 0)}
+createGhost spawn typ = Ghost {ghostType = typ, ghostMode = Scatter, ghostPosition = spawn, ghostDirection = North, destination = Nothing, Model.freightTimer = (C.freightTimer 0), releaseTimer = (C.releaseTimer 0)}
 
 -- NAME UTILS
 type TileWidth       = Float

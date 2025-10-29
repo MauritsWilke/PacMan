@@ -55,9 +55,9 @@ applyKey _ gstate (Char '3')                       = gstate { debugView = 3 }
 -- HOMESCREEN
 applyKey Homescreen   gstate (SpecialKey KeySpace) = gstate { scene = SinglePlayer }
 -- MOVEMENT
-applyKey SinglePlayer gstate (Char 'w')            = gstate { player = move gstate North }
-applyKey SinglePlayer gstate (Char 'a')            = gstate { player = move gstate West  }
-applyKey SinglePlayer gstate (Char 's')            = gstate { player = move gstate South }
-applyKey SinglePlayer gstate (Char 'd')            = gstate { player = move gstate East  }
+applyKey SinglePlayer gstate (Char 'w')            = gstate { player = playerMove gstate North }
+applyKey SinglePlayer gstate (Char 'a')            = gstate { player = playerMove gstate West  }
+applyKey SinglePlayer gstate (Char 's')            = gstate { player = playerMove gstate South }
+applyKey SinglePlayer gstate (Char 'd')            = gstate { player = playerMove gstate East  }
 -- CATCH ALL
 applyKey _ gstate _                                = gstate
