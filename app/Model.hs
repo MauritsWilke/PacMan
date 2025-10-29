@@ -24,6 +24,7 @@ data GameState = GameState
   , keys         :: S.Set Key
   , screenSize   :: (Int,Int)
   , shouldQuit   :: Bool
+  , paused       :: Bool
   , debugView    :: Int
   } deriving (Show, Generic)
 
@@ -42,6 +43,7 @@ initialState = GameState
   , keys = S.empty
   , screenSize = (400,400)
   , shouldQuit = False
+  , paused = False
   , debugView = 0
   }
 

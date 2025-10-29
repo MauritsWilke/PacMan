@@ -10,6 +10,7 @@ import Actions.Move
 step :: Float -> GameState -> IO GameState
 step _ gstate
   | shouldQuit gstate = exitSuccess
+  | paused gstate     = pure (inputPause gstate)
   | otherwise         = pure (inputKey gstate)
 
 -- ! CAN CHANGE THE GAMESTATE CURRENTLY
@@ -37,10 +38,16 @@ updateKeyRegister _ gstate                     = gstate
 inputKey :: GameState -> GameState
 inputKey gstate = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
 
+inputPause :: GameState -> GameState
+inputPause gstate = if S.member (Char 'p') (keys gstate)
+  then applyKey (scene gstate) gstate (Char 'p')
+  else gstate
+
 -- TODO add actions instead of all game logic here
 applyKey :: Scene -> GameState -> Key -> GameState
 -- META CONTROLS
 applyKey _ gstate (SpecialKey KeyEsc)              = gstate { shouldQuit = True }
+applyKey _ gstate (Char 'p')                       = gstate { paused = not (paused gstate) }
 applyKey _ gstate (Char '0')                       = gstate { debugView = 0 }
 applyKey _ gstate (Char '1')                       = gstate { debugView = 1 }
 applyKey _ gstate (Char '2')                       = gstate { debugView = 2 }
