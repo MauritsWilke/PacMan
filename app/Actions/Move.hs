@@ -42,8 +42,8 @@ getWrapAround (x,y) b
   where
     onEdge = x <= 0.5 
           || y <= 0.5 
-          || ceiling (x - 0.5) >= integerFromInt (height b) 
-          || ceiling (y - 0.5) >= integerFromInt (width  b)
+          || ceiling (x - 0.499) >= integerFromInt (height b) -- check if in or over middle of tile near at edge
+          || ceiling (y - 0.499) >= integerFromInt (width  b)
     accesibleOtherSide = -- only true when not a wall | ghostexit | ghostspawn
       case get (floor otherX, floor otherY) b of
        Nothing         -> error "board size seems to be inaccurate"
