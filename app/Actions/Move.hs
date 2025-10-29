@@ -71,3 +71,5 @@ getTileToCheck (x,y) dir
 
 getPlayerPosition :: GameState -> (Float, Float)
 getPlayerPosition = position . player
+
+-- if at pellet -> set to empty tile and adjust score

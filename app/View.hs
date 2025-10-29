@@ -5,6 +5,7 @@ import Model
 import Graphics.Gloss
 import View.Level
 import View.Player
+import View.Ghost
 import View.Score (drawScore)
 import View.Homescreen (renderHomescreen)
 import View.Lives (drawLives)
@@ -25,13 +26,21 @@ viewPure gstate = case scene gstate of
 
 viewDefault :: GameState -> Picture
 viewDefault gstate
-  = Pictures
-    [ drawLevel (tileWidth gstate) (level gstate)
-    , drawPlayer (tileWidth gstate) (gameBoard (level gstate)) (player gstate)
-    , drawScore (tileWidth gstate) (gameBoard (level gstate)) 3333360
-    , drawLives (tileWidth gstate) (gameBoard (level gstate)) 3
-    , drawPaused (tileWidth gstate) (gameBoard (level gstate)) (paused gstate)
+  = Pictures $
+    [ drawLevel t (level gstate)
+    , drawPlayer t b (player gstate)
+    ] 
+    ++
+    ghostPictures 
+    ++
+    [ drawScore t b 3333360
+    , drawLives t b 3
+    , drawPaused t b (paused gstate)
     ]
+  where 
+    ghostPictures = map (drawGhost t b) (ghosts (level gstate))
+    t = tileWidth gstate
+    b = gameBoard (level gstate)
 
 viewDebug :: GameState -> Picture
 viewDebug gstate

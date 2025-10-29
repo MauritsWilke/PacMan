@@ -74,6 +74,7 @@ executable pacman
                       View.Score,
                       View.Paused,
                       View.Homescreen,
+                      View.Ghost,
                       Actions.Move,
     build-depends:    containers ^>=0.6.7, 
                       base >=4.18 && <4.22, 

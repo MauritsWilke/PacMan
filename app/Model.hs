@@ -3,7 +3,8 @@
 {-# LANGUAGE BlockArguments #-}
 module Model where
 import GHC.Generics (Generic)
-import Utils.Count (Timer, liveCounter, LiveCounter, ScoreCounter, RoundCounter, roundCounter, timeCounter, scoreCounter)
+import Utils.Count (Timer, liveCounter, LiveCounter, ScoreCounter, RoundCounter, roundCounter, timeCounter, scoreCounter, freightTimer)
+import qualified Utils.Count as C
 import qualified Data.Set as S
 import Graphics.Gloss.Interface.IO.Game (Key)
 import qualified Data.IntMap as I
@@ -51,7 +52,7 @@ initialLevelTEMP :: Level
 initialLevelTEMP = Level
   { spawnPosition = (13.5, 14)
   , gameBoard = realBoard
-  , ghosts = []
+  , ghosts = standardGhosts
   }
 
 realBoard :: Board
@@ -114,11 +115,23 @@ data GhostMode = Chase | Scatter | Fright | Spawn
   deriving (Show, Eq)
 
 data Ghost = Ghost
-  { ghostType    :: GhostType
-  , ghostMode    :: GhostMode
-  , freightTimer :: Int -- >=0, counts down
-  , releaseTimer :: Int -- >=0, counts down
+  { ghostType     :: GhostType
+  , ghostMode     :: GhostMode
+  , ghostPosition :: (Float,Float)
+  , freightTimer  :: C.FreightTimer -- >=0, counts down
+  , releaseTimer  :: C.ReleaseTimer -- >=0, counts down
   } deriving (Show)
+
+standardGhosts :: [Ghost]
+standardGhosts = [
+  (createGhost (1.5,1.5) Blinky),
+  (createGhost (2.5,1.5) Inky),
+  (createGhost (1.5,2.5) Pinky),
+  (createGhost (1.5,3.5) Clyde)
+  ]
+
+createGhost :: (Float,Float) -> GhostType -> Ghost
+createGhost spawn typ = Ghost {ghostType = typ, ghostMode = Scatter, ghostPosition = spawn, Model.freightTimer = (C.freightTimer 0), releaseTimer = (C.releaseTimer 0)}
 
 -- NAME UTILS
 type TileWidth       = Float
