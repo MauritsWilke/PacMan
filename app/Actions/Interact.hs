@@ -29,6 +29,6 @@ interactPellets gs = gs
                      _                -> brd
 
     (score', pwr', ghs') = case tile of
-      Just Pellet      -> (score gs .+ 10, poweredTimer gs, ghostsEaten gs)
-      Just PowerPellet -> (score gs .+ 50, poweredTimer gs .+ 10000, 0)
-      _                -> (score gs,      poweredTimer gs,           ghostsEaten gs)
+      Just Pellet      -> (score gs .+ 10, poweredTimer gs         , ghostsEaten gs)
+      Just PowerPellet -> (score gs .+ 50, poweredTimer gs .+ 10000, 0             )
+      _                -> (score gs,       poweredTimer gs         , ghostsEaten gs)
