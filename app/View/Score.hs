@@ -15,7 +15,9 @@ commas = reverse . commas' . reverse
 
 drawScore :: TileWidth -> Board -> ScoreCounter -> Picture
 drawScore tw Board{..} s =
-  Translate ((fromIntegral width - 5) * (0.5 * tw)) (fromIntegral height * (0.5 * tw) + (0.5 * tw))
+  Translate (- ((fromIntegral (length t) - 1) * 0.2 * tw)) 0
+  $ Translate ((fromIntegral width - 1) * (0.5 * tw)) (fromIntegral height * (0.5 * tw) + (0.5 * tw))
   $ Scale (tw / 250) (tw / 250)
   $ Color white
-  $ Text (commas (show s))
+  $ Text t
+  where t = commas (show s)
