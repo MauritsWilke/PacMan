@@ -24,7 +24,9 @@ cornerSnap dir x y
   | dir == North || dir == South = (x, fromInteger (floor y) + 0.5)
   | otherwise                    = (fromInteger (floor x) + 0.5, y)
 
--- checks to see if the desired move is allowed, returns Nothing if not and Just (Float,Float) if it is with the coordinates after the move
+-- checks to see if the desired move is allowed, 
+-- returns Nothing if not and Just (Float,Float) 
+-- if it is with the coordinates after the move
 moveIsPossible :: GameState -> (Float, Float) -> Float -> Direction -> Maybe (Float,Float)
 moveIsPossible gs (x,y) speed dir = let
   (xOff, yOff)         = directionToTuple dir
@@ -78,38 +80,63 @@ getPlayerPosition :: GameState -> (Float, Float)
 getPlayerPosition = position . player
 
 -- !TO DO: if at pellet -> set to empty tile and adjust score
+-- TODO: GET RID OF fromMaybe !!!
 
 -- ghost moves -> if not yet at destination
--- Important: Do not change ghosts in game state directly, game state is only for info about surroundings -> return type 
+-- Important: Do not change ghosts in game state directly
+-- game state is only for info about surroundings -> return type 
 ghostMove :: GameState -> Ghost -> Ghost
-ghostMove gstate ghost | hasDestination = ghostStep gstate $ if atDestination ghost then ghost {destination = Just (getDestination gstate ghost)} else ghostStep gstate ghost --if not yet at destination -> move towards it | otherwise update destination & move
-                       | otherwise = ghostStep gstate ghost -- if no destination -> update destination & move
-  where hasDestination      = isJust (destination ghost)
-        atDestination ghost' = -- check if both x and y close enough to destination
-          let des = fromMaybe (-1,-1) (destination ghost') -- parse destination to its value, if no destination -> return impossible coordinate
-              pos@(xPos,yPos) = ghostPosition ghost'
-          in
-          setToMiddle des == setToMiddle pos && (closeEnough xPos && closeEnough yPos || False)
+ghostMove gstate ghost 
+  | hasDestination = ghostStep gstate $ if atDestination ghost 
+    then ghost { destination = Just (getDestination gstate ghost) } 
+     --if not yet at destination -> move towards it | otherwise update destination & move
+    else ghostStep gstate ghost
+  | otherwise = ghostStep gstate ghost -- if no destination -> update destination & move
+  where hasDestination       = isJust (destination ghost)
+        -- check if both x and y close enough to destination
+        -- parse destination to its value, if no destination -> return impossible coordinate
+        atDestination ghost' = 
+          let des             = fromMaybe (-1,-1) (destination ghost') 
+              pos@(xPos,yPos) = ghostPosition ghost' in
+          setToMiddle des == setToMiddle pos 
+                          && (closeEnough xPos && closeEnough yPos || False)
 
-ghostStep :: GameState -> Ghost -> Ghost -- should have correct destination -> will execute the next move
+-- should have correct destination -> will execute the next move
+ghostStep :: GameState -> Ghost -> Ghost 
 ghostStep = undefined
 
-getDestination :: GameState -> Ghost -> (Float,Float) -- return only the intermediate destination for which no re-evaluation is required (i.e. won't change overtime)
-getDestination gstate ghost = Actions.Move.traverse (gameBoard (level gstate)) (setToMiddle (ghostPosition ghost)) (ghostDirection ghost)
+-- return only the intermediate destination for which no re-evaluation is required 
+-- (i.e. won't change overtime)
+getDestination :: GameState -> Ghost -> (Float,Float) 
+getDestination gstate ghost = Actions.Move.traverse board middlePosition direction
+  where board          = (gameBoard (level gstate))
+        middlePosition = setToMiddle (ghostPosition ghost)
+        direction      = ghostDirection ghost
 
 -- keep moving until dillema (multiple possible directions (besides the one where the ghost came from)) 
 traverse :: Board -> (Float,Float) -> Direction -> (Float,Float)
-traverse b (x,y) dir | length directionChoices /= 1 = (x,y) -- we will re-evaluate later, for now this is the location that the ghost will move to (base case)
-                     | otherwise                    = Actions.Move.traverse b (tileMove (x,y) dir) $ head directionChoices -- keep going until at base case
-  where directionChoices      = filter allowedDirection (delete opposite allDirections) -- check all legal directions except opposite
-        opposite              = oppositeDirection dir
-        allowedDirection dir' =    -- checks if the provided direction is allowed (uses board)
-          case tile' of
-            Nothing -> False
-            Just Wall -> False
-            Just _ -> True
-          where (x',y') = tileMove (x,y) dir'
-                tile'   = get (floor x', floor y') b
+traverse b pos dir
+  -- we will re-evaluate later, for now this is the location that the ghost will move to (base case)
+  | length directionChoices /= 1 = pos
+  | otherwise                    = Actions.Move.traverse b nextPos nextDir
+  where
+    pos'@(x, y)        = pos
+    opposite           = oppositeDirection dir
+    nextPos            = tileMove pos dir
+    [nextDir]          = directionChoices
+
+    directionChoices   =
+      filter allowedDirection
+      $ delete opposite allDirections -- check all legal directions except opposite
+
+    -- checks if the provided direction is allowed (uses board)
+    allowedDirection dir' = case tile' of
+        Nothing   -> False
+        Just Wall -> False
+        Just _    -> True
+      where (x', y') = tileMove pos' dir'
+            tile'    = get (floor x', floor y') b
+
 -- get coordinates of next tile
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
 tileMove (x,y) dir = (x+xAdd,y+yAdd)
@@ -121,10 +148,12 @@ oppositeDirection South = North
 oppositeDirection East  = West
 oppositeDirection West  = East
 
+-- in order of priority during scatter
 allDirections :: [Direction]
-allDirections = [North,West,South,East] -- in order of priority during scatter
+allDirections = [North,West,South,East]
 
-goalAlgorithm :: GameState -> GhostType -> (Float,Float) -- returns actual goal destination, which might change overtime
+-- returns actual goal destination, which might change overtime
+goalAlgorithm :: GameState -> GhostType -> (Float,Float) 
 goalAlgorithm gstate Blinky = position $ player gstate -- direct chase
 goalAlgorithm gstate Inky   = position $ player gstate -- relative to blinky and pac man
 goalAlgorithm gstate Pinky  = position $ player gstate -- aim for 2 dots infront of pacman

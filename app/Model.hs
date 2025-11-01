@@ -125,15 +125,23 @@ data Ghost = Ghost
   } deriving (Show)
 
 standardGhosts :: [Ghost]
-standardGhosts = [
-  createGhost (1.5,1.5) Blinky,
-  createGhost (2.5,1.5) Inky,
-  createGhost (1.5,2.5) Pinky,
-  createGhost (1.5,3.5) Clyde
+standardGhosts = 
+  [ createGhost (1.5,1.5) Blinky
+  , createGhost (2.5,1.5) Inky
+  , createGhost (1.5,2.5) Pinky
+  , createGhost (1.5,3.5) Clyde
   ]
 
 createGhost :: (Float,Float) -> GhostType -> Ghost
-createGhost spawn typ = Ghost {ghostType = typ, ghostMode = Scatter, ghostPosition = spawn, ghostDirection = North, destination = Nothing, Model.freightTimer = (C.freightTimer 0), releaseTimer = (C.releaseTimer 0)}
+createGhost spawn typ = Ghost 
+  { ghostType = typ
+  , ghostMode = Scatter
+  , ghostPosition = spawn
+  , ghostDirection = North
+  , destination = Nothing
+  , Model.freightTimer = (C.freightTimer 0)
+  , releaseTimer = (C.releaseTimer 0)
+  }
 
 -- NAME UTILS
 type TileWidth       = Float
