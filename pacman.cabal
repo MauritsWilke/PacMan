@@ -76,6 +76,7 @@ executable pacman
                       View.Homescreen,
                       View.Ghost,
                       Actions.Move,
+                      Actions.Interact,
     build-depends:    containers ^>=0.6.7, 
                       base >=4.18 && <4.22, 
                       gloss ^>=1.13.2.2

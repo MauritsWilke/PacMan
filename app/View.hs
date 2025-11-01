@@ -37,7 +37,8 @@ viewDefault gstate
     , drawLives t b 3
     , drawPaused t b (paused gstate)
     ]
-  where ghostPictures = map (drawGhost t b) (ghosts (level gstate))
+  where 
+    ghostPictures = map (drawGhost t b) (ghosts (level gstate))
     t = tileWidth gstate
     b = gameBoard (level gstate)
 
