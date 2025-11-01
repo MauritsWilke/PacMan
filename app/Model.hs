@@ -146,6 +146,7 @@ createGhost spawn typ = Ghost
 -- NAME UTILS
 type TileWidth       = Float
 type TileCoordinates = (Int, Int)
+type PlayerSpeed     = Float
 type BoardWidth      = Int
 type BoardHeight     = Int
 type Score           = Int

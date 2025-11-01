@@ -27,7 +27,7 @@ cornerSnap dir x y
 -- checks to see if the desired move is allowed, 
 -- returns Nothing if not and Just (Float,Float) 
 -- if it is with the coordinates after the move
-moveIsPossible :: GameState -> (Float, Float) -> Float -> Direction -> Maybe (Float,Float)
+moveIsPossible :: GameState -> (Float, Float) -> PlayerSpeed -> Direction -> Maybe (Float,Float)
 moveIsPossible gs (x,y) speed dir = let
   (xOff, yOff)         = directionToTuple dir
   (desiredX, desiredY) = (x + xOff * speed, y + yOff * speed)
@@ -70,7 +70,7 @@ directionToTuple East  = (0 , 1)
 directionToTuple West  = (0 ,-1)
 
 -- based on position and direction, find out which tile pacman is trying to move to
-getTileToCheck :: (Float,Float) -> Direction -> (Int,Int)
+getTileToCheck :: (Float,Float) -> Direction -> TileCoordinates
 getTileToCheck (x,y) dir
   | dir == North || dir == South = (floor (x + offset), floor y)
   | otherwise                    = (floor x, floor (y + offset))
@@ -139,8 +139,8 @@ traverse b pos dir
 
 -- get coordinates of next tile
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
-tileMove (x,y) dir = (x+xAdd,y+yAdd)
-  where (xAdd,yAdd) = directionToTuple dir
+tileMove (x, y) dir  = (x + xAdd, y + yAdd)
+  where (xAdd, yAdd) = directionToTuple dir
 
 oppositeDirection :: Direction -> Direction
 oppositeDirection North = South
