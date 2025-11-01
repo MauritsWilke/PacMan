@@ -9,34 +9,26 @@ interact :: GameState -> GameState
 interact = interactPellets
 
 interactPellets :: GameState -> GameState
-interactPellets gs 
-  = gs 
-  { level        = lvl { gameBoard = updatedBoard }
-  , score        = updatedScore
-  , poweredTimer = updatedPwr
-  , ghostsEaten  = updatedGhs
+interactPellets gs = gs
+  { level        = lvl { gameBoard = board' }
+  , score        = score'
+  , poweredTimer = pwr'
+  , ghostsEaten  = ghs'
   }
   where
-    lvl = level gs
-    brd = gameBoard lvl
-    plr = player gs
-    scr = score gs
-    pwr = poweredTimer gs
-    ghs = ghostsEaten gs
-    playerPos = bimap floor floor (position plr)
-    currTile = GB.get playerPos brd
+    lvl       = level gs
+    brd       = gameBoard lvl
+    plr       = player gs
+    pos       = bimap floor floor (position plr)
+    tile      = GB.get pos brd
 
-    isAtPowerPellet = currTile == Just PowerPellet
-    
-    updatedPwr = if isAtPowerPellet then pwr .+ 10000 else pwr
-    updatedGhs = if isAtPowerPellet then 0 else ghs
-    
-    updatedBoard = case currTile of
-      Just Pellet      -> GB.set playerPos Empty brd
-      Just PowerPellet -> GB.set playerPos Empty brd
-      _                -> brd
+    removePellet = maybe brd (const (GB.set pos Empty brd)) tile
+    board'       = case tile of
+                     Just Pellet      -> removePellet
+                     Just PowerPellet -> removePellet
+                     _                -> brd
 
-    updatedScore = case currTile of
-      Just Pellet      -> scr .+ 10
-      Just PowerPellet -> scr .+ 50
-      _                -> scr
+    (score', pwr', ghs') = case tile of
+      Just Pellet      -> (score gs .+ 10, poweredTimer gs, ghostsEaten gs)
+      Just PowerPellet -> (score gs .+ 50, poweredTimer gs .+ 10000, 0)
+      _                -> (score gs,      poweredTimer gs,           ghostsEaten gs)
