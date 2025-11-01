@@ -14,6 +14,7 @@ interactPellets gs
   { level        = lvl { gameBoard = updatedBoard }
   , score        = updatedScore
   , poweredTimer = updatedPwr
+  , ghostsEaten  = updatedGhs
   }
   where
     lvl = level gs
@@ -21,14 +22,14 @@ interactPellets gs
     plr = player gs
     scr = score gs
     pwr = poweredTimer gs
+    ghs = ghostsEaten gs
     playerPos = bimap floor floor (position plr)
     currTile = GB.get playerPos brd
 
     isAtPowerPellet = currTile == Just PowerPellet
     
-    updatedPwr = if isAtPowerPellet 
-      then pwr .+ 10000
-      else pwr
+    updatedPwr = if isAtPowerPellet then pwr .+ 10000 else pwr
+    updatedGhs = if isAtPowerPellet then 0 else ghs
     
     updatedBoard = case currTile of
       Just Pellet      -> GB.set playerPos Empty brd
