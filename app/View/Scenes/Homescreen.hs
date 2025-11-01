@@ -1,4 +1,4 @@
-module View.Homescreen where
+module View.Scenes.Homescreen where
 import Graphics.Gloss
 import Model
 

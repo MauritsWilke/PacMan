@@ -10,7 +10,7 @@ import View.Level
 import View.Player
 import View.Ghost
 import View.Score (drawScore)
-import View.Homescreen (renderHomescreen)
+import View.Scenes.Homescreen (renderHomescreen)
 import View.Lives (drawLives)
 import View.Paused
 
