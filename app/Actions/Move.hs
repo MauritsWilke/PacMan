@@ -6,6 +6,7 @@ import GHC.Num (integerFromInt)
 import Data.Fixed (mod')
 import Data.Maybe (isJust, fromMaybe)
 import Data.List
+import Utils.PlayerUtil
 
 playerMove :: GameState -> Direction -> Player
 playerMove gs dir = (player gs) { position = pos } where
@@ -76,9 +77,6 @@ getTileToCheck (x,y) dir
   | otherwise                    = (floor x, floor (y + offset))
  where offset = if dir == North || dir == East then 0.5 else (-0.5)
 
-getPlayerPosition :: GameState -> (Float, Float)
-getPlayerPosition = position . player
-
 -- !TO DO: if at pellet -> set to empty tile and adjust score
 -- TODO: GET RID OF fromMaybe !!!
 
@@ -86,30 +84,30 @@ getPlayerPosition = position . player
 -- Important: Do not change ghosts in game state directly
 -- game state is only for info about surroundings -> return type 
 ghostMove :: GameState -> Ghost -> Ghost
-ghostMove gstate ghost 
-  | hasDestination = ghostStep gstate $ if atDestination ghost 
-    then ghost { destination = Just (getDestination gstate ghost) } 
+ghostMove gstate ghost
+  | hasDestination = ghostStep gstate $ if atDestination ghost
+    then ghost { destination = Just (getDestination gstate ghost) }
      --if not yet at destination -> move towards it | otherwise update destination & move
     else ghostStep gstate ghost
   | otherwise = ghostStep gstate ghost -- if no destination -> update destination & move
   where hasDestination       = isJust (destination ghost)
         -- check if both x and y close enough to destination
         -- parse destination to its value, if no destination -> return impossible coordinate
-        atDestination ghost' = 
-          let des             = fromMaybe (-1,-1) (destination ghost') 
+        atDestination ghost' =
+          let des             = fromMaybe (-1,-1) (destination ghost')
               pos@(xPos,yPos) = ghostPosition ghost' in
-          setToMiddle des == setToMiddle pos 
+          setToMiddle des == setToMiddle pos
                           && (closeEnough xPos && closeEnough yPos || False)
 
 -- should have correct destination -> will execute the next move
-ghostStep :: GameState -> Ghost -> Ghost 
+ghostStep :: GameState -> Ghost -> Ghost
 ghostStep = undefined
 
 -- return only the intermediate destination for which no re-evaluation is required 
 -- (i.e. won't change overtime)
-getDestination :: GameState -> Ghost -> (Float,Float) 
+getDestination :: GameState -> Ghost -> (Float,Float)
 getDestination gstate ghost = Actions.Move.traverse board middlePosition direction
-  where board          = (gameBoard (level gstate))
+  where board          = gameBoard (level gstate)
         middlePosition = setToMiddle (ghostPosition ghost)
         direction      = ghostDirection ghost
 
@@ -153,7 +151,7 @@ allDirections :: [Direction]
 allDirections = [North,West,South,East]
 
 -- returns actual goal destination, which might change overtime
-goalAlgorithm :: GameState -> GhostType -> (Float,Float) 
+goalAlgorithm :: GameState -> GhostType -> (Float,Float)
 goalAlgorithm gstate Blinky = position $ player gstate -- direct chase
 goalAlgorithm gstate Inky   = position $ player gstate -- relative to blinky and pac man
 goalAlgorithm gstate Pinky  = position $ player gstate -- aim for 2 dots infront of pacman
