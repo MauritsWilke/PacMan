@@ -3,8 +3,7 @@
 {-# LANGUAGE BlockArguments #-}
 module Model where
 import GHC.Generics (Generic)
-import Utils.Count (Timer, liveCounter, LiveCounter, ScoreCounter, RoundCounter, roundCounter, timeCounter, scoreCounter, freightTimer)
-import qualified Utils.Count as C
+import Utils.Count
 import qualified Data.Set as S
 import Graphics.Gloss.Interface.IO.Game (Key)
 import qualified Data.IntMap as I
@@ -120,12 +119,12 @@ data Ghost = Ghost
   , ghostPosition  :: (Float,Float)
   , ghostDirection :: Direction
   , destination    :: Maybe (Float,Float)  -- only changed when at destination or when switching mode 
-  , freightTimer   :: C.FreightTimer -- >=0, counts down
-  , releaseTimer   :: C.ReleaseTimer -- >=0, counts down
+  , freightTimer   :: FreightTimer -- >=0, counts down
+  , releaseTimer   :: ReleaseTimer -- >=0, counts down
   } deriving (Show)
 
 standardGhosts :: [Ghost]
-standardGhosts = 
+standardGhosts =
   [ createGhost (1.5,1.5) Blinky
   , createGhost (2.5,1.5) Inky
   , createGhost (1.5,2.5) Pinky
@@ -133,14 +132,14 @@ standardGhosts =
   ]
 
 createGhost :: (Float,Float) -> GhostType -> Ghost
-createGhost spawn typ = Ghost 
+createGhost spawn typ = Ghost
   { ghostType = typ
   , ghostMode = Scatter
   , ghostPosition = spawn
   , ghostDirection = North
   , destination = Nothing
-  , Model.freightTimer = (C.freightTimer 0)
-  , releaseTimer = (C.releaseTimer 0)
+  , Model.freightTimer = freightTimerCounter 0
+  , releaseTimer = releaseTimerCounter 0
   }
 
 -- NAME UTILS

@@ -3,19 +3,22 @@ module Actions.Interact where
 import Model
 import Utils.Board as GB
 import Data.Bifunctor (bimap)
+import Utils.Count
 
-updateLevel :: GameState -> Level
-updateLevel gs = lvl { gameBoard = interactPellets brd plr }
-  where 
+interact :: GameState -> GameState
+interact = interactPellets
+
+
+interactPellets :: GameState -> GameState
+interactPellets gs = gs { level = lvl { gameBoard = updatedBoard }, score = updatedScore }
+  where
     lvl = level gs
     brd = gameBoard lvl
     plr = player gs
+    scr = score gs
+    playerPos = bimap floor floor (position plr)
 
-
-interactPellets :: Board -> Player -> Board
-interactPellets b p = 
-  case GB.get playerPos b of
-    Just Pellet -> GB.set playerPos Empty b 
-    _           -> b
-  where playerPos = bimap floor floor (position p) 
-  
+    isAtPellet = GB.get playerPos brd == Just Pellet
+    
+    updatedBoard = if isAtPellet then GB.set playerPos Empty brd else brd
+    updatedScore = if isAtPellet then scr .+ 10 else scr

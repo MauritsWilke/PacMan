@@ -6,14 +6,14 @@ import Graphics.Gloss.Interface.IO.Game
 import qualified Data.Set as S
 import System.Exit (exitSuccess)
 import Actions.Move
-import Actions.Interact
+import Actions.Interact as A
 
 -- 
 step :: Float -> GameState -> IO GameState
 step _ gstate
   | shouldQuit gstate = exitSuccess
   | paused gstate     = pure (inputPause gstate)
-  | otherwise         = pure (inputKey gstate)
+  | otherwise         = pure (A.interact (inputKey gstate))
 
 -- ! CAN CHANGE THE GAMESTATE CURRENTLY
 debug :: GameState -> GameState
@@ -57,13 +57,9 @@ applyKey _ gstate (Char '3')                       = gstate { debugView = 3 }
 -- HOMESCREEN
 applyKey Homescreen   gstate (SpecialKey KeySpace) = gstate { scene = SinglePlayer }
 -- MOVEMENT
-applyKey SinglePlayer gstate (Char 'w')            = gstate { player = playerMove gstate North
-                                                            , level  = updateLevel gstate }
-applyKey SinglePlayer gstate (Char 'a')            = gstate { player = playerMove gstate West
-                                                            , level  = updateLevel gstate }
-applyKey SinglePlayer gstate (Char 's')            = gstate { player = playerMove gstate South
-                                                            , level  = updateLevel gstate }
-applyKey SinglePlayer gstate (Char 'd')            = gstate { player = playerMove gstate East
-                                                            , level  = updateLevel gstate }
+applyKey SinglePlayer gstate (Char 'w')            = gstate { player = playerMove gstate North }
+applyKey SinglePlayer gstate (Char 'a')            = gstate { player = playerMove gstate West }
+applyKey SinglePlayer gstate (Char 's')            = gstate { player = playerMove gstate South }
+applyKey SinglePlayer gstate (Char 'd')            = gstate { player = playerMove gstate East }
 -- CATCH ALL
 applyKey _ gstate _                                = gstate

@@ -33,7 +33,7 @@ viewDefault gstate
     ++
     ghostPictures 
     ++
-    [ drawScore t b 3333360
+    [ drawScore t b (score gstate)
     , drawLives t b 3
     , drawPaused t b (paused gstate)
     ]
