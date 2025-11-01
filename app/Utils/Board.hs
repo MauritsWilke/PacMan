@@ -46,4 +46,4 @@ parseBoard contents =
       tiles       = map (charToTile . head) . concatMap words . reverse $ rows
       coords      = [0 .. length tiles - 1]
       boardList   = zip coords tiles
-  in Board (I.fromList boardList) boardWidth boardHeight    -- adjust to your Board type
+  in Board (I.fromList boardList) boardWidth boardHeight
