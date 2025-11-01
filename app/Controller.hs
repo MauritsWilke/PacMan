@@ -41,9 +41,11 @@ inputKey :: GameState -> GameState
 inputKey gstate = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
 
 inputPause :: GameState -> GameState
-inputPause gstate = if S.member (Char 'p') (keys gstate)
-  then applyKey (scene gstate) gstate (Char 'p')
-  else gstate
+inputPause gstate
+  | S.member (Char 'p') keysPressed = applyKey (scene gstate) gstate (Char 'p')
+  | S.member (SpecialKey KeyEsc) keysPressed = gstate { shouldQuit = True }
+  | otherwise = gstate
+  where keysPressed = keys gstate
 
 -- TODO add actions instead of all game logic here
 applyKey :: Scene -> GameState -> Key -> GameState
