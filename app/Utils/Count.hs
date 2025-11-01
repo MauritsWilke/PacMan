@@ -19,13 +19,15 @@ instance Count NonNeg where
   NonNeg a .+ b = NonNeg (max 0 (a + b))
 
 newtype LevelCounter   = LevelCounter Int   deriving (Show, Count) via NonNeg
-newtype LiveCounter    = LiveCounter Int    deriving (Show, Count) via NonNeg
+newtype LiveCounter    = LiveCounter  Int   deriving (Show, Count) via NonNeg
 newtype RoundCounter   = RoundCounter Int   deriving (Show, Count) via NonNeg
-newtype Timer          = Timer Int          deriving (Show, Count) via NonNeg
+newtype Timer          = Timer        Int   deriving (Show, Count) via NonNeg
 newtype FreightTimer   = FreightTimer Int   deriving (Show, Count) via NonNeg
 newtype ReleaseTimer   = ReleaseTimer Int   deriving (Show, Count) via NonNeg
-newtype FruitTimer     = FruitTimer Int     deriving (Show, Count) via NonNeg
 newtype ScoreCounter   = ScoreCounter Int   deriving (Show, Count) via NonNeg
+newtype FruitTimer     = FruitTimer   Int   deriving (Show, Count) via NonNeg
+newtype PoweredTimer   = PoweredTimer Int   deriving (Show, Count) via NonNeg
+
 
 levelCounter :: Int -> LevelCounter
 levelCounter   = LevelCounter . max 0
@@ -41,6 +43,8 @@ releaseTimerCounter :: Int -> ReleaseTimer
 releaseTimerCounter   = ReleaseTimer . max 0
 fruitTimerCounter :: Int -> FruitTimer
 fruitTimerCounter     = FruitTimer . max 0
+poweredTimerCounter :: Int -> PoweredTimer
+poweredTimerCounter = PoweredTimer . max 0
 scoreCounter :: Int -> ScoreCounter
 scoreCounter   = ScoreCounter . max 0
 

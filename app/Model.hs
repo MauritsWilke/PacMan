@@ -13,13 +13,14 @@ data GameState = GameState
   , level        :: Level
   , player       :: Player
   -- COUNTERS
-  , timer        :: Timer -- >=0 
-  , lives        :: LiveCounter -- >=0
+  , timer        :: Timer        -- >=0 
+  , lives        :: LiveCounter  -- >=0
   , score        :: ScoreCounter -- >=0
   , round        :: RoundCounter -- > 0
   -- ROUND SPECIFIC
   , pelletsEaten :: Int
   , ghostsEaten  :: Int -- Resets when eating power pellet
+  , poweredTimer :: PoweredTimer
   -- GAME CONTROLS
   , keys         :: S.Set Key
   , screenSize   :: (Int,Int)
@@ -31,20 +32,24 @@ data GameState = GameState
 
 initialState :: GameState
 initialState = GameState
-  { scene = SinglePlayer
-  , level = initialLevelTEMP
-  , player = initialPlayerTEMP
-  , timer = timeCounter 0
-  , lives = liveCounter 3
-  , score = scoreCounter 0
-  , Model.round = roundCounter 0
+  { scene        = SinglePlayer
+  , level        = initialLevelTEMP
+  , player       = initialPlayerTEMP
+  -- COUNTERS
+  , timer        = timeCounter 0
+  , lives        = liveCounter 3
+  , score        = scoreCounter 0
+  , Model.round  = roundCounter 0
+  -- ROUND SPECIFIC
   , pelletsEaten = 0
-  , ghostsEaten = 0
-  , keys = S.empty
-  , screenSize = (400,400)
-  , shouldQuit = False
-  , paused = False
-  , debugView = 0
+  , ghostsEaten  = 0
+  , poweredTimer = poweredTimerCounter 0
+  -- GAME CONTROLS
+  , keys         = S.empty
+  , screenSize   = (400,400)
+  , shouldQuit   = False
+  , paused       = False
+  , debugView    = 0
   }
 
 initialLevelTEMP :: Level
