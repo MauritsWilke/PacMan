@@ -42,7 +42,7 @@ inputKey gstate = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate
 
 inputPause :: GameState -> GameState
 inputPause gstate
-  | S.member (Char 'p') keysPressed = applyKey (scene gstate) gstate (Char 'p')
+  | S.member (Char 'p') keysPressed          = applyKey (scene gstate) gstate (Char 'p')
   | S.member (SpecialKey KeyEsc) keysPressed = gstate { shouldQuit = True }
   | otherwise = gstate
   where keysPressed = keys gstate
