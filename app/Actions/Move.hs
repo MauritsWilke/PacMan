@@ -106,10 +106,10 @@ ghostStep = undefined
 -- return only the intermediate destination for which no re-evaluation is required 
 -- (i.e. won't change overtime)
 getDestination :: GameState -> Ghost -> (Float,Float)
-getDestination gstate ghost = Actions.Move.traverse board middlePosition direction
-  where board          = gameBoard (level gstate)
-        middlePosition = setToMiddle (ghostPosition ghost)
-        direction      = ghostDirection ghost
+getDestination gstate ghost = Actions.Move.traverse brd mps dir
+  where brd = gameBoard (level gstate)
+        mps = setToMiddle (ghostPosition ghost)
+        dir = ghostDirection ghost
 
 -- keep moving until dillema (multiple possible directions (besides the one where the ghost came from)) 
 traverse :: Board -> (Float,Float) -> Direction -> (Float,Float)
@@ -118,22 +118,20 @@ traverse b pos dir
   | length directionChoices /= 1 = pos
   | otherwise                    = Actions.Move.traverse b nextPos nextDir
   where
-    pos'@(x, y)        = pos
-    opposite           = oppositeDirection dir
-    nextPos            = tileMove pos dir
-    [nextDir]          = directionChoices
+    opposite  = oppositeDirection dir
+    nextPos   = tileMove pos dir
+    [nextDir] = directionChoices
 
-    directionChoices   =
-      filter allowedDirection
-      $ delete opposite allDirections -- check all legal directions except opposite
+    -- check all legal directions except opposite
+    directionChoices = filter allowedDirection $ delete opposite allDirections 
 
     -- checks if the provided direction is allowed (uses board)
-    allowedDirection dir' = case tile' of
+    allowedDirection dir' = case tile of
         Nothing   -> False
         Just Wall -> False
         Just _    -> True
-      where (x', y') = tileMove pos' dir'
-            tile'    = get (floor x', floor y') b
+      where (x', y') = tileMove pos dir'
+            tile     = get (floor x', floor y') b
 
 -- get coordinates of next tile
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
