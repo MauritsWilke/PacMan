@@ -9,6 +9,7 @@ commas = reverse . commas' . reverse
   where
     commas' :: String -> String
     commas' [] = ""
+    commas' [x, y, z] = [x, y, z]
     commas' (x:y:z:xs) = [x, y, z, ','] ++ commas' xs
     commas' xs = xs
 
