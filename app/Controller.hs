@@ -30,22 +30,29 @@ resize :: Event-> GameState -> GameState
 resize (EventResize x) gstate = gstate { screenSize = x }
 resize _ gstate               = gstate
 
+updateKeyRegister' :: KeyState -> Key -> GameState -> GameState
+updateKeyRegister' Down k gs = gs { keys = S.insert k (keys gs) }
+updateKeyRegister' Up   k gs = gs { keys = S.delete k (keys gs) }
+
+keysThatCantRepeat :: [Key]
+keysThatCantRepeat = [Char 'p']
+
 -- Add or remove keys from active key register
 updateKeyRegister :: Event -> GameState -> GameState
-updateKeyRegister (EventKey k Down _ _) gstate = gstate { keys = S.insert k (keys gstate)}
-updateKeyRegister (EventKey k Up   _ _) gstate = gstate { keys = S.delete k (keys gstate)}
-updateKeyRegister _ gstate                     = gstate
+updateKeyRegister (EventKey k Down _ _) gs 
+  | k `elem` keysThatCantRepeat          = applyKey (scene gs) gs k
+  | otherwise                            = updateKeyRegister' Down k gs
+updateKeyRegister (EventKey k Up _ _) gs = updateKeyRegister' Up k gs
+updateKeyRegister _ gs                   = gs
 
 -- For each key that is pressed, apply the action bound to that key
 inputKey :: GameState -> GameState
 inputKey gstate = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
 
 inputPause :: GameState -> GameState
-inputPause gstate
-  | S.member (Char 'p') keysPressed          = applyKey (scene gstate) gstate (Char 'p')
-  | S.member (SpecialKey KeyEsc) keysPressed = gstate { shouldQuit = True }
-  | otherwise = gstate
-  where keysPressed = keys gstate
+inputPause gstate = if S.member (SpecialKey KeyEsc) (keys gstate) 
+  then gstate { shouldQuit = True }
+  else gstate
 
 -- TODO add actions instead of all game logic here
 applyKey :: Scene -> GameState -> Key -> GameState
