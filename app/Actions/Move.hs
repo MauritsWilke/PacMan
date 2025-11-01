@@ -11,7 +11,7 @@ playerMove :: GameState -> Direction -> Player
 playerMove gs dir = (player gs) { position = pos } where
   pos = case moveIsPossible gs (position (player gs)) 0.2 dir of
     Nothing -> getPlayerPosition gs
-    Just a -> a
+    Just a  -> a
 
 -- check if provided argument is close enough to some n + 0.5 (for corner snap allowance)
 closeEnough :: Float -> Bool
