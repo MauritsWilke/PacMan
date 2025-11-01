@@ -12,6 +12,7 @@ data GameState = GameState
   { scene        :: Scene
   , level        :: Level
   , player       :: Player
+  , boards       :: [NamedBoard]
   -- COUNTERS
   , timer        :: Timer        -- >=0 
   , lives        :: LiveCounter  -- >=0
@@ -30,11 +31,12 @@ data GameState = GameState
   } deriving (Show, Generic)
 
 
-initialState :: GameState
-initialState = GameState
+initialState :: [NamedBoard] -> GameState
+initialState bs = GameState
   { scene        = SinglePlayer
-  , level        = initialLevelTEMP
+  , level        = initialLevel (boardData (head bs))
   , player       = initialPlayerTEMP
+  , boards       = bs
   -- COUNTERS
   , timer        = timeCounter 0
   , lives        = liveCounter 3
@@ -50,6 +52,13 @@ initialState = GameState
   , shouldQuit   = False
   , paused       = False
   , debugView    = 0
+  }
+
+initialLevel :: Board -> Level
+initialLevel b = Level 
+  { spawnPosition = (13.5, 14)
+  , gameBoard = b
+  , ghosts = standardGhosts  
   }
 
 initialLevelTEMP :: Level
@@ -146,6 +155,11 @@ createGhost spawn typ = Ghost
   , Model.freightTimer = freightTimerCounter 0
   , releaseTimer = releaseTimerCounter 0
   }
+
+data NamedBoard = NamedBoard
+  { boardName :: String
+  , boardData :: Board
+  } deriving Show
 
 -- NAME UTILS
 type TileWidth       = Float
