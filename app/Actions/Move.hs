@@ -10,7 +10,7 @@ import Utils.PlayerUtil
 
 playerMove :: GameState -> Direction -> Player
 playerMove gs dir = (player gs) { position = pos } where
-  pos = case moveIsPossible gs (position (player gs)) 0.2 dir of
+  pos = case moveIsPossible gs (position (player gs)) 0.2 dir False of
     Nothing -> getPlayerPosition gs
     Just a  -> a
 
@@ -28,8 +28,8 @@ cornerSnap dir x y
 -- checks to see if the desired move is allowed, 
 -- returns Nothing if not and Just (Float,Float) 
 -- if it is with the coordinates after the move
-moveIsPossible :: GameState -> (Float, Float) -> PlayerSpeed -> Direction -> Maybe (Float,Float)
-moveIsPossible gs (x,y) speed dir = let
+moveIsPossible :: GameState -> (Float, Float) -> PlayerSpeed -> Direction -> Bool -> Maybe (Float,Float)
+moveIsPossible gs (x,y) speed dir isGhost = let
   (xOff, yOff)         = directionToTuple dir
   (desiredX, desiredY) = (x + xOff * speed, y + yOff * speed)
   tileToCheck          = getTileToCheck (desiredX,desiredY) dir
@@ -37,8 +37,8 @@ moveIsPossible gs (x,y) speed dir = let
   isCloseEnough        = if dir == North || dir == South then closeEnough y else closeEnough x
   in if isCloseEnough then case get tileToCheck b of
    Nothing        -> getWrapAround (desiredX,desiredY) b        -- check for wrap-around if edge of map
-   Just Wall      -> Just $ setToMiddle (x,y) Nothing           -- set to end of allyway
-   Just GhostExit -> if isGhost then Just (cornerSnap dir desiredX desiredY) else Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
+   Just Wall      -> Just $ setToMiddle (x,y)           -- set to end of allyway
+   Just GhostExit -> if isGhost then Just (cornerSnap dir desiredX desiredY) else Just $ setToMiddle (x,y) -- set to end of allyway if a regular player, otherwise do a normal move
    Just _         -> Just (cornerSnap dir desiredX desiredY) -- if move possible -> update offset of direction and set other direction to some n + 0.5 (to allign with middle)
   else Nothing -- if to far from edge -> check if move still possible if not, stay in place
 
@@ -67,10 +67,13 @@ getWrapAround (x,y) b
     otherSide@(otherX, otherY) = (mod' x (fromIntegral (height b)), mod' y (fromIntegral (width b)))
 
 -- set current location to middle of current tile or only the coordinate inline with the provided direction
-setToMiddle :: (Float,Float) -> Maybe Direction -> (Float,Float)
-setToMiddle (row,col) Nothing                                   = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
-setToMiddle (row,col) (Just dir) | dir == North || dir == South = (fromInteger (floor row) + 0.5, col)
+setToMiddle' :: (Float,Float) -> Maybe Direction -> (Float,Float)
+setToMiddle' (row,col) Nothing                                   = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
+setToMiddle' (row,col) (Just dir) | dir == North || dir == South = (fromInteger (floor row) + 0.5, col)
                                  | otherwise                    =  (row, fromInteger (floor col) + 0.5)
+
+setToMiddle :: (Float,Float) -> (Float,Float)
+setToMiddle (row,col) = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
 
 directionToTuple :: Direction -> (Float,Float)
 directionToTuple North = (1 , 0)
@@ -128,7 +131,7 @@ traverse b pos dir
   where
     opposite  = oppositeDirection dir
     nextPos   = tileMove pos dir
-    [nextDir] = directionChoices
+    nextDir = head directionChoices
 
     -- check all legal directions except opposite
     directionChoices = filter allowedDirection $ delete opposite allDirections 
