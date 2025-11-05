@@ -36,7 +36,9 @@ updateKeyRegister _ gstate                     = gstate
 
 -- For each key that is pressed, apply the action bound to that key
 inputKey :: GameState -> GameState
-inputKey gstate = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
+inputKey gstate = afterKeyInput -- afterGhostMoves
+  where afterKeyInput = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
+        afterGhostMoves = afterKeyInput {level = (level gstate) {ghosts = map (ghostMove gstate) (ghosts (level gstate))}}
 
 inputPause :: GameState -> GameState
 inputPause gstate = if S.member (Char 'p') (keys gstate)
