@@ -6,12 +6,14 @@ import Graphics.Gloss.Interface.IO.Game
 import qualified Data.Set as S
 import System.Exit (exitSuccess)
 import Actions.Move
+import Actions.Interact as A
+
 -- 
 step :: Float -> GameState -> IO GameState
 step _ gstate
   | shouldQuit gstate = exitSuccess
   | paused gstate     = pure (inputPause gstate)
-  | otherwise         = pure (inputKey gstate)
+  | otherwise         = pure (A.interact (inputKey gstate))
 
 -- ! CAN CHANGE THE GAMESTATE CURRENTLY
 debug :: GameState -> GameState
@@ -28,11 +30,20 @@ resize :: Event-> GameState -> GameState
 resize (EventResize x) gstate = gstate { screenSize = x }
 resize _ gstate               = gstate
 
+updateKeyRegister' :: KeyState -> Key -> GameState -> GameState
+updateKeyRegister' Down k gs = gs { keys = S.insert k (keys gs) }
+updateKeyRegister' Up   k gs = gs { keys = S.delete k (keys gs) }
+
+keysThatCantRepeat :: [Key]
+keysThatCantRepeat = [Char 'p']
+
 -- Add or remove keys from active key register
 updateKeyRegister :: Event -> GameState -> GameState
-updateKeyRegister (EventKey k Down _ _) gstate = gstate { keys = S.insert k (keys gstate)}
-updateKeyRegister (EventKey k Up   _ _) gstate = gstate { keys = S.delete k (keys gstate)}
-updateKeyRegister _ gstate                     = gstate
+updateKeyRegister (EventKey k Down _ _) gs 
+  | k `elem` keysThatCantRepeat          = applyKey (scene gs) gs k
+  | otherwise                            = updateKeyRegister' Down k gs
+updateKeyRegister (EventKey k Up _ _) gs = updateKeyRegister' Up k gs
+updateKeyRegister _ gs                   = gs
 
 -- For each key that is pressed, apply the action bound to that key
 inputKey :: GameState -> GameState
@@ -41,8 +52,8 @@ inputKey gstate = afterKeyInput -- afterGhostMoves
         afterGhostMoves = afterKeyInput {level = (level gstate) {ghosts = map (ghostMove gstate) (ghosts (level gstate))}}
 
 inputPause :: GameState -> GameState
-inputPause gstate = if S.member (Char 'p') (keys gstate)
-  then applyKey (scene gstate) gstate (Char 'p')
+inputPause gstate = if S.member (SpecialKey KeyEsc) (keys gstate) 
+  then gstate { shouldQuit = True }
   else gstate
 
 -- TODO add actions instead of all game logic here
@@ -58,8 +69,8 @@ applyKey _ gstate (Char '3')                       = gstate { debugView = 3 }
 applyKey Homescreen   gstate (SpecialKey KeySpace) = gstate { scene = SinglePlayer }
 -- MOVEMENT
 applyKey SinglePlayer gstate (Char 'w')            = gstate { player = playerMove gstate North }
-applyKey SinglePlayer gstate (Char 'a')            = gstate { player = playerMove gstate West  }
+applyKey SinglePlayer gstate (Char 'a')            = gstate { player = playerMove gstate West }
 applyKey SinglePlayer gstate (Char 's')            = gstate { player = playerMove gstate South }
-applyKey SinglePlayer gstate (Char 'd')            = gstate { player = playerMove gstate East  }
+applyKey SinglePlayer gstate (Char 'd')            = gstate { player = playerMove gstate East }
 -- CATCH ALL
 applyKey _ gstate _                                = gstate

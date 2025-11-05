@@ -1,79 +1,50 @@
-module Utils.Count (getCount, (Utils.Count.-), (Utils.Count.+), ScoreCounter, scoreCounter, Timer,LevelCounter,LiveCounter,RoundCounter,FreightTimer,ReleaseTimer,FruitTimer , levelCounter, liveCounter, roundCounter, timeCounter, freightTimer, releaseTimer) where
+{-# LANGUAGE DerivingVia #-}
 
+module Utils.Count where
 
-newtype LevelCounter = LevelCounter Int deriving (Show)
-newtype LiveCounter = LiveCounter Int deriving (Show)
-newtype RoundCounter = RoundCounter Int deriving (Show)
-newtype Timer = Timer Int deriving (Show)
-newtype FreightTimer = FreightTimer Int deriving (Show)
-newtype ReleaseTimer = ReleaseTimer Int deriving (Show)
-newtype FruitTimer = FruitTimer Int deriving (Show)
-newtype ScoreCounter = ScoreCounter Int deriving (Show)
+newtype NonNeg = NonNeg Int
 
-levelCounter :: Int -> LevelCounter
-levelCounter a = LevelCounter (max 0 a)
-
-liveCounter :: Int -> LiveCounter
-liveCounter a = LiveCounter (max 0 a)
-
-roundCounter :: Int -> RoundCounter
-roundCounter a = RoundCounter (max 0 a)
-
-timeCounter :: Int -> Timer
-timeCounter a = Timer (max 0 a)
-
-freightTimer :: Int -> FreightTimer
-freightTimer a = FreightTimer (max 0 a)
-
-releaseTimer :: Int -> ReleaseTimer
-releaseTimer a = ReleaseTimer (max 0 a)
-
-scoreCounter :: Int -> ScoreCounter
-scoreCounter a = ScoreCounter (max 0 a)
+instance Show NonNeg where
+  show (NonNeg a) = show a 
 
 class Count a where
-    getCount :: a -> Int
-    (-) :: a -> Int -> a
-    (+) :: a -> Int -> a
+  getCount :: a -> Int
+  (.-) :: a -> Int -> a
+  (.+) :: a -> Int -> a
+infixl 6 .-, .+
 
--- (1) level, (2) live, (3) timer, (4) round, (5) freightTimer, (6) releasetimer, (7) fruitTimer
+instance Count NonNeg where
+  getCount (NonNeg a) = a
+  NonNeg a .- b = NonNeg (max 0 (a - b))
+  NonNeg a .+ b = NonNeg (max 0 (a + b))
 
-instance Count LevelCounter where
-    getCount (LevelCounter a) = a
-    (-) (LevelCounter a) b = LevelCounter (max 0 (a Prelude.- b))
-    (+) (LevelCounter a) b = LevelCounter (max 0 (a Prelude.+ b))
+newtype LevelCounter   = LevelCounter Int   deriving Eq deriving (Show, Count) via NonNeg
+newtype LiveCounter    = LiveCounter  Int   deriving Eq deriving (Show, Count) via NonNeg
+newtype RoundCounter   = RoundCounter Int   deriving Eq deriving (Show, Count) via NonNeg
+newtype Timer          = Timer        Int   deriving Eq deriving (Show, Count) via NonNeg
+newtype FreightTimer   = FreightTimer Int   deriving Eq deriving (Show, Count) via NonNeg
+newtype ReleaseTimer   = ReleaseTimer Int   deriving Eq deriving (Show, Count) via NonNeg
+newtype ScoreCounter   = ScoreCounter Int   deriving Eq deriving (Show, Count) via NonNeg
+newtype FruitTimer     = FruitTimer   Int   deriving Eq deriving (Show, Count) via NonNeg
+newtype PoweredTimer   = PoweredTimer Int   deriving Eq deriving (Show, Count) via NonNeg
 
-instance Count LiveCounter where
-    getCount (LiveCounter a) = a
-    (-) (LiveCounter a) b = LiveCounter (max 0 (a Prelude.- b))
-    (+) (LiveCounter a) b = LiveCounter (max 0 (a Prelude.+ b))
 
-instance Count RoundCounter where
-    getCount (RoundCounter a) = a
-    (-) (RoundCounter a) b = RoundCounter (max 0 (a Prelude.- b))
-    (+) (RoundCounter a) b = RoundCounter (max 0 (a Prelude.+ b))
+levelCounter :: Int -> LevelCounter
+levelCounter   = LevelCounter . max 0
+liveCounter :: Int -> LiveCounter
+liveCounter    = LiveCounter . max 0
+roundCounter :: Int -> RoundCounter
+roundCounter   = RoundCounter . max 0
+timeCounter :: Int -> Timer
+timeCounter    = Timer . max 0
+freightTimerCounter :: Int -> FreightTimer
+freightTimerCounter   = FreightTimer . max 0
+releaseTimerCounter :: Int -> ReleaseTimer
+releaseTimerCounter   = ReleaseTimer . max 0
+fruitTimerCounter :: Int -> FruitTimer
+fruitTimerCounter     = FruitTimer . max 0
+poweredTimerCounter :: Int -> PoweredTimer
+poweredTimerCounter = PoweredTimer . max 0
+scoreCounter :: Int -> ScoreCounter
+scoreCounter   = ScoreCounter . max 0
 
-instance Count Timer where
-    getCount (Timer a) = a
-    (-) (Timer a) b = Timer (max 0 (a Prelude.- b))
-    (+) (Timer a) b = Timer (max 0 (a Prelude.+ b))
-
-instance Count FreightTimer where
-    getCount (FreightTimer a) = a
-    (-) (FreightTimer a) b = FreightTimer (max 0 (a Prelude.- b))
-    (+) (FreightTimer a) b = FreightTimer (max 0 (a Prelude.+ b))
-
-instance Count ReleaseTimer where
-    getCount (ReleaseTimer a) = a
-    (-) (ReleaseTimer a) b = ReleaseTimer (max 0 (a Prelude.- b))
-    (+) (ReleaseTimer a) b = ReleaseTimer (max 0 (a Prelude.+ b))
-
-instance Count FruitTimer where
-    getCount (FruitTimer a) = a
-    (-) (FruitTimer a) b = FruitTimer (max 0 (a Prelude.- b))
-    (+) (FruitTimer a) b = FruitTimer (max 0 (a Prelude.+ b))
-
-instance Count ScoreCounter where
-    getCount (ScoreCounter a) = a
-    (-) (ScoreCounter a) b = ScoreCounter (max 0 (a Prelude.- b))
-    (+) (ScoreCounter a) b = ScoreCounter (max 0 (a Prelude.+ b))

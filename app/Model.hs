@@ -3,8 +3,7 @@
 {-# LANGUAGE BlockArguments #-}
 module Model where
 import GHC.Generics (Generic)
-import Utils.Count (Timer, liveCounter, LiveCounter, ScoreCounter, RoundCounter, roundCounter, timeCounter, scoreCounter, freightTimer)
-import qualified Utils.Count as C
+import Utils.Count
 import qualified Data.Set as S
 import Graphics.Gloss.Interface.IO.Game (Key)
 import qualified Data.IntMap as I
@@ -13,14 +12,16 @@ data GameState = GameState
   { scene        :: Scene
   , level        :: Level
   , player       :: Player
+  , boards       :: [NamedBoard]
   -- COUNTERS
-  , timer        :: Timer -- >=0 
-  , lives        :: LiveCounter -- >=0
+  , timer        :: Timer        -- >=0 
+  , lives        :: LiveCounter  -- >=0
   , score        :: ScoreCounter -- >=0
   , round        :: RoundCounter -- > 0
   -- ROUND SPECIFIC
   , pelletsEaten :: Int
   , ghostsEaten  :: Int -- Resets when eating power pellet
+  , poweredTimer :: PoweredTimer
   -- GAME CONTROLS
   , keys         :: S.Set Key
   , screenSize   :: (Int,Int)
@@ -30,22 +31,34 @@ data GameState = GameState
   } deriving (Show, Generic)
 
 
-initialState :: GameState
-initialState = GameState
-  { scene = SinglePlayer
-  , level = initialLevelTEMP
-  , player = initialPlayerTEMP
-  , timer = timeCounter 0
-  , lives = liveCounter 3
-  , score = scoreCounter 0
-  , Model.round = roundCounter 0
+initialState :: [NamedBoard] -> GameState
+initialState bs = GameState
+  { scene        = SinglePlayer
+  , level        = initialLevel (boardData (head bs))
+  , player       = initialPlayerTEMP
+  , boards       = bs
+  -- COUNTERS
+  , timer        = timeCounter 0
+  , lives        = liveCounter 3
+  , score        = scoreCounter 0
+  , Model.round  = roundCounter 0
+  -- ROUND SPECIFIC
   , pelletsEaten = 0
-  , ghostsEaten = 0
-  , keys = S.empty
-  , screenSize = (400,400)
-  , shouldQuit = False
-  , paused = False
-  , debugView = 0
+  , ghostsEaten  = 0
+  , poweredTimer = poweredTimerCounter 0
+  -- GAME CONTROLS
+  , keys         = S.empty
+  , screenSize   = (400,400)
+  , shouldQuit   = False
+  , paused       = False
+  , debugView    = 0
+  }
+
+initialLevel :: Board -> Level
+initialLevel b = Level 
+  { spawnPosition = (13.5, 14)
+  , gameBoard = b
+  , ghosts = standardGhosts  
   }
 
 initialLevelTEMP :: Level
@@ -120,24 +133,38 @@ data Ghost = Ghost
   , ghostPosition  :: (Float,Float)
   , ghostDirection :: Direction
   , destination    :: Maybe (Float,Float)  -- only changed when at destination or when switching mode 
-  , freightTimer   :: C.FreightTimer -- >=0, counts down
-  , releaseTimer   :: C.ReleaseTimer -- >=0, counts down
+  , freightTimer   :: FreightTimer -- >=0, counts down
+  , releaseTimer   :: ReleaseTimer -- >=0, counts down
   } deriving (Show)
 
 standardGhosts :: [Ghost]
-standardGhosts = [
-  createGhost (1.5,1.5) Blinky,
-  createGhost (2.5,1.5) Inky,
-  createGhost (1.5,2.5) Pinky,
-  createGhost (1.5,3.5) Clyde
+standardGhosts =
+  [ createGhost (1.5,1.5) Blinky
+  , createGhost (2.5,1.5) Inky
+  , createGhost (1.5,2.5) Pinky
+  , createGhost (1.5,3.5) Clyde
   ]
 
 createGhost :: (Float,Float) -> GhostType -> Ghost
-createGhost spawn typ = Ghost {ghostType = typ, ghostMode = Scatter, ghostPosition = spawn, ghostDirection = North, destination = Nothing, Model.freightTimer = (C.freightTimer 0), releaseTimer = (C.releaseTimer 0)}
+createGhost spawn typ = Ghost
+  { ghostType = typ
+  , ghostMode = Scatter
+  , ghostPosition = spawn
+  , ghostDirection = North
+  , destination = Nothing
+  , Model.freightTimer = freightTimerCounter 0
+  , releaseTimer = releaseTimerCounter 0
+  }
+
+data NamedBoard = NamedBoard
+  { boardName :: String
+  , boardData :: Board
+  } deriving Show
 
 -- NAME UTILS
 type TileWidth       = Float
 type TileCoordinates = (Int, Int)
+type PlayerSpeed     = Float
 type BoardWidth      = Int
 type BoardHeight     = Int
 type Score           = Int

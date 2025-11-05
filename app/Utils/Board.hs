@@ -25,18 +25,12 @@ charToTile 'G' = GhostSpawn
 charToTile 'H' = GhostExit
 charToTile _   = Empty
 
-loadBoardFromFile :: IO [Tile]
-loadBoardFromFile = do
-  contents <- readFile "boards/pacman"
-  pure . map (charToTile . head) . concatMap words . reverse . lines $ contents
-
-{-
-Orientation = N | E | S | W
-
-DoubleCorner
-DoubleWall
-DoubleWall
-
-SingleCorner
-SingleWall
--}
+parseBoard :: String -> Board
+parseBoard contents =
+  let rows        = lines contents
+      boardHeight = length rows
+      boardWidth  = length (words (head rows))
+      tiles       = map (charToTile . head) . concatMap words . reverse $ rows
+      coords      = [0 .. length tiles - 1]
+      boardList   = zip coords tiles
+  in Board (I.fromList boardList) boardWidth boardHeight

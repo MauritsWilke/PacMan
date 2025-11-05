@@ -68,17 +68,21 @@ executable pacman
                       Utils.Count,
                       Utils.Board,
                       Utils.Text,
+                      Utils.PlayerUtil,
                       View.Level,
                       View.Player,
                       View.Lives,
                       View.Score,
                       View.Paused,
-                      View.Homescreen,
+                      View.Scenes.Homescreen,
                       View.Ghost,
                       Actions.Move,
+                      Actions.Interact,
     build-depends:    containers ^>=0.6.7, 
                       base >=4.18 && <4.22, 
-                      gloss ^>=1.13.2.2
+                      gloss ^>=1.13.2.2,
+                      directory,
+                      filepath,
     default-language: Haskell2010
 
     -- LANGUAGE extensions used by modules in this package.
