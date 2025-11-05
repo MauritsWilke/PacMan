@@ -1,7 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
 module View.Ghost where
+import Utils.Count (getCount)
 import Model
 import Graphics.Gloss
+import Actions.Move (goalAlgorithm)
+
+type TileWidth = Float
 
 positionGhost :: Float -> (Float,Float) -> Int -> Int -> Picture -> Picture
 positionGhost tw (x,y) width height =
@@ -12,11 +16,12 @@ positionGhost tw (x,y) width height =
 
 
 
-drawGhost :: TileWidth -> Board -> Ghost -> Picture
+drawGhost :: Float -> Board -> Ghost -> Picture
 drawGhost l Board{..} Ghost{..} = let (x, y) = ghostPosition in
   positionGhost l (y,x) width height
-    $ Color (getGhostColor ghostType)
+    $ Color ghostColor
     $ circleSolid (0.5 * l)
+  where ghostColor = if getCount freightTimer /= 0 then blue else getGhostColor ghostType
 -- for each ghost -> draw
 
 getGhostColor :: GhostType -> Color
@@ -26,12 +31,12 @@ getGhostColor Pinky = rose
 getGhostColor Clyde = orange
 
 
-drawGhostDebug :: TileWidth -> Int -> Board -> Ghost -> Picture
-drawGhostDebug tw i Board{..} Ghost{..}
+drawGhostDebug :: GameState -> Float -> Int -> Board -> Ghost -> Picture
+drawGhostDebug gs tw i Board{..} Ghost{..}
   | i == 2 = let (x, y) = ghostPosition in
     Translate (- (0.5 * tw)) (0.5 * tw)
       $ positionGhost tw (y,x) width height
       $ Scale 0.08 0.08
       $ Color red
-      $ Text ("(" ++ show x ++ ", " ++ show y ++ ")")
+      $ Text ("(" ++ show x ++ ", " ++ show y ++ ") " ++ show ghostDirection ++ show (goalAlgorithm gs ghostType) )
   | otherwise = blank

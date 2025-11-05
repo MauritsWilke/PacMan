@@ -34,7 +34,7 @@ data GameState = GameState
 initialState :: [NamedBoard] -> GameState
 initialState bs = GameState
   { scene        = SinglePlayer
-  , level        = initialLevel (boardData (head bs))
+  , level        = initialLevel (boardData (head (tail (tail bs))))
   , player       = initialPlayerTEMP
   , boards       = bs
   -- COUNTERS
@@ -132,7 +132,7 @@ data Ghost = Ghost
   , ghostMode      :: GhostMode
   , ghostPosition  :: (Float,Float)
   , ghostDirection :: Direction
-  , destination    :: Maybe (Float,Float)  -- only changed when at destination or when switching mode 
+  -- , destination    :: Maybe (Float,Float)  -- only changed when at destination or when switching mode 
   , freightTimer   :: FreightTimer -- >=0, counts down
   , releaseTimer   :: ReleaseTimer -- >=0, counts down
   } deriving (Show)
@@ -151,8 +151,8 @@ createGhost spawn typ = Ghost
   , ghostMode = Scatter
   , ghostPosition = spawn
   , ghostDirection = North
-  , destination = Nothing
-  , Model.freightTimer = freightTimerCounter 0
+  -- , destination = Nothing
+  , freightTimer = freightTimerCounter 0
   , releaseTimer = releaseTimerCounter 0
   }
 

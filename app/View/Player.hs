@@ -26,5 +26,5 @@ drawPlayerDebug tw i Board{..} Player{..}
       $ positionPlayer tw (y,x) width height
       $ Scale 0.08 0.08
       $ Color red
-      $ Text ("(" ++ show x ++ ", " ++ show y ++ ")")
+      $ Text ("(" ++ show x ++ ", " ++ show y ++ ") " ++ show direction)
   | otherwise = blank

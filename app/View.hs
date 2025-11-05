@@ -45,6 +45,9 @@ drawPlayer' gs = drawPlayer (tileWidth gs) (gameBoard (level gs)) (player gs)
 viewGhosts :: GameState -> Picture
 viewGhosts gs = Pictures $ map (drawGhost (tileWidth gs) (gameBoard (level gs))) (ghosts (level gs))
 
+viewGhostsDebug :: GameState -> Picture
+viewGhostsDebug gs = Pictures $ map (drawGhostDebug gs (tileWidth gs) (debugView gs) (gameBoard (level gs))) (ghosts (level gs))
+
 viewGUI :: GameState -> Picture
 viewGUI gs =
     Pictures
@@ -60,7 +63,8 @@ insertAt i x xs =
 
 viewDebug :: GameState -> Picture
 viewDebug gs =
-    Pictures
+    let i = if poweredTimer gs == poweredTimerCounter 0 then 2 else 1
+    in Pictures $ insertAt i (viewGhostsDebug gs)
       [ drawLevelDebug  (tileWidth gs) (debugView gs) (level gs)
       , drawPlayerDebug (tileWidth gs) (debugView gs) (gameBoard (level gs)) (player gs)
       ]
