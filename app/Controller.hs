@@ -1,5 +1,4 @@
 -- Control the user input (main logic)
-{-# LANGUAGE RecordWildCards #-}
 module Controller where
 import Model
 import Graphics.Gloss.Interface.IO.Game
@@ -39,7 +38,7 @@ keysThatCantRepeat = [Char 'p']
 
 -- Add or remove keys from active key register
 updateKeyRegister :: Event -> GameState -> GameState
-updateKeyRegister (EventKey k Down _ _) gs 
+updateKeyRegister (EventKey k Down _ _) gs
   | k `elem` keysThatCantRepeat          = applyKey (scene gs) gs k
   | otherwise                            = updateKeyRegister' Down k gs
 updateKeyRegister (EventKey k Up _ _) gs = updateKeyRegister' Up k gs
@@ -52,7 +51,7 @@ inputKey gstate = afterGhostMoves
         afterGhostMoves = afterKeyInput {level = (level gstate) {ghosts = map (ghostMove gstate) (ghosts (level gstate))}}
 
 inputPause :: GameState -> GameState
-inputPause gstate = if S.member (SpecialKey KeyEsc) (keys gstate) 
+inputPause gstate = if S.member (SpecialKey KeyEsc) (keys gstate)
   then gstate { shouldQuit = True }
   else gstate
 

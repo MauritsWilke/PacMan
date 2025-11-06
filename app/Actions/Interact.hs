@@ -1,22 +1,31 @@
+{-# LANGUAGE RecordWildCards #-}
 module Actions.Interact where
 
 import Model
 import Utils.Board as GB
 import Data.Bifunctor (bimap)
 import Utils.Count
+import Actions.Move
 
 interact :: GameState -> GameState
 interact = interactPellets . reduceTimers
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
 reduceTimers :: GameState -> GameState
-reduceTimers gs = gs
+reduceTimers gs = gs {level = updatedLevel}
+  where updatedLevel = (level gs) {ghosts = reduceGhostTimers (ghosts (level gs))}
+
+-- reduce ghostTimers
+reduceGhostTimers :: [Ghost] -> [Ghost]
+reduceGhostTimers [] = []
+reduceGhostTimers (g@Ghost{..}:gs) 
+ = g {frightTimer = frightTimer .- 1, scatterTimer = scatterTimer .- 1, releaseTimer = releaseTimer .- 1} : reduceGhostTimers gs
 
 interactPellets :: GameState -> GameState
-interactPellets gs = gs
-  { level        = lvl { gameBoard = board' }
+interactPellets gs = action gs
+  { level        = lvl { gameBoard = board'}
   , score        = score'
-  , poweredTimer = pwr'
+  , poweredTimer = poweredTimeCounter 10
   , ghostsEaten  = ghs'
   }
   where
@@ -32,7 +41,14 @@ interactPellets gs = gs
                      Just PowerPellet -> removePellet
                      _                -> brd
 
-    (score', pwr', ghs') = case tile of
-      Just Pellet      -> (score gs .+ 10, poweredTimer gs         , ghostsEaten gs)
-      Just PowerPellet -> (score gs .+ 50, poweredTimer gs .+ 10000, 0             )
-      _                -> (score gs,       poweredTimer gs         , ghostsEaten gs)
+    (score', action, ghs') = case tile of
+      Just Pellet      -> (score gs .+ 10, id              , ghostsEaten gs)
+      Just PowerPellet -> (score gs .+ 50, freightenGhosts , 0             )
+      _                -> (score gs,       id              , ghostsEaten gs)
+      
+
+freightenGhosts :: GameState -> GameState
+freightenGhosts gstate = gstate {level = newLevel}
+  where newLevel = (level gstate) {ghosts = map freighten ghostList}
+        ghostList = ghosts $ level gstate
+        freighten ghost = ghost {ghostDirection = oppositeDirection (ghostDirection ghost), frightTimer = frightTimeCounter 480} -- 8 sec * 60 fps

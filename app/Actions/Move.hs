@@ -7,10 +7,11 @@ import GHC.Num (integerFromInt)
 import Data.Fixed (mod')
 import Data.List
 import Utils.PlayerUtil
+import Utils.Count
 
 playerMove :: GameState -> Direction -> Player
 playerMove gs dir = (player gs) { position = pos, direction = dir'} where
-  pos = case moveIsPossible gs (position (player gs)) 0.2 dir False of
+  pos = case moveIsPossible gs (position (player gs)) (playerSpeed gs) dir False of
     Nothing -> getPlayerPosition gs
     Just a  -> a
   dir' = if pos == getPlayerPosition gs then direction (player gs) else dir
@@ -18,7 +19,7 @@ playerMove gs dir = (player gs) { position = pos, direction = dir'} where
 -- check if provided argument is close enough to some n + 0.5 (for corner snap allowance)
 closeEnough :: Float -> Bool
 closeEnough v = abs (fromInteger (floor v) - v + 0.5) < allowedOffset
-  where allowedOffset = 0.03
+  where allowedOffset = 0.08
 
 -- set fractional part of orthogonal direction to some n + 0.5
 cornerSnap :: Direction -> Float -> Float -> (Float, Float)
@@ -29,7 +30,7 @@ cornerSnap dir x y
 -- checks to see if the desired move is allowed, 
 -- returns Nothing if not and Just (Float,Float) 
 -- if it is with the coordinates after the move
-moveIsPossible :: GameState -> (Float, Float) -> PlayerSpeed -> Direction -> Bool -> Maybe (Float,Float)
+moveIsPossible :: GameState -> (Float, Float) -> Speed -> Direction -> Bool -> Maybe (Float,Float)
 moveIsPossible gs (x,y) speed dir isGhost = let
   (xOff, yOff)         = directionToTuple dir
   (desiredX, desiredY) = (x + xOff * speed, y + yOff * speed)
@@ -75,26 +76,22 @@ getTileToCheck (x,y) dir
  where offset = if dir == North || dir == East then 0.5 else (-0.5)
 
 -- ghost moves 
--- -> if not yet at destination, do a step towards destination 
--- -> if at destination, get new destination and step towards new destination 
+-- -> do a move based on gamestate and ghost input
 ghostMove :: GameState -> Ghost -> Ghost
-ghostMove gstate ghost =
-    ghostStep gstate ghost bestDirection
+ghostMove gstate ghost = ghostStep gstate ghost bestDirection
     where
     bestDirection = if null allowedDirections
-                      then oppositeDirection (ghostDirection ghost) -- if no allowed directions -> go back
-                      else bestOf gstate ghost allowedDirections    -- else choose best direction
+          then oppositeDirection (ghostDirection ghost) -- if no allowed directions -> go back
+          else bestOf gstate ghost allowedDirections (getCount (Model.scatterTimer ghost) > 0)   -- else choose best direction
 
-      -- check all legal directions except opposite
+    -- check all legal directions except opposite
     allowedDirections = filter movableDirection $ delete (oppositeDirection (ghostDirection ghost)) allDirections
 
     -- checks if the provided direction is allowed
     movableDirection dir' =
-      case moveIsPossible gstate (ghostPosition ghost) 0.2 dir' True of
+      case moveIsPossible gstate (ghostPosition ghost) (ghostSpeed gstate) dir' True of
          Nothing   -> False
-         Just _    -> True -- setToMiddle' (ghostPosition ghost) (Just dir') /= ghostPosition ghost--a /= ghostPosition ghost
-      -- where (x', y') = tileMove (ghostPosition ghost) dir'
-      --       tile     = get (floor x', floor y') (gameBoard (level gstate))
+         Just _    -> True
 
 -- set current location to middle of current tile or only the coordinate inline with the provided direction
 setToMiddle :: (Float,Float) -> Maybe Direction -> (Float,Float)
@@ -104,18 +101,18 @@ setToMiddle (row,col) (Just dir) | dir == North || dir == South = (fromInteger (
 
 -- find best direction for move
 -- IMPORTANT: doesn't check for validity, provided list should contain only valid directions
-bestOf :: GameState -> Ghost -> [Direction] -> Direction
-bestOf _ ghost []              = ghostDirection ghost -- oppositeDirection $-- if no valid directions, return opposite of current ghostdirection
-bestOf gstate ghost directions = bestDirection                            -- else find the best direction
+bestOf :: GameState -> Ghost -> [Direction] -> Bool -> Direction
+bestOf _ ghost [] _                       = ghostDirection ghost -- if no valid directions, return opposite of current ghostdirection
+bestOf gstate ghost directions scattering = bestDirection        -- else find the best direction
  where
   bestDirection = directions !! closestToGoal
   closestToGoal =
     case elemIndex (foldl1' min distances) distances of
       Nothing  -> 0
       Just num -> num -- minimum distances `elem` distances
-  distances = map (distance ghostGoal . preMove currPosition 0.2) directions -- calculate all the distances of potential moves
+  distances = map (distance ghostGoal . preMove currPosition (ghostSpeed gstate)) directions -- calculate all the distances of potential moves
   currPosition = ghostPosition ghost
-  ghostGoal = goalAlgorithm gstate ghost
+  ghostGoal = if scattering then scatter gstate ghost else goalAlgorithm gstate ghost
 
 preMove :: (Float,Float) -> Float -> Direction -> (Float,Float)
 preMove (x,y) speed dir = (x+speed*xOff ,y+speed*yOff)
@@ -128,7 +125,7 @@ ghostStep gstate ghost dir =
     Nothing -> ghost
     Just a  -> ghost {ghostPosition = a, ghostDirection = dir} --if a == setToMiddle' (ghostPosition ghost)  (Just dir) then ghost else 
   -- ghost { ghostPosition = pos, ghostDirection = dir}
-  where pos = moveIsPossible gstate (ghostPosition ghost) 0.2 dir True
+  where pos = moveIsPossible gstate (ghostPosition ghost) (ghostSpeed gstate) dir True
 
 -- get coordinates of next tile
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
@@ -167,7 +164,7 @@ scatter gstate Ghost{..} =
     Pinky  -> topLeft $ gameBoard $ level gstate  -- top-left corner
     Clyde  -> bottomLeft $ gameBoard $ level gstate -- bottom-left corner
 
--- base goal tile off of pacman & first Blinky ghost in list, if non-present -> use own location instead
+-- base goal tile off of pacman & first Blinky ghost in list, if no Blinky in list -> use provided ghost-location instead
 inky :: GameState -> (Float,Float) -> (Float, Float) 
 inky gstate (x,y) = (refX + 2*xOff, refY + 2*yOff)
  where (xOff,yOff) = (pacX-refX,pacY-refY)

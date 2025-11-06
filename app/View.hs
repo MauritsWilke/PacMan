@@ -29,7 +29,7 @@ viewPure gs = case scene gs of
 
 viewDefault :: GameState -> Picture
 viewDefault gs =
-    let i = if poweredTimer gs == poweredTimerCounter 0 then 2 else 1
+    let i = if poweredTimer gs == poweredTimeCounter 0 then 2 else 1
     in Pictures $ insertAt i (viewGhosts gs)
        [ drawLevel' gs
        , drawPlayer' gs
@@ -63,7 +63,7 @@ insertAt i x xs =
 
 viewDebug :: GameState -> Picture
 viewDebug gs =
-    let i = if poweredTimer gs == poweredTimerCounter 0 then 2 else 1
+    let i = if poweredTimer gs == poweredTimeCounter 0 then 2 else 1
     in Pictures $ insertAt i (viewGhostsDebug gs)
       [ drawLevelDebug  (tileWidth gs) (debugView gs) (level gs)
       , drawPlayerDebug (tileWidth gs) (debugView gs) (gameBoard (level gs)) (player gs)

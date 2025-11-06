@@ -34,7 +34,7 @@ data GameState = GameState
 initialState :: [NamedBoard] -> GameState
 initialState bs = GameState
   { scene        = SinglePlayer
-  , level        = initialLevel (boardData (head (tail (tail bs))))
+  , level        = initialLevel (boardData (bs !! 3))
   , player       = initialPlayerTEMP
   , boards       = bs
   -- COUNTERS
@@ -45,7 +45,7 @@ initialState bs = GameState
   -- ROUND SPECIFIC
   , pelletsEaten = 0
   , ghostsEaten  = 0
-  , poweredTimer = poweredTimerCounter 0
+  , poweredTimer = poweredTimeCounter 0
   -- GAME CONTROLS
   , keys         = S.empty
   , screenSize   = (400,400)
@@ -55,10 +55,10 @@ initialState bs = GameState
   }
 
 initialLevel :: Board -> Level
-initialLevel b = Level 
+initialLevel b = Level
   { spawnPosition = (13.5, 14)
   , gameBoard = b
-  , ghosts = standardGhosts  
+  , ghosts = standardGhosts
   }
 
 initialLevelTEMP :: Level
@@ -133,8 +133,9 @@ data Ghost = Ghost
   , ghostPosition  :: (Float,Float)
   , ghostDirection :: Direction
   -- , destination    :: Maybe (Float,Float)  -- only changed when at destination or when switching mode 
-  , freightTimer   :: FreightTimer -- >=0, counts down
+  , frightTimer   :: FreightTimer -- >=0, counts down
   , releaseTimer   :: ReleaseTimer -- >=0, counts down
+  , scatterTimer   :: ScatterTimer -- >=0, counts down
   } deriving (Show)
 
 standardGhosts :: [Ghost]
@@ -151,9 +152,9 @@ createGhost spawn typ = Ghost
   , ghostMode = Scatter
   , ghostPosition = spawn
   , ghostDirection = North
-  -- , destination = Nothing
-  , freightTimer = freightTimerCounter 0
-  , releaseTimer = releaseTimerCounter 0
+  , scatterTimer = scatterTimeCounter 0
+  , frightTimer = frightTimeCounter 0
+  , releaseTimer = releaseTimeCounter 0
   }
 
 data NamedBoard = NamedBoard
@@ -164,7 +165,7 @@ data NamedBoard = NamedBoard
 -- NAME UTILS
 type TileWidth       = Float
 type TileCoordinates = (Int, Int)
-type PlayerSpeed     = Float
+type Speed     = Float
 type BoardWidth      = Int
 type BoardHeight     = Int
 type Score           = Int
@@ -179,3 +180,14 @@ tileWidth gstate
         screenHeight      = fromIntegral $ snd (screenSize gstate)
         aspectRatioScreen = screenWidth / screenHeight
         aspectRatioBoard  = boardWidth  / boardHeight
+
+playerSpeed :: GameState -> Float
+playerSpeed gstate | roundIndex > 20 = 0.1425
+                   | roundIndex > 4  = 0.155
+                   | otherwise       = 0.13
+  where roundIndex = getCount $ Model.round gstate
+
+ghostSpeed :: GameState -> Float
+ghostSpeed gstate  | roundIndex > 4  = 0.14875
+                   | otherwise       = 0.12375
+  where roundIndex = getCount $ Model.round gstate

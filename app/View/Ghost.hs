@@ -21,7 +21,7 @@ drawGhost l Board{..} Ghost{..} = let (x, y) = ghostPosition in
   positionGhost l (y,x) width height
     $ Color ghostColor
     $ circleSolid (0.5 * l)
-  where ghostColor = if getCount freightTimer /= 0 then blue else getGhostColor ghostType
+  where ghostColor = if getCount frightTimer /= 0 then blue else getGhostColor ghostType
 -- for each ghost -> draw
 
 getGhostColor :: GhostType -> Color
