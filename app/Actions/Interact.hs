@@ -6,7 +6,11 @@ import Data.Bifunctor (bimap)
 import Utils.Count
 
 interact :: GameState -> GameState
-interact = interactPellets
+interact = interactPellets . reduceTimers
+
+-- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
+reduceTimers :: GameState -> GameState
+reduceTimers gs = gs
 
 interactPellets :: GameState -> GameState
 interactPellets gs = gs
