@@ -51,11 +51,6 @@ inputKey gstate = afterGhostMoves
   where afterKeyInput = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
         afterGhostMoves = afterKeyInput {level = (level gstate) {ghosts = map (ghostMove gstate) (ghosts (level gstate))}}
 
--- use fold to produce new ghost set
--- applyGhostMoves :: GameState -> [Ghost] -> GameState
--- applyGhostMoves gstate [] = gstate
--- applyGhostMoves gstate (g:gs) = gstate {level = (level gstate) {ghosts = map (ghostMove gstate) (ghosts (level gstate))}}
-
 inputPause :: GameState -> GameState
 inputPause gstate = if S.member (SpecialKey KeyEsc) (keys gstate) 
   then gstate { shouldQuit = True }

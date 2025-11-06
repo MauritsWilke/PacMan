@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Utils.Board where
 import qualified Data.IntMap.Lazy as I
 import Model
@@ -34,3 +35,16 @@ parseBoard contents =
       coords      = [0 .. length tiles - 1]
       boardList   = zip coords tiles
   in Board (I.fromList boardList) boardWidth boardHeight
+
+-- get the indices of the corners of the board
+topLeft :: Board -> (Float,Float)
+topLeft Board{..}    = (fromIntegral height,0)
+
+topRight :: Board -> (Float,Float)
+topRight Board{..}    = (fromIntegral height,fromIntegral width) 
+
+bottomLeft :: Board -> (Float,Float)
+bottomLeft _ = (0,0) 
+
+bottomRight :: Board -> (Float,Float)
+bottomRight Board{..} = (0,fromIntegral width) 

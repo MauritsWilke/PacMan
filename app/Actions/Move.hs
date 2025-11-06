@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Actions.Move where
 
 import Model
@@ -60,9 +61,6 @@ getWrapAround (x,y) b
        Just _          -> True
     otherSide@(otherX, otherY) = (mod' x (fromIntegral (height b)), mod' y (fromIntegral (width b)))
 
--- setToMiddle :: (Float,Float) -> (Float,Float)
--- setToMiddle (row,col) = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
-
 directionToTuple :: Direction -> (Float,Float)
 directionToTuple North = (1 , 0)
 directionToTuple South = (-1, 0)
@@ -75,9 +73,6 @@ getTileToCheck (x,y) dir
   | dir == North || dir == South = (floor (x + offset), floor y)
   | otherwise                    = (floor x, floor (y + offset))
  where offset = if dir == North || dir == East then 0.5 else (-0.5)
-
--- !TO DO: if at pellet -> set to empty tile and adjust score
--- TODO: GET RID OF fromMaybe !!!
 
 -- ghost moves 
 -- -> if not yet at destination, do a step towards destination 
@@ -120,7 +115,7 @@ bestOf gstate ghost directions = bestDirection                            -- els
       Just num -> num -- minimum distances `elem` distances
   distances = map (distance ghostGoal . preMove currPosition 0.2) directions -- calculate all the distances of potential moves
   currPosition = ghostPosition ghost
-  ghostGoal = goalAlgorithm gstate (ghostType ghost)
+  ghostGoal = goalAlgorithm gstate ghost
 
 preMove :: (Float,Float) -> Float -> Direction -> (Float,Float)
 preMove (x,y) speed dir = (x+speed*xOff ,y+speed*yOff)
@@ -134,36 +129,6 @@ ghostStep gstate ghost dir =
     Just a  -> ghost {ghostPosition = a, ghostDirection = dir} --if a == setToMiddle' (ghostPosition ghost)  (Just dir) then ghost else 
   -- ghost { ghostPosition = pos, ghostDirection = dir}
   where pos = moveIsPossible gstate (ghostPosition ghost) 0.2 dir True
-
--- return only the intermediate destination for which no re-evaluation is required 
--- (i.e. won't change overtime)
--- getDestination :: GameState -> Ghost -> (Float,Float)
--- getDestination gstate ghost = Actions.Move.traverse brd mps dir
---   where brd = gameBoard (level gstate)
---         mps = setToMiddle (ghostPosition ghost)
---         dir = ghostDirection ghost
-
--- keep moving until dillema (multiple possible directions (besides the one where the ghost came from)) 
--- traverse :: Board -> (Float,Float) -> Direction -> (Float,Float)
--- traverse b pos dir
---   -- we will re-evaluate later, for now this is the location that the ghost will move to (base case)
---   | length directionChoices /= 1 = pos
---   | otherwise                    = Actions.Move.traverse b nextPos nextDir
---   where
---     opposite  = oppositeDirection dir
---     nextPos   = tileMove pos dir
---     nextDir = head directionChoices
-
---     -- check all legal directions except opposite
---     directionChoices = filter allowedDirection $ delete opposite allDirections
-
---     -- checks if the provided direction is allowed (uses board)
---     allowedDirection dir' = case tile of
---         Nothing   -> False
---         Just Wall -> False
---         Just _    -> True
---       where (x', y') = tileMove pos dir'
---             tile     = get (floor x', floor y') b
 
 -- get coordinates of next tile
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
@@ -184,11 +149,41 @@ allDirections :: [Direction]
 allDirections = [North,West,South,East]
 
 -- returns actual goal destination, based on state of the game and ghostType
-goalAlgorithm :: GameState -> GhostType -> (Float,Float)
-goalAlgorithm gstate Blinky = position $ player gstate -- direct chase
-goalAlgorithm gstate Inky   = position $ player gstate -- relative to blinky and pac man
-goalAlgorithm gstate Pinky  = position $ player gstate -- aim for 2 dots infront of pacman
-goalAlgorithm gstate Clyde  = position $ player gstate -- direct chase, but scatter if within 8 dots of pacman
+goalAlgorithm :: GameState -> Ghost -> (Float,Float)
+goalAlgorithm gstate Ghost{..} = 
+  case ghostType of 
+    Blinky -> position $ player gstate  -- direct chase
+    Inky   -> inky gstate ghostPosition -- relative to blinky and pac man
+    Pinky  -> twoInFrontPacman gstate  -- aim for 2 dots infront of pacman
+    Clyde  -> if distance ghostPosition (position $ player gstate) < 8 -- direct chase, but scatter if within 8 dots of pacman
+              then bottomLeft $ gameBoard $ level gstate
+              else twoInFrontPacman gstate 
+
+scatter :: GameState -> Ghost -> (Float,Float)
+scatter gstate Ghost{..} = 
+  case ghostType of 
+    Blinky -> topRight $ gameBoard $ level gstate  -- top-right corner
+    Inky   -> bottomRight $ gameBoard $ level gstate -- bottom-right corner
+    Pinky  -> topLeft $ gameBoard $ level gstate  -- top-left corner
+    Clyde  -> bottomLeft $ gameBoard $ level gstate -- bottom-left corner
+
+-- base goal tile off of pacman & first Blinky ghost in list, if non-present -> use own location instead
+inky :: GameState -> (Float,Float) -> (Float, Float) 
+inky gstate (x,y) = (refX + 2*xOff, refY + 2*yOff)
+ where (xOff,yOff) = (pacX-refX,pacY-refY)
+       (pacX, pacY) = twoInFrontPacman gstate
+       (refX,refY) = if not (null allBlinkies) then ghostPosition $ head allBlinkies else (x,y)
+       allBlinkies = filter (isBlinky . ghostType) ghostList
+       ghostList = ghosts $ level gstate
+       isBlinky g = case g of 
+        Blinky -> True
+        _ -> False 
+
+-- get the index of pacman + 2 times its direction (to predict movement)
+twoInFrontPacman :: GameState -> (Float,Float)
+twoInFrontPacman gstate = (x+2*xOff,y+2*yOff)
+  where (x,y)       = position $ player gstate
+        (xOff,yOff) = directionToTuple $ direction $ player gstate
 
 distance :: (Float,Float) -> (Float,Float) -> Float
 distance (x,y) (a,b) = sqrt $ xOff * xOff + yOff * yOff

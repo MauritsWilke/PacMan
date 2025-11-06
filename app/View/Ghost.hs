@@ -32,11 +32,11 @@ getGhostColor Clyde = orange
 
 
 drawGhostDebug :: GameState -> Float -> Int -> Board -> Ghost -> Picture
-drawGhostDebug gs tw i Board{..} Ghost{..}
+drawGhostDebug gs tw i Board{..} g@Ghost{..}
   | i == 2 = let (x, y) = ghostPosition in
     Translate (- (0.5 * tw)) (0.5 * tw)
       $ positionGhost tw (y,x) width height
       $ Scale 0.08 0.08
       $ Color red
-      $ Text ("(" ++ show x ++ ", " ++ show y ++ ") " ++ show ghostDirection ++ show (goalAlgorithm gs ghostType) )
+      $ Text ("(" ++ show x ++ ", " ++ show y ++ ") " ++ show ghostDirection ++ show (goalAlgorithm gs g) )
   | otherwise = blank
