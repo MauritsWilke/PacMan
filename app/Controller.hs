@@ -7,13 +7,58 @@ import System.Exit (exitSuccess)
 import Actions.Move
 import Actions.Interact as A
 import View.Scenes.SelectBoard (exitScene, enterScene, controlScene)
+import Data.Maybe
+import Data.List
+import System.Random
+import Utils.Count
 
 -- 
 step :: Float -> GameState -> IO GameState
 step _ gstate
   | shouldQuit gstate = exitSuccess
   | paused gstate     = pure (inputPause gstate)
-  | otherwise         = pure (A.interact (inputKey gstate))
+  | otherwise         = randomMoves (A.interact (inputKey gstate))
+
+getRandomFrom :: [a] -> IO a
+getRandomFrom [] = error "can't get element from empty list"
+getRandomFrom as = do
+    index <- randomRIO (0,length as -1)
+    return $ as !! index
+
+randomMoves :: GameState -> IO GameState
+randomMoves gstate = do
+  let lvl = level gstate
+      allGhosts = ghosts lvl
+      frightened = frightenedGhosts allGhosts
+      nonFrightened = filter ((== 0) . getCount . frightTimer ) allGhosts
+
+  -- applyRandom move to all frightened ghosts
+  updatedFrightened <- mapM (applyRandom gstate) frightened
+
+  let fullGhostList  = updatedFrightened ++ nonFrightened
+      updatedLevel   = lvl { ghosts = fullGhostList }
+      gstate'        = gstate { level = updatedLevel }
+
+  return gstate'
+
+applyRandom :: GameState -> Ghost -> IO Ghost
+applyRandom gstate ghost = do
+  let avoid = oppositeDirection (ghostDirection ghost)
+      allowedDirections = filter (/= avoid) allDirections
+      allowedMoves = filter (validMove gstate ghost) allowedDirections
+
+      validMove gs gh d =
+        isJust $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d False
+
+  dir <- case allowedMoves of
+    []  -> return $ oppositeDirection (ghostDirection ghost)
+    [d] -> return d
+    _   -> getRandomFrom allowedMoves
+
+  -- ghostStep returns a pure Ghost; dir :: IO Direction so use fmap
+  --fmap (ghostStep gstate ghost) (return dir)  -- simpler: return (ghostStep gstate ghost dir)
+  -- better:
+  return (ghostStep gstate ghost dir)
 
 -- ! CAN CHANGE THE GAMESTATE CURRENTLY
 debug :: GameState -> GameState

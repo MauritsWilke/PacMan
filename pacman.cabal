@@ -79,7 +79,9 @@ executable pacman
                       View.Ghost,
                       Actions.Move,
                       Actions.Interact,
-    build-depends:    containers ^>=0.6.7, 
+    build-depends:    random ^>=1.3.1, 
+                      containers ^>=0.6.7, 
+
                       base >=4.18 && <4.22, 
                       gloss ^>=1.13.2.2,
                       directory,

@@ -96,7 +96,8 @@ getTileToCheck (x,y) dir
 -- ghost moves 
 -- -> do a move based on gamestate and ghost input
 ghostMove :: GameState -> Ghost -> Ghost
-ghostMove gstate ghost = ghostStep gstate ghost bestDirection
+ghostMove gstate ghost = 
+    if getCount (frightTimer ghost) > 0 then ghost else ghostStep gstate ghost bestDirection
     where
     bestDirection = if null allowedDirections
           then oppositeDirection (ghostDirection ghost) -- if no allowed directions -> go back
@@ -149,9 +150,6 @@ ghostStep gstate ghost dir =
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
 tileMove (x, y) dir  = (x + xAdd, y + yAdd)
   where (xAdd, yAdd) = directionToTuple dir
-
--- getSpeed :: Bool -> RoundCounter -> Float
--- getSpeed isPlayer (RoundCounter roundIndex) = 
 
 oppositeDirection :: Direction -> Direction
 oppositeDirection North = South

@@ -1,6 +1,7 @@
 -- All the relevant types
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE RecordWildCards #-}
 module Model where
 import GHC.Generics (Generic)
 import Utils.Count
@@ -140,10 +141,10 @@ data Ghost = Ghost
   , ghostPosition  :: (Float,Float)
   , ghostDirection :: Direction
   -- , destination    :: Maybe (Float,Float)  -- only changed when at destination or when switching mode 
-  , frightTimer   :: FreightTimer -- >=0, counts down
+  , frightTimer   :: FrightTimer -- >=0, counts down
   , releaseTimer   :: ReleaseTimer -- >=0, counts down
   , scatterTimer   :: ScatterTimer -- >=0, counts down
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 standardGhosts :: [Ghost]
 standardGhosts =
@@ -188,13 +189,22 @@ tileWidth gstate
         aspectRatioScreen = screenWidth / screenHeight
         aspectRatioBoard  = boardWidth  / boardHeight
 
+-- get player speed based on round
 playerSpeed :: GameState -> Float
 playerSpeed gstate | roundIndex > 20 = 0.1425
                    | roundIndex > 4  = 0.155
                    | otherwise       = 0.13
   where roundIndex = getCount $ Model.round gstate
 
+-- get ghost speed based on round
 ghostSpeed :: GameState -> Float
 ghostSpeed gstate  | roundIndex > 4  = 0.14875
                    | otherwise       = 0.12375
   where roundIndex = getCount $ Model.round gstate
+
+--get all ghosts that currently are in frightened mode
+frightenedGhosts :: [Ghost] -> [Ghost]
+frightenedGhosts [] = []
+frightenedGhosts (x:xs) = if frightened x then x : remainder else remainder
+  where frightened Ghost{..} = getCount frightTimer > 0
+        remainder = frightenedGhosts xs
