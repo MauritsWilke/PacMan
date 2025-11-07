@@ -8,13 +8,12 @@ import Utils.Count
 import Actions.Move
 
 interact :: GameState -> GameState
-interact gs = case scene gs of 
+interact gs = case scene gs of
   SinglePlayer -> (interactPellets . autoMovePacman . reduceTimers) gs
   _            -> gs
 
 autoMovePacman :: GameState -> GameState
-autoMovePacman gs = gs { player = playerMove gs dir }
-  where dir = (direction . player) gs
+autoMovePacman = playerMove
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
 reduceTimers :: GameState -> GameState
@@ -24,8 +23,8 @@ reduceTimers gs = gs { level = updatedLevel }
 -- reduce ghostTimers
 reduceGhostTimers :: [Ghost] -> [Ghost]
 reduceGhostTimers [] = []
-reduceGhostTimers (g@Ghost{..} : gs) 
- = g 
+reduceGhostTimers (g@Ghost{..} : gs)
+ = g
  { frightTimer  = frightTimer  .- 1
  , scatterTimer = scatterTimer .- 1
  , releaseTimer = releaseTimer .- 1
@@ -55,7 +54,7 @@ interactPellets gs = action gs
       Just Pellet      -> (score gs .+ 10, id              , ghostsEaten gs)
       Just PowerPellet -> (score gs .+ 50, freightenGhosts , 0             )
       _                -> (score gs,       id              , ghostsEaten gs)
-      
+
 
 freightenGhosts :: GameState -> GameState
 freightenGhosts gstate = gstate { level = newLevel }
@@ -63,7 +62,7 @@ freightenGhosts gstate = gstate { level = newLevel }
     lvl = level gstate
     newLevel = lvl { ghosts = map freighten ghostList }
     ghostList = ghosts lvl
-    freighten ghost = ghost 
+    freighten ghost = ghost
       { ghostDirection = oppositeDirection (ghostDirection ghost)
       , frightTimer    = frightTimeCounter 480 -- 8 sec * 60 fps
-      } 
+      }
