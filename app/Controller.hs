@@ -43,15 +43,22 @@ randomMoves gstate = do
 
 applyRandom :: GameState -> Ghost -> IO Ghost
 applyRandom gstate ghost = do
-  let allowedDirections = delete (oppositeDirection (ghostDirection ghost)) allDirections
-      dir = case length allowedMoves of
-             0 -> return $ oppositeDirection (ghostDirection ghost)
-             1 -> return $ head allowedDirections
-             _ -> getRandomFrom allowedMoves
+  let avoid = oppositeDirection (ghostDirection ghost)
+      allowedDirections = filter (/= avoid) allDirections
+      allowedMoves = filter (validMove gstate ghost) allowedDirections
 
-      allowedMoves = filter validMove allowedDirections
-      validMove dir' = isJust $ moveIsPossible gstate (ghostPosition ghost) (ghostSpeed gstate) dir' False
-  ghostStep gstate ghost <$> dir
+      validMove gs gh d =
+        isJust $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d False
+
+  dir <- case allowedMoves of
+    []  -> return $ oppositeDirection (ghostDirection ghost)
+    [d] -> return d
+    _   -> getRandomFrom allowedMoves
+
+  -- ghostStep returns a pure Ghost; dir :: IO Direction so use fmap
+  --fmap (ghostStep gstate ghost) (return dir)  -- simpler: return (ghostStep gstate ghost dir)
+  -- better:
+  return (ghostStep gstate ghost dir)
 
 -- ! CAN CHANGE THE GAMESTATE CURRENTLY
 debug :: GameState -> GameState
