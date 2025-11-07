@@ -6,22 +6,35 @@ import Utils.Board
 import GHC.Num (integerFromInt)
 import Data.Fixed (mod')
 import Data.List
-import Utils.PlayerUtil
 import Utils.Count
 
 updatePlayerDir :: GameState -> Direction -> GameState
-updatePlayerDir gs dir = case dirIsAllowed of
-  Nothing -> gs
-  Just _  -> gs { player = (player gs) { direction = dir } }
-  where 
-    dirIsAllowed = moveIsPossible gs (position (player gs)) (playerSpeed gs) dir False
+updatePlayerDir gs dir
+  | dir == oppositeDirection (direction plr) = gs
+  | otherwise = gs { player = plr { direction = newDir, queuedDir = dir } }
+  where
+    plr = player gs
+    dirIsAllowed = moveIsPossible gs (position plr) (playerSpeed gs) dir False
+    newDir = case dirIsAllowed of
+      Just _  -> dir
+      Nothing -> direction plr
 
-playerMove :: GameState -> Direction -> Player
-playerMove gs dir = (player gs) { position = pos, direction = dir' } where
-  pos = case moveIsPossible gs (position (player gs)) (playerSpeed gs) dir False of
-    Nothing -> getPlayerPosition gs
-    Just a  -> a
-  dir' = if pos == getPlayerPosition gs then direction (player gs) else dir
+
+playerMove :: GameState -> GameState
+playerMove gs = gs { player = plr' }
+  where 
+    plr = player gs
+    dir = direction plr
+    que = queuedDir plr
+    pos = position plr
+    movQue = moveIsPossible gs pos (playerSpeed gs) que False
+    movDir = moveIsPossible gs pos (playerSpeed gs) dir False
+
+    plr' = case movQue of
+      Just a  -> plr { direction = que, position = a }
+      Nothing -> case movDir of
+        Just a  -> plr { position = a }
+        Nothing -> plr
 
 -- check if provided argument is close enough to some n + 0.5 (for corner snap allowance)
 closeEnough :: Float -> Bool

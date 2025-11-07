@@ -89,6 +89,7 @@ initialPlayerTEMP :: Player
 initialPlayerTEMP = Player
   { position = spawnPosition initialLevelTEMP
   , direction = East
+  , queuedDir = East
   , mode = Normal
   }
 
@@ -121,8 +122,9 @@ data PlayerMode = Normal | Powered | Dead | Respawning | LevelComplete
   deriving (Show, Eq)
 
 data Player = NoPlayer | Player
-  { position :: (Float, Float) -- offset for player
+  { position  :: (Float, Float) -- offset for player
   , direction :: Direction
+  , queuedDir :: Direction
   , mode      :: PlayerMode
   } deriving (Show)
 
