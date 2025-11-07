@@ -2,7 +2,6 @@ module View.Scenes.SelectBoard where
 import Graphics.Gloss
 import Model
 import Graphics.Gloss.Interface.IO.Game
-import Debug.Trace (traceShow)
 
 -----------------------------
 -- DEFAULT SCENE FUNCTIONS --
@@ -11,11 +10,8 @@ import Debug.Trace (traceShow)
 enterScene :: GameState -> GameState
 enterScene gs0 =
   let
-    count = length (boards gs0)
-    lo = 0
-    hi = count - 1
-
-    clamped = localiseMenuHelper lo hi (menuHelper gs0)
+    hi = length (boards gs0) - 1
+    clamped = localiseMenuHelper 0 hi (menuHelper gs0)
   in gs0 { menuHelper = clamped }
 
 exitScene :: GameState -> GameState
@@ -27,7 +23,7 @@ exitScene gs0 =
         { nameBoard = boardName brd
         , gameBoard = boardData brd
         }
-  in traceShow ("EXIT:", nameBoard newLevel) $ gs0 { level = newLevel }
+  in gs0 { level = newLevel }
 
 controlScene :: Key -> GameState -> GameState
 controlScene (Char 's') gs = gs { menuHelper = min (menuHelper gs + 1) ((length . boards) gs - 1) }
@@ -46,23 +42,15 @@ localiseMenuHelper :: Int -> Int -> Int -> Int
 localiseMenuHelper lo hi x = max lo (min hi x)
 
 renderBoardSelection :: GameState -> Picture
-renderBoardSelection gs0 =
-  let
-    count = length (boards gs0)
-    lo = 0
-    hi = count - 1
-
-    clamped = localiseMenuHelper lo hi (menuHelper gs0)
-    gs = gs0 { menuHelper = clamped }
-  in
-    Translate (-(5 * tw)) 0 $
-    Pictures $
-      zipWith (\i v -> Translate 0 (i * oneLine tw) v) [0..]
+renderBoardSelection gs =
+    Translate (-(5 * tw)) 0
+    $ Pictures
+    $ zipWith (\i v -> Translate 0 (i * oneLine tw) v) [0..]
         ( [ header ] ++ renderBoards gs ++ [ footer ] )
   where
-    tw = tileWidth gs0
-    header = Color white $ Scale (tw/128) (tw/128) $ Text "Select a board:"
-    footer = Color white $ Scale (tw/128) (tw/128) $ Text "Press enter to select"
+    tw = tileWidth gs
+    header = Color white $ Scale (tw / 128) (tw / 128) $ Text "Select a board:"
+    footer = Color white $ Scale (tw / 128) (tw / 128) $ Text "Press enter to select"
 
 
 renderBoards :: GameState -> [Picture]
