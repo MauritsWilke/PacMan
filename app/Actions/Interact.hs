@@ -8,7 +8,9 @@ import Utils.Count
 import Actions.Move
 
 interact :: GameState -> GameState
-interact = interactPellets . autoMovePacman . reduceTimers
+interact gs = case scene gs of 
+  SinglePlayer -> (interactPellets . autoMovePacman . reduceTimers) gs
+  _            -> gs
 
 autoMovePacman :: GameState -> GameState
 autoMovePacman gs = gs { player = playerMove gs dir }
