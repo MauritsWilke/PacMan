@@ -28,13 +28,14 @@ data GameState = GameState
   , shouldQuit   :: Bool
   , paused       :: Bool
   , debugView    :: Int
+  , menuHelper   :: Int -- Used for keeping track of selected item
   } deriving (Show, Generic)
 
 
 initialState :: [NamedBoard] -> GameState
 initialState bs = GameState
-  { scene        = SinglePlayer
-  , level        = initialLevel (boardData (bs !! 3))
+  { scene        = ConfigureGame
+  , level        = initialLevel bs
   , player       = initialPlayerTEMP
   , boards       = bs
   -- COUNTERS
@@ -52,19 +53,22 @@ initialState bs = GameState
   , shouldQuit   = False
   , paused       = False
   , debugView    = 0
+  , menuHelper   = 0
   }
 
-initialLevel :: Board -> Level
+initialLevel :: [NamedBoard] -> Level
 initialLevel b = Level
   { spawnPosition = (13.5, 14)
-  , gameBoard = b
+  , gameBoard = boardData firstBoard
+  , nameBoard = boardName firstBoard
   , ghosts = standardGhosts
-  }
+  } where firstBoard = head b
 
 initialLevelTEMP :: Level
 initialLevelTEMP = Level
   { spawnPosition = (13.5, 14)
   , gameBoard = realBoard
+  , nameBoard = "realBoard"
   , ghosts = standardGhosts
   }
 
@@ -94,6 +98,7 @@ data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
 data Level = NoLevel | Level
   { spawnPosition :: (Float, Float) -- Spawn tile
   , gameBoard     :: Board
+  , nameBoard     :: String    -- TODO combine these into NamedBoard, veel werk!
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic)
 

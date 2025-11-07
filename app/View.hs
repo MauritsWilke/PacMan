@@ -13,6 +13,7 @@ import View.Score (drawScore)
 import View.Scenes.Homescreen (renderHomescreen)
 import View.Lives (drawLives)
 import View.Paused
+import View.Scenes.SelectBoard (renderBoardSelection)
 
 view :: GameState -> IO Picture
 view = return . viewPure
@@ -21,7 +22,7 @@ viewPure :: GameState -> Picture
 viewPure gs = case scene gs of
     Homescreen    -> renderHomescreen (tileWidth gs)
     LoadGame      -> blank
-    ConfigureGame -> blank
+    ConfigureGame -> renderBoardSelection gs
     SinglePlayer  -> if debugView gs == 0
                      then viewDefault gs
                      else Pictures [viewDefault gs, viewDebug gs]

@@ -75,6 +75,7 @@ executable pacman
                       View.Score,
                       View.Paused,
                       View.Scenes.Homescreen,
+                      View.Scenes.SelectBoard,
                       View.Ghost,
                       Actions.Move,
                       Actions.Interact,

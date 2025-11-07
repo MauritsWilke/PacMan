@@ -6,6 +6,7 @@ import qualified Data.Set as S
 import System.Exit (exitSuccess)
 import Actions.Move
 import Actions.Interact as A
+import View.Scenes.SelectBoard (exitScene, enterScene, controlScene)
 
 -- 
 step :: Float -> GameState -> IO GameState
@@ -47,8 +48,13 @@ updateKeyRegister _ gs                   = gs
 -- For each key that is pressed, apply the action bound to that key
 inputKey :: GameState -> GameState
 inputKey gstate = afterGhostMoves
-  where afterKeyInput = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
-        afterGhostMoves = afterKeyInput {level = (level gstate) {ghosts = map (ghostMove gstate) (ghosts (level gstate))}}
+  where afterKeyInput   = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
+        afterGhostMoves = if scene gstate /= SinglePlayer 
+          then afterKeyInput 
+          else afterKeyInput 
+            { level = (level gstate)
+               { ghosts = map (ghostMove gstate) (ghosts (level gstate)) }
+            }
 
 inputPause :: GameState -> GameState
 inputPause gstate = if S.member (SpecialKey KeyEsc) (keys gstate)
@@ -58,18 +64,23 @@ inputPause gstate = if S.member (SpecialKey KeyEsc) (keys gstate)
 -- TODO add actions instead of all game logic here
 applyKey :: Scene -> GameState -> Key -> GameState
 -- META CONTROLS
-applyKey _ gstate (SpecialKey KeyEsc)              = gstate { shouldQuit = True }
-applyKey _ gstate (Char 'p')                       = gstate { paused = not (paused gstate) }
-applyKey _ gstate (Char '0')                       = gstate { debugView = 0 }
-applyKey _ gstate (Char '1')                       = gstate { debugView = 1 }
-applyKey _ gstate (Char '2')                       = gstate { debugView = 2 }
-applyKey _ gstate (Char '3')                       = gstate { debugView = 3 }
--- HOMESCREEN
-applyKey Homescreen   gstate (SpecialKey KeySpace) = gstate { scene = SinglePlayer }
+applyKey _ gstate (SpecialKey KeyEsc)               = gstate { shouldQuit = True }
+applyKey _ gstate (Char 'p')                        = gstate { paused = not (paused gstate) }
+applyKey _ gstate (Char '0')                        = gstate { debugView = 0 }
+applyKey _ gstate (Char '1')                        = gstate { debugView = 1 }
+applyKey _ gstate (Char '2')                        = gstate { debugView = 2 }
+applyKey _ gstate (Char '3')                        = gstate { debugView = 3 }
+-- HOMESCREEN 
+applyKey Homescreen gstate (SpecialKey KeySpace)    = gstate { scene = SinglePlayer }
+applyKey Homescreen gstate (Char 's')               = (enterScene gstate) { scene = ConfigureGame }
+-- CONFIGURE 
+applyKey ConfigureGame gstate (Char 's')            = controlScene (Char 's') gstate
+applyKey ConfigureGame gstate (Char 'w')            = controlScene (Char 'w') gstate
+applyKey ConfigureGame gstate (SpecialKey KeyEnter) = (exitScene gstate) { scene = Homescreen }
 -- MOVEMENT
-applyKey SinglePlayer gstate (Char 'w')            = gstate { player = playerMove gstate North }
-applyKey SinglePlayer gstate (Char 'a')            = gstate { player = playerMove gstate West }
-applyKey SinglePlayer gstate (Char 's')            = gstate { player = playerMove gstate South }
-applyKey SinglePlayer gstate (Char 'd')            = gstate { player = playerMove gstate East }
--- CATCH ALL
-applyKey _ gstate _                                = gstate
+applyKey SinglePlayer gstate (Char 'w')             = gstate { player = playerMove gstate North }
+applyKey SinglePlayer gstate (Char 'a')             = gstate { player = playerMove gstate West }
+applyKey SinglePlayer gstate (Char 's')             = gstate { player = playerMove gstate South }
+applyKey SinglePlayer gstate (Char 'd')             = gstate { player = playerMove gstate East }
+-- CATCH ALL 
+applyKey _ gstate _                                 = gstate
