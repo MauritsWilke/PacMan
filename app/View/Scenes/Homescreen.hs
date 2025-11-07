@@ -3,8 +3,8 @@ import Graphics.Gloss
 import Model
 import System.Random (mkStdGen, randomRs, splitGen)
 
-renderHomescreen :: (Int, Int) -> TileWidth -> Picture
-renderHomescreen (sw, sh) tw = Pictures $
+renderHomescreen :: Bool -> Bool -> (Int, Int) -> TileWidth -> Picture
+renderHomescreen areSaves areBoards (sw, sh) tw = Pictures $
   randomPacmans (sw, sh) tw ++
   [ Translate ((-7) * tw) 0
       $ Color white
@@ -14,16 +14,17 @@ renderHomescreen (sw, sh) tw = Pictures $
       $ Color white
       $ Scale (tw / 128) (tw / 128)
       $ Text "press space to start"
-  , Translate ((-6.5625) * tw) (- (tw * 4))
-      $ Color white
-      $ Scale (tw / 128) (tw / 128)
-      $ Text "press 's' to configure game"
-  , Translate ((-6.5625) * tw) (- (tw * 6))
-      $ Color white
-      $ Scale (tw / 128) (tw / 128)
-      $ Text "press 'l' to load a save"
   ]
-
+  ++ [ Translate ((-6.5625) * tw) (- (tw * 4))
+         $ Color white
+         $ Scale (tw / 128) (tw / 128)
+         $ Text "press 's' to configure game"
+     | areBoards ]
+  ++ [ Translate ((-6.5625) * tw) (- (tw * 6))
+         $ Color white
+         $ Scale (tw / 128) (tw / 128)
+         $ Text "press 'l' to load a save"
+     | areSaves ]
 
 randomPacmans :: (Int, Int) -> Float -> [Picture]
 randomPacmans (sw, sh) tw =

@@ -92,9 +92,9 @@ updateKeyRegister' Up   k gs = gs { keys = S.delete k (keys gs) }
 inputKey :: GameState -> GameState
 inputKey gs = afterGhostMoves
   where afterKeyInput   = foldl (applyKey (scene gs)) gs (S.toList $ keys gs)
-        afterGhostMoves = if scene gs /= SinglePlayer 
-          then afterKeyInput 
-          else afterKeyInput 
+        afterGhostMoves = if scene gs /= SinglePlayer
+          then afterKeyInput
+          else afterKeyInput
             { level = (level gs) { ghosts = map (ghostMove gs) (ghosts (level gs)) } }
 
 applyKey :: Scene -> GameState -> Key -> GameState
@@ -106,9 +106,13 @@ applyKey _ gs (Char '2')                        = gs { debugView = 2 }
 applyKey _ gs (Char '3')                        = gs { debugView = 3 }
 -- HOMESCREEN 
 applyKey Homescreen gs (SpecialKey KeySpace)    = gs { scene = SinglePlayer }
-applyKey Homescreen gs (Char 's')               = (SB.enterScene gs) { scene = ConfigureGame }
-applyKey Homescreen gs (Char 'l')               = (SB.enterScene gs) { scene = LoadGame }
--- CONFIGURE 
+applyKey Homescreen gs (Char 's')               = if (not . null . boards) gs
+                                                  then (SB.enterScene gs) { scene = ConfigureGame }
+                                                  else gs
+applyKey Homescreen gs (Char 'l')               = if (not . null . saves) gs
+                                                  then (SB.enterScene gs) { scene = LoadGame }
+                                                  else gs
+-- CONFIGURE
 applyKey ConfigureGame gs (Char 's')            = SB.controlScene (Char 's') gs
 applyKey ConfigureGame gs (Char 'w')            = SB.controlScene (Char 'w') gs
 applyKey ConfigureGame gs (SpecialKey KeyEnter) = (SB.exitScene gs) { scene = Homescreen }
