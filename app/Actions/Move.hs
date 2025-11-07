@@ -9,9 +9,7 @@ import Data.List
 import Utils.Count
 
 updatePlayerDir :: GameState -> Direction -> GameState
-updatePlayerDir gs dir
-  | dir == oppositeDirection (direction plr) = gs
-  | otherwise = gs { player = plr { direction = newDir, queuedDir = dir } }
+updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir } }
   where
     plr = player gs
     dirIsAllowed = moveIsPossible gs (position plr) (playerSpeed gs) dir False
