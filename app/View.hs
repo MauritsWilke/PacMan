@@ -20,7 +20,7 @@ view = return . viewPure
 
 viewPure :: GameState -> Picture
 viewPure gs = case scene gs of
-    Homescreen    -> renderHomescreen (tileWidth gs)
+    Homescreen    -> renderHomescreen (screenSize gs) (tileWidth gs)
     LoadGame      -> blank
     ConfigureGame -> renderBoardSelection gs
     SinglePlayer  -> if debugView gs == 0
