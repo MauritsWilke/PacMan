@@ -16,7 +16,19 @@ step :: Float -> GameState -> IO GameState
 step _ gstate
   | shouldQuit gstate = exitSuccess
   | paused gstate     = pure (inputPause gstate)
-  | otherwise         = randomMoves (A.interact (inputKey gstate))
+  | otherwise         = randomMoves $ A.interact $ inputKey gstate
+
+-- Looping input function
+input :: Event -> GameState -> IO GameState
+input e@(EventKey {})    = return . updateKeyRegister e
+input e@(EventResize {}) = return . resize e
+input _                  = return
+
+-- Adjust board to resized window
+resize :: Event-> GameState -> GameState
+resize (EventResize x) gstate = gstate { screenSize = x }
+resize _ gstate               = gstate
+
 
 getRandomFrom :: [a] -> IO a
 getRandomFrom [] = error "can't get element from empty list"
@@ -56,20 +68,6 @@ applyRandom gstate ghost = do
 
   return (ghostStep gstate ghost dir)
 
--- Looping input function
-input :: Event -> GameState -> IO GameState
-input e@(EventKey {})    = return . updateKeyRegister e
-input e@(EventResize {}) = return . resize e
-input _                  = return
-
--- Adjust board to resized window
-resize :: Event-> GameState -> GameState
-resize (EventResize x) gstate = gstate { screenSize = x }
-resize _ gstate               = gstate
-
-updateKeyRegister' :: KeyState -> Key -> GameState -> GameState
-updateKeyRegister' Down k gs = gs { keys = S.insert k (keys gs) }
-updateKeyRegister' Up   k gs = gs { keys = S.delete k (keys gs) }
 
 keysThatCantRepeat :: [Key]
 keysThatCantRepeat = [Char 'p', Char 'w', Char 'a', Char 's', Char 'd']
@@ -81,6 +79,10 @@ updateKeyRegister (EventKey k Down _ _) gs
   | otherwise                            = updateKeyRegister' Down k gs
 updateKeyRegister (EventKey k Up _ _) gs = updateKeyRegister' Up k gs
 updateKeyRegister _ gs                   = gs
+
+updateKeyRegister' :: KeyState -> Key -> GameState -> GameState
+updateKeyRegister' Down k gs = gs { keys = S.insert k (keys gs) }
+updateKeyRegister' Up   k gs = gs { keys = S.delete k (keys gs) }
 
 -- For each key that is pressed, apply the action bound to that key
 inputKey :: GameState -> GameState

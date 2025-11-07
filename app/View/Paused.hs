@@ -2,11 +2,13 @@
 module View.Paused where
 import Graphics.Gloss
 import Model
+import Utils.Text
 
 drawPaused :: TileWidth -> Board -> Bool -> Picture
 drawPaused tw Board{..} p
-  | p = Translate ((fromIntegral width - 5) * (0.5 * tw) + 0.5 * tw) (- (fromIntegral height * (0.5 * tw)) - (0.75 * tw) )
-      $ Scale (tw / 250) (tw / 250)
-      $ Color white
-      $ Text "PAUSED"
+  | p = Pictures $
+    Color (makeColor 0 0 0 0.7) (rectangleSolid 10000 10000) 
+    : zipWith (\i -> let j = i * (tw / 20) in Translate ((-7.5) * tw - j) j) 
+      [0..] -- Gloss does not have bold text, so I'll do it myself
+      (replicate 10 (Color white $ Scale (tw / 32) (tw / 32) $ Text "PAUSED"))
   | otherwise = blank
