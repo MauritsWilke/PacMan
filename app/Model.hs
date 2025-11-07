@@ -34,7 +34,7 @@ data GameState = GameState
 
 initialState :: [NamedBoard] -> GameState
 initialState bs = GameState
-  { scene        = ConfigureGame
+  { scene        = Homescreen
   , level        = initialLevel bs
   , player       = initialPlayerTEMP
   , boards       = bs

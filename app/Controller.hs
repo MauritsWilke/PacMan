@@ -78,9 +78,9 @@ applyKey ConfigureGame gstate (Char 's')            = controlScene (Char 's') gs
 applyKey ConfigureGame gstate (Char 'w')            = controlScene (Char 'w') gstate
 applyKey ConfigureGame gstate (SpecialKey KeyEnter) = (exitScene gstate) { scene = Homescreen }
 -- MOVEMENT
-applyKey SinglePlayer gstate (Char 'w')             = gstate { player = playerMove gstate North }
-applyKey SinglePlayer gstate (Char 'a')             = gstate { player = playerMove gstate West }
-applyKey SinglePlayer gstate (Char 's')             = gstate { player = playerMove gstate South }
-applyKey SinglePlayer gstate (Char 'd')             = gstate { player = playerMove gstate East }
+applyKey SinglePlayer gstate (Char 'w')             = gstate { player = (player gstate) { direction = North } }
+applyKey SinglePlayer gstate (Char 'a')             = gstate { player = (player gstate) { direction = West } }
+applyKey SinglePlayer gstate (Char 's')             = gstate { player = (player gstate) { direction = South } }
+applyKey SinglePlayer gstate (Char 'd')             = gstate { player = (player gstate) { direction = East } }
 -- CATCH ALL 
 applyKey _ gstate _                                 = gstate

@@ -8,18 +8,26 @@ import Utils.Count
 import Actions.Move
 
 interact :: GameState -> GameState
-interact = interactPellets . reduceTimers
+interact = interactPellets . autoMovePacman . reduceTimers
+
+autoMovePacman :: GameState -> GameState
+autoMovePacman gs = gs { player = playerMove gs dir }
+  where dir = (direction . player) gs
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
 reduceTimers :: GameState -> GameState
-reduceTimers gs = gs {level = updatedLevel}
-  where updatedLevel = (level gs) {ghosts = reduceGhostTimers (ghosts (level gs))}
+reduceTimers gs = gs { level = updatedLevel }
+  where updatedLevel = (level gs) { ghosts = reduceGhostTimers (ghosts (level gs)) }
 
 -- reduce ghostTimers
 reduceGhostTimers :: [Ghost] -> [Ghost]
 reduceGhostTimers [] = []
-reduceGhostTimers (g@Ghost{..}:gs) 
- = g {frightTimer = frightTimer .- 1, scatterTimer = scatterTimer .- 1, releaseTimer = releaseTimer .- 1} : reduceGhostTimers gs
+reduceGhostTimers (g@Ghost{..} : gs) 
+ = g 
+ { frightTimer = frightTimer .- 1
+ , scatterTimer = scatterTimer .- 1
+ , releaseTimer = releaseTimer .- 1
+ } : reduceGhostTimers gs
 
 interactPellets :: GameState -> GameState
 interactPellets gs = action gs
