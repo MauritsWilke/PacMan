@@ -6,7 +6,8 @@ import qualified Data.Set as S
 import System.Exit (exitSuccess)
 import Actions.Move
 import Actions.Interact as A
-import View.Scenes.SelectBoard (exitScene, enterScene, controlScene)
+import qualified View.Scenes.SelectBoard as SB
+import qualified View.Scenes.LoadSave as LS
 import Data.Maybe
 import System.Random
 import Utils.Count
@@ -105,11 +106,16 @@ applyKey _ gs (Char '2')                        = gs { debugView = 2 }
 applyKey _ gs (Char '3')                        = gs { debugView = 3 }
 -- HOMESCREEN 
 applyKey Homescreen gs (SpecialKey KeySpace)    = gs { scene = SinglePlayer }
-applyKey Homescreen gs (Char 's')               = (enterScene gs) { scene = ConfigureGame }
+applyKey Homescreen gs (Char 's')               = (SB.enterScene gs) { scene = ConfigureGame }
+applyKey Homescreen gs (Char 'l')               = (SB.enterScene gs) { scene = LoadGame }
 -- CONFIGURE 
-applyKey ConfigureGame gs (Char 's')            = controlScene (Char 's') gs
-applyKey ConfigureGame gs (Char 'w')            = controlScene (Char 'w') gs
-applyKey ConfigureGame gs (SpecialKey KeyEnter) = (exitScene gs) { scene = Homescreen }
+applyKey ConfigureGame gs (Char 's')            = SB.controlScene (Char 's') gs
+applyKey ConfigureGame gs (Char 'w')            = SB.controlScene (Char 'w') gs
+applyKey ConfigureGame gs (SpecialKey KeyEnter) = (SB.exitScene gs) { scene = Homescreen }
+-- LOAD GAME
+applyKey LoadGame gs (Char 's')                 = LS.controlScene (Char 's') gs
+applyKey LoadGame gs (Char 'w')                 = LS.controlScene (Char 's') gs
+applyKey LoadGame gs (SpecialKey KeyEnter)      = (LS.exitScene gs) { scene = SinglePlayer }
 -- MOVEMENT
 applyKey SinglePlayer gs (Char 'p')             = gs { paused = not (paused gs), scene = s' }
   where s' = if paused gs then SinglePlayer else Paused

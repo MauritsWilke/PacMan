@@ -17,7 +17,11 @@ renderHomescreen (sw, sh) tw = Pictures $
   , Translate ((-6.5625) * tw) (- (tw * 4))
       $ Color white
       $ Scale (tw / 128) (tw / 128)
-      $ Text "press s to configure game"
+      $ Text "press 's' to configure game"
+  , Translate ((-6.5625) * tw) (- (tw * 6))
+      $ Color white
+      $ Scale (tw / 128) (tw / 128)
+      $ Text "press 'l' to load a save"
   ]
 
 
