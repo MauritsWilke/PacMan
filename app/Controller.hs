@@ -103,23 +103,24 @@ inputPause gstate = if S.member (SpecialKey KeyEsc) (keys gstate)
 -- TODO add actions instead of all game logic here
 applyKey :: Scene -> GameState -> Key -> GameState
 -- META CONTROLS
-applyKey _ gstate (SpecialKey KeyEsc)               = gstate { shouldQuit = True }
-applyKey _ gstate (Char 'p')                        = gstate { paused = not (paused gstate) }
-applyKey _ gstate (Char '0')                        = gstate { debugView = 0 }
-applyKey _ gstate (Char '1')                        = gstate { debugView = 1 }
-applyKey _ gstate (Char '2')                        = gstate { debugView = 2 }
-applyKey _ gstate (Char '3')                        = gstate { debugView = 3 }
+applyKey _ gs (SpecialKey KeyEsc)               = gs { shouldQuit = True }
+applyKey _ gs (Char 'p')                        = gs { paused = not (paused gs), scene = s' }
+  where s' = if paused gs then SinglePlayer else Paused
+applyKey _ gs (Char '0')                        = gs { debugView = 0 }
+applyKey _ gs (Char '1')                        = gs { debugView = 1 }
+applyKey _ gs (Char '2')                        = gs { debugView = 2 }
+applyKey _ gs (Char '3')                        = gs { debugView = 3 }
 -- HOMESCREEN 
-applyKey Homescreen gstate (SpecialKey KeySpace)    = gstate { scene = SinglePlayer }
-applyKey Homescreen gstate (Char 's')               = (enterScene gstate) { scene = ConfigureGame }
+applyKey Homescreen gs (SpecialKey KeySpace)    = gs { scene = SinglePlayer }
+applyKey Homescreen gs (Char 's')               = (enterScene gs) { scene = ConfigureGame }
 -- CONFIGURE 
-applyKey ConfigureGame gstate (Char 's')            = controlScene (Char 's') gstate
-applyKey ConfigureGame gstate (Char 'w')            = controlScene (Char 'w') gstate
-applyKey ConfigureGame gstate (SpecialKey KeyEnter) = (exitScene gstate) { scene = Homescreen }
+applyKey ConfigureGame gs (Char 's')            = controlScene (Char 's') gs
+applyKey ConfigureGame gs (Char 'w')            = controlScene (Char 'w') gs
+applyKey ConfigureGame gs (SpecialKey KeyEnter) = (exitScene gs) { scene = Homescreen }
 -- MOVEMENT
-applyKey SinglePlayer gstate (Char 'w')             = updatePlayerDir gstate North
-applyKey SinglePlayer gstate (Char 'a')             = updatePlayerDir gstate West
-applyKey SinglePlayer gstate (Char 's')             = updatePlayerDir gstate South
-applyKey SinglePlayer gstate (Char 'd')             = updatePlayerDir gstate East
+applyKey SinglePlayer gs (Char 'w')             = updatePlayerDir gs North
+applyKey SinglePlayer gs (Char 'a')             = updatePlayerDir gs West
+applyKey SinglePlayer gs (Char 's')             = updatePlayerDir gs South
+applyKey SinglePlayer gs (Char 'd')             = updatePlayerDir gs East
 -- CATCH ALL 
 applyKey _ gstate _                                 = gstate

@@ -26,6 +26,9 @@ viewPure gs = case scene gs of
     SinglePlayer  -> if debugView gs == 0
                      then viewDefault gs
                      else Pictures [viewDefault gs, viewDebug gs]
+    Paused        -> if debugView gs == 0
+                     then viewDefault gs
+                     else Pictures [viewDefault gs, viewDebug gs]
     MultiPlayer   -> blank
 
 viewDefault :: GameState -> Picture

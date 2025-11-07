@@ -94,7 +94,7 @@ initialPlayerTEMP = Player
   , mode = Normal
   }
 
-data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer
+data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer | Paused
   deriving (Show, Eq)
 
 data Level = NoLevel | Level
