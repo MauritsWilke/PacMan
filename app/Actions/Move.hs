@@ -9,6 +9,13 @@ import Data.List
 import Utils.PlayerUtil
 import Utils.Count
 
+updatePlayerDir :: GameState -> Direction -> GameState
+updatePlayerDir gs dir = case dirIsAllowed of
+  Nothing -> gs
+  Just _  -> gs { player = (player gs) { direction = dir } }
+  where 
+    dirIsAllowed = moveIsPossible gs (position (player gs)) (playerSpeed gs) dir False
+
 playerMove :: GameState -> Direction -> Player
 playerMove gs dir = (player gs) { position = pos, direction = dir' } where
   pos = case moveIsPossible gs (position (player gs)) (playerSpeed gs) dir False of
