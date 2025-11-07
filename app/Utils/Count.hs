@@ -22,7 +22,7 @@ newtype LevelCounter   = LevelCounter Int   deriving Eq deriving (Show, Count) v
 newtype LiveCounter    = LiveCounter  Int   deriving Eq deriving (Show, Count) via NonNeg
 newtype RoundCounter   = RoundCounter Int   deriving Eq deriving (Show, Count) via NonNeg
 newtype Timer          = Timer        Int   deriving Eq deriving (Show, Count) via NonNeg
-newtype FreightTimer   = FreightTimer Int   deriving Eq deriving (Show, Count) via NonNeg
+newtype FrightTimer    = FrightTimer  Int   deriving Eq deriving (Show, Count) via NonNeg
 newtype ReleaseTimer   = ReleaseTimer Int   deriving Eq deriving (Show, Count) via NonNeg
 newtype ScoreCounter   = ScoreCounter Int   deriving Eq deriving (Show, Count) via NonNeg
 newtype FruitTimer     = FruitTimer   Int   deriving Eq deriving (Show, Count) via NonNeg
@@ -38,8 +38,8 @@ roundCounter :: Int -> RoundCounter
 roundCounter   = RoundCounter . max 0
 timeCounter :: Int -> Timer
 timeCounter    = Timer . max 0
-frightTimeCounter :: Int -> FreightTimer
-frightTimeCounter   = FreightTimer . max 0
+frightTimeCounter :: Int -> FrightTimer
+frightTimeCounter   = FrightTimer . max 0
 releaseTimeCounter :: Int -> ReleaseTimer
 releaseTimeCounter   = ReleaseTimer . max 0
 fruitTimeCounter :: Int -> FruitTimer

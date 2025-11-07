@@ -6,13 +6,51 @@ import qualified Data.Set as S
 import System.Exit (exitSuccess)
 import Actions.Move
 import Actions.Interact as A
+import Data.Maybe
+import Data.List
+import System.Random
+import Utils.Count
 
 -- 
 step :: Float -> GameState -> IO GameState
 step _ gstate
   | shouldQuit gstate = exitSuccess
   | paused gstate     = pure (inputPause gstate)
-  | otherwise         = pure (A.interact (inputKey gstate))
+  | otherwise         = randomMoves (A.interact (inputKey gstate))
+
+getRandomFrom :: [a] -> IO a
+getRandomFrom [] = error "can't get element from empty list"
+getRandomFrom as = do
+    index <- randomRIO (0,length as -1)
+    return $ as !! index
+
+randomMoves :: GameState -> IO GameState
+randomMoves gstate = do
+  let lvl = level gstate
+      allGhosts = ghosts lvl
+      frightened = frightenedGhosts allGhosts
+      nonFrightened = filter ((== 0) . getCount . frightTimer ) allGhosts
+
+  -- applyRandom move to all frightened ghosts
+  updatedFrightened <- mapM (applyRandom gstate) frightened
+
+  let fullGhostList  = updatedFrightened ++ nonFrightened
+      updatedLevel   = lvl { ghosts = fullGhostList }
+      gstate'        = gstate { level = updatedLevel }
+
+  return gstate'
+
+applyRandom :: GameState -> Ghost -> IO Ghost
+applyRandom gstate ghost = do
+  let allowedDirections = delete (oppositeDirection (ghostDirection ghost)) allDirections
+      dir = case length allowedMoves of
+             0 -> return $ oppositeDirection (ghostDirection ghost)
+             1 -> return $ head allowedDirections
+             _ -> getRandomFrom allowedMoves
+
+      allowedMoves = filter validMove allowedDirections
+      validMove dir' = isJust $ moveIsPossible gstate (ghostPosition ghost) (ghostSpeed gstate) dir' False
+  ghostStep gstate ghost <$> dir
 
 -- ! CAN CHANGE THE GAMESTATE CURRENTLY
 debug :: GameState -> GameState
