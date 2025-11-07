@@ -10,13 +10,14 @@ import View.Scenes.SelectBoard (exitScene, enterScene, controlScene)
 import Data.Maybe
 import System.Random
 import Utils.Count
+import Actions.Reset (reset)
 
 -- 
 step :: Float -> GameState -> IO GameState
-step _ gstate
-  | shouldQuit gstate = exitSuccess
-  | paused gstate     = pure (inputPause gstate)
-  | otherwise         = randomMoves $ A.interact $ inputKey gstate
+step _ gs
+  | shouldQuit gs = exitSuccess
+  | paused gs     = pure (inputKey gs)
+  | otherwise         = randomMoves $ A.interact $ inputKey gs
 
 -- Looping input function
 input :: Event -> GameState -> IO GameState
@@ -26,8 +27,8 @@ input _                  = return
 
 -- Adjust board to resized window
 resize :: Event-> GameState -> GameState
-resize (EventResize x) gstate = gstate { screenSize = x }
-resize _ gstate               = gstate
+resize (EventResize x) gs = gs { screenSize = x }
+resize _ gs               = gs
 
 
 getRandomFrom :: [a] -> IO a
@@ -37,28 +38,28 @@ getRandomFrom as = do
     return $ as !! index
 
 randomMoves :: GameState -> IO GameState
-randomMoves gstate = do
-  let lvl = level gstate
+randomMoves gs = do
+  let lvl = level gs
       allGhosts = ghosts lvl
       frightened = frightenedGhosts allGhosts
       nonFrightened = filter ((== 0) . getCount . frightTimer ) allGhosts
 
   -- applyRandom move to all frightened ghosts
-  updatedFrightened <- mapM (applyRandom gstate) frightened
+  updatedFrightened <- mapM (applyRandom gs) frightened
 
   let fullGhostList  = updatedFrightened ++ nonFrightened
       updatedLevel   = lvl { ghosts = fullGhostList }
-      gstate'        = gstate { level = updatedLevel }
+      gs'            = gs { level = updatedLevel }
 
-  return gstate'
+  return gs'
 
 applyRandom :: GameState -> Ghost -> IO Ghost
-applyRandom gstate ghost = do
+applyRandom gs ghost = do
   let avoid = oppositeDirection (ghostDirection ghost)
       allowedDirections = filter (/= avoid) allDirections
-      allowedMoves = filter (validMove gstate ghost) allowedDirections
+      allowedMoves = filter (validMove ghost) allowedDirections
 
-      validMove gs gh d =
+      validMove gh d =
         isJust $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d False
 
   dir <- case allowedMoves of
@@ -66,7 +67,7 @@ applyRandom gstate ghost = do
     [d] -> return d
     _   -> getRandomFrom allowedMoves
 
-  return (ghostStep gstate ghost dir)
+  return (ghostStep gs ghost dir)
 
 
 keysThatCantRepeat :: [Key]
@@ -86,21 +87,13 @@ updateKeyRegister' Up   k gs = gs { keys = S.delete k (keys gs) }
 
 -- For each key that is pressed, apply the action bound to that key
 inputKey :: GameState -> GameState
-inputKey gstate = afterGhostMoves
-  where afterKeyInput   = foldl (applyKey (scene gstate)) gstate (S.toList $ keys gstate)
-        afterGhostMoves = if scene gstate /= SinglePlayer 
+inputKey gs = afterGhostMoves
+  where afterKeyInput   = foldl (applyKey (scene gs)) gs (S.toList $ keys gs)
+        afterGhostMoves = if scene gs /= SinglePlayer 
           then afterKeyInput 
           else afterKeyInput 
-            { level = (level gstate)
-               { ghosts = map (ghostMove gstate) (ghosts (level gstate)) }
-            }
+            { level = (level gs) { ghosts = map (ghostMove gs) (ghosts (level gs)) } }
 
-inputPause :: GameState -> GameState
-inputPause gstate = if S.member (SpecialKey KeyEsc) (keys gstate)
-  then gstate { shouldQuit = True }
-  else gstate
-
--- TODO add actions instead of all game logic here
 applyKey :: Scene -> GameState -> Key -> GameState
 -- META CONTROLS
 applyKey _ gs (SpecialKey KeyEsc)               = gs { shouldQuit = True }
@@ -122,5 +115,7 @@ applyKey SinglePlayer gs (Char 'w')             = updatePlayerDir gs North
 applyKey SinglePlayer gs (Char 'a')             = updatePlayerDir gs West
 applyKey SinglePlayer gs (Char 's')             = updatePlayerDir gs South
 applyKey SinglePlayer gs (Char 'd')             = updatePlayerDir gs East
+-- PAUSE
+applyKey Paused gs (Char 'h')                   = (reset gs) { scene = Homescreen }
 -- CATCH ALL 
-applyKey _ gstate _                                 = gstate
+applyKey _ gs _                                 = gs
