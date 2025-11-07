@@ -8,7 +8,6 @@ import Actions.Move
 import Actions.Interact as A
 import View.Scenes.SelectBoard (exitScene, enterScene, controlScene)
 import Data.Maybe
-import Data.List
 import System.Random
 import Utils.Count
 
@@ -55,14 +54,7 @@ applyRandom gstate ghost = do
     [d] -> return d
     _   -> getRandomFrom allowedMoves
 
-  -- ghostStep returns a pure Ghost; dir :: IO Direction so use fmap
-  --fmap (ghostStep gstate ghost) (return dir)  -- simpler: return (ghostStep gstate ghost dir)
-  -- better:
   return (ghostStep gstate ghost dir)
-
--- ! CAN CHANGE THE GAMESTATE CURRENTLY
-debug :: GameState -> GameState
-debug = id
 
 -- Looping input function
 input :: Event -> GameState -> IO GameState
@@ -80,7 +72,7 @@ updateKeyRegister' Down k gs = gs { keys = S.insert k (keys gs) }
 updateKeyRegister' Up   k gs = gs { keys = S.delete k (keys gs) }
 
 keysThatCantRepeat :: [Key]
-keysThatCantRepeat = [Char 'p']
+keysThatCantRepeat = [Char 'p', Char 'w', Char 'a', Char 's', Char 'd']
 
 -- Add or remove keys from active key register
 updateKeyRegister :: Event -> GameState -> GameState
