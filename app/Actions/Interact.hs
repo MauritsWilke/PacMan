@@ -8,22 +8,32 @@ import Utils.Count
 import Actions.Move
 
 interact :: GameState -> GameState
-interact = interactPellets . reduceTimers
+interact gs = case scene gs of 
+  SinglePlayer -> (interactPellets . autoMovePacman . reduceTimers) gs
+  _            -> gs
+
+autoMovePacman :: GameState -> GameState
+autoMovePacman gs = gs { player = playerMove gs dir }
+  where dir = (direction . player) gs
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
 reduceTimers :: GameState -> GameState
-reduceTimers gs = gs {level = updatedLevel}
-  where updatedLevel = (level gs) {ghosts = reduceGhostTimers (ghosts (level gs))}
+reduceTimers gs = gs { level = updatedLevel }
+  where updatedLevel = let lvl = level gs in lvl { ghosts = reduceGhostTimers (ghosts lvl) }
 
 -- reduce ghostTimers
 reduceGhostTimers :: [Ghost] -> [Ghost]
 reduceGhostTimers [] = []
-reduceGhostTimers (g@Ghost{..}:gs) 
- = g {frightTimer = frightTimer .- 1, scatterTimer = scatterTimer .- 1, releaseTimer = releaseTimer .- 1} : reduceGhostTimers gs
+reduceGhostTimers (g@Ghost{..} : gs) 
+ = g 
+ { frightTimer  = frightTimer  .- 1
+ , scatterTimer = scatterTimer .- 1
+ , releaseTimer = releaseTimer .- 1
+ } : reduceGhostTimers gs
 
 interactPellets :: GameState -> GameState
 interactPellets gs = action gs
-  { level        = lvl { gameBoard = board'}
+  { level        = lvl { gameBoard = board' }
   , score        = score'
   , poweredTimer = poweredTimeCounter 10
   , ghostsEaten  = ghs'
@@ -48,7 +58,12 @@ interactPellets gs = action gs
       
 
 freightenGhosts :: GameState -> GameState
-freightenGhosts gstate = gstate {level = newLevel}
-  where newLevel = (level gstate) {ghosts = map freighten ghostList}
-        ghostList = ghosts $ level gstate
-        freighten ghost = ghost {ghostDirection = oppositeDirection (ghostDirection ghost), frightTimer = frightTimeCounter 480} -- 8 sec * 60 fps
+freightenGhosts gstate = gstate { level = newLevel }
+  where
+    lvl = level gstate
+    newLevel = lvl { ghosts = map freighten ghostList }
+    ghostList = ghosts lvl
+    freighten ghost = ghost 
+      { ghostDirection = oppositeDirection (ghostDirection ghost)
+      , frightTimer    = frightTimeCounter 480 -- 8 sec * 60 fps
+      } 

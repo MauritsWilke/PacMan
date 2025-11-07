@@ -12,4 +12,8 @@ renderHomescreen tw = Pictures
     $ Color white 
     $ Scale (tw / 128) (tw / 128) 
     $ Text "press space to start"
+  , Translate ((-6.5625) * tw) (- (tw * 4)) 
+    $ Color white 
+    $ Scale (tw / 128) (tw / 128) 
+    $ Text "press s to configure game"
   ]
