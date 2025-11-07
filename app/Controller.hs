@@ -99,8 +99,6 @@ inputKey gs = afterGhostMoves
 applyKey :: Scene -> GameState -> Key -> GameState
 -- META CONTROLS
 applyKey _ gs (SpecialKey KeyEsc)               = gs { shouldQuit = True }
-applyKey _ gs (Char 'p')                        = gs { paused = not (paused gs), scene = s' }
-  where s' = if paused gs then SinglePlayer else Paused
 applyKey _ gs (Char '0')                        = gs { debugView = 0 }
 applyKey _ gs (Char '1')                        = gs { debugView = 1 }
 applyKey _ gs (Char '2')                        = gs { debugView = 2 }
@@ -113,6 +111,8 @@ applyKey ConfigureGame gs (Char 's')            = controlScene (Char 's') gs
 applyKey ConfigureGame gs (Char 'w')            = controlScene (Char 'w') gs
 applyKey ConfigureGame gs (SpecialKey KeyEnter) = (exitScene gs) { scene = Homescreen }
 -- MOVEMENT
+applyKey SinglePlayer gs (Char 'p')             = gs { paused = not (paused gs), scene = s' }
+  where s' = if paused gs then SinglePlayer else Paused
 applyKey SinglePlayer gs (Char 'w')             = updatePlayerDir gs North
 applyKey SinglePlayer gs (Char 'a')             = updatePlayerDir gs West
 applyKey SinglePlayer gs (Char 's')             = updatePlayerDir gs South
