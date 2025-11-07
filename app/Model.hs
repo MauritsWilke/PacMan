@@ -2,12 +2,16 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DeriveAnyClass #-}
+
 module Model where
 import GHC.Generics (Generic)
 import Utils.Count
 import qualified Data.Set as S
 import Graphics.Gloss.Interface.IO.Game (Key)
 import qualified Data.IntMap as I
+import Data.Aeson
+import Prelude hiding (round)
 
 data GameState = GameState
   { scene        :: Scene
@@ -24,14 +28,45 @@ data GameState = GameState
   , ghostsEaten  :: Int -- Resets when eating power pellet
   , poweredTimer :: PoweredTimer
   -- GAME CONTROLS
-  , keys         :: S.Set Key
+  , keys         :: S.Set Graphics.Gloss.Interface.IO.Game.Key
   , screenSize   :: (Int,Int)
   , shouldQuit   :: Bool
+  , shouldSave   :: Bool
   , paused       :: Bool
   , debugView    :: Int
   , menuHelper   :: Int -- Used for keeping track of selected item
   } deriving (Show, Generic)
 
+data SaveGameState = SaveGameState
+  { levelSave        :: Level
+  , playerSave       :: Player
+  , boardsSave       :: [NamedBoard]
+  -- COUNTERS
+  , timerSave        :: Timer        -- >=0 
+  , livesSave        :: LiveCounter  -- >=0
+  , scoreSave        :: ScoreCounter -- >=0
+  , roundSave        :: RoundCounter -- > 0
+  -- ROUND SPECIFIC
+  , pelletsEatenSave :: Int
+  , ghostsEatenSave  :: Int -- Resets when eating power pellet
+  , poweredTimerSave :: PoweredTimer
+  } deriving (Show, Generic, ToJSON, FromJSON)
+
+toSaveGameState :: GameState -> SaveGameState
+toSaveGameState gs = SaveGameState
+  { levelSave = level gs
+  , playerSave = player gs
+  , boardsSave = boards gs
+  -- COUNTERS
+  , timerSave = timer gs  
+  , livesSave = lives gs 
+  , scoreSave = score gs 
+  , roundSave = round gs 
+  -- ROUND SPECIFIC
+  , pelletsEatenSave = pelletsEaten gs
+  , ghostsEatenSave = ghostsEaten gs
+  , poweredTimerSave = poweredTimer gs
+  } 
 
 initialState :: [NamedBoard] -> GameState
 initialState bs = GameState
@@ -52,6 +87,7 @@ initialState bs = GameState
   , keys         = S.empty
   , screenSize   = (400,400)
   , shouldQuit   = False
+  , shouldSave   = False
   , paused       = False
   , debugView    = 0
   , menuHelper   = 0
@@ -102,38 +138,41 @@ data Level = NoLevel | Level
   , gameBoard     :: Board
   , nameBoard     :: String    -- TODO combine these into NamedBoard, veel werk!
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
-  } deriving (Show, Generic)
+  } deriving (Show, Generic, ToJSON, FromJSON)
 
 data Tile = Wall | Empty | Pellet | PowerPellet | Fruit | GhostSpawn | GhostExit
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data Board = Board
   { board :: I.IntMap Tile
   -- , wallMap :: I.IntMap Wall
   , width :: Int
   , height:: Int
-  } deriving (Show)
+  } deriving (Show, Generic)
+
+instance ToJSON Board
+instance FromJSON Board
 
 -- Used to maintain movement without inputs
 -- Cardinal directions used to prevent conflict with Gloss Up Down
 data Direction = North | South | West | East
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data PlayerMode = Normal | Powered | Dead | Respawning | LevelComplete
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data Player = NoPlayer | Player
   { position  :: (Float, Float) -- offset for player
   , direction :: Direction
   , queuedDir :: Direction
   , mode      :: PlayerMode
-  } deriving (Show)
+  } deriving (Show, Generic, ToJSON, FromJSON)
 
 data GhostType = Inky | Blinky | Pinky | Clyde
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data GhostMode = Chase | Scatter | Fright | Spawn
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data Ghost = Ghost
   { ghostType      :: GhostType
@@ -144,7 +183,7 @@ data Ghost = Ghost
   , frightTimer   :: FrightTimer -- >=0, counts down
   , releaseTimer   :: ReleaseTimer -- >=0, counts down
   , scatterTimer   :: ScatterTimer -- >=0, counts down
-  } deriving (Show, Eq)
+  } deriving (Show, Eq, Generic, FromJSON, ToJSON)
 
 standardGhosts :: [Ghost]
 standardGhosts =
@@ -168,12 +207,15 @@ createGhost spawn typ = Ghost
 data NamedBoard = NamedBoard
   { boardName :: String
   , boardData :: Board
-  } deriving Show
+  } deriving (Show, Generic)
+
+instance ToJSON NamedBoard
+instance FromJSON NamedBoard
 
 -- NAME UTILS
 type TileWidth       = Float
 type TileCoordinates = (Int, Int)
-type Speed     = Float
+type Speed           = Float
 type BoardWidth      = Int
 type BoardHeight     = Int
 type Score           = Int

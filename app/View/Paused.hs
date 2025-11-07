@@ -22,5 +22,9 @@ drawPaused tw Board{} p
       $ Color white 
       $ Scale (tw / 128) (tw / 128) 
       $ Text "press 'h' to return to the homescreen"
+    , Translate ((-9.7125) * tw) (- (tw * 8)) 
+      $ Color white 
+      $ Scale (tw / 128) (tw / 128) 
+      $ Text "press 's' to save the current game"
     ]
   | otherwise = blank

@@ -11,11 +11,13 @@ import Data.Maybe
 import System.Random
 import Utils.Count
 import Actions.Reset (reset)
+import Utils.SaveGame (saveGameState)
 
 -- 
 step :: Float -> GameState -> IO GameState
 step _ gs
   | shouldQuit gs = exitSuccess
+  | shouldSave gs = saveGameState "savegame.json" gs
   | paused gs     = pure (inputKey gs)
   | otherwise         = randomMoves $ A.interact $ inputKey gs
 
@@ -117,5 +119,6 @@ applyKey SinglePlayer gs (Char 's')             = updatePlayerDir gs South
 applyKey SinglePlayer gs (Char 'd')             = updatePlayerDir gs East
 -- PAUSE
 applyKey Paused gs (Char 'h')                   = (reset gs) { scene = Homescreen }
+applyKey Paused gs (Char 's')                   = gs { shouldSave = True }
 -- CATCH ALL 
 applyKey _ gs _                                 = gs
