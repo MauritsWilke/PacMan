@@ -23,7 +23,7 @@ drawGhost (AnimationTimer f) tw Board{..} Ghost{..} = let (x, y) = ghostPosition
 getGhostColor :: Ghost -> Color
 getGhostColor Ghost{..}
  | getCount releaseTimer > 0 = regularGhostColor Ghost{..}
- | isJust destination && ghostMode == Spawn = dark green
+ | isJust destination && ghostMode == Spawn = makeColor 1 1 1 0 -- only eyes remain when eaten
  | getCount frightTimer > 0                 = blue
  | otherwise = regularGhostColor Ghost{..}
 
