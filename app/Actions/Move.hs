@@ -21,7 +21,7 @@ updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir
 
 playerMove :: GameState -> GameState
 playerMove gs = gs { player = plr' }
-  where 
+  where
     plr = player gs
     dir = direction plr
     que = queuedDir plr
@@ -55,11 +55,18 @@ moveIsPossible gs (x,y) speed dir isGhost = let
   (desiredX, desiredY) = (x + xOff * speed, y + yOff * speed)
   tileToCheck          = getTileToCheck (desiredX,desiredY) dir
   brd                  = gameBoard $ level gs
-  isCloseEnough        = if dir == North || dir == South then closeEnough y else closeEnough x
+  isCloseEnough        = if dir == North || dir == South
+                          then closeEnough y
+                          else closeEnough x
+
   in if isCloseEnough then case get tileToCheck brd of
    Nothing        -> getWrapAround (desiredX,desiredY) brd -- check for wrap-around if edge of map
-   Just Wall      -> if (x,y) == setToMiddle (x,y) (Just dir) then Nothing else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
-   Just GhostExit -> if isGhost then Just (cornerSnap dir desiredX desiredY) else Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
+   Just Wall      -> if (x,y) == setToMiddle (x,y) (Just dir)
+                      then Nothing
+                      else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
+   Just GhostExit -> if isGhost
+                      then Just (cornerSnap dir desiredX desiredY)
+                      else Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
    Just _         -> Just (cornerSnap dir desiredX desiredY) -- if move possible -> update offset of direction and set other direction to some n + 0.5 (to allign with middle)
   else Nothing -- if to far from edge -> check if move still possible if not, stay in place
 
@@ -97,67 +104,69 @@ getTileToCheck (x,y) dir
 -- ghost moves 
 -- -> do a move based on gamestate and ghost input
 ghostMove :: GameState -> Ghost -> Ghost
-ghostMove gstate ghost 
-    | shouldntMove  = ghost
-    | isRespawning  = ghost'
-    | otherwise     = ghostStep gstate ghost bestDirection (ghostSpeed gstate)
-    where
-    bestDirection = if null allowedDirections
-          then oppositeDirection (ghostDirection ghost) -- if no allowed directions -> go back
-          else bestOf gstate ghost allowedDirections    -- else choose best direction
+ghostMove gstate ghost
+  | shouldntMove  = ghost
+  | isRespawning  = ghost'
+  | otherwise     = ghostStep gstate ghost bestDirection (ghostSpeed gstate)
+  where
+  bestDirection =
+    if null allowedDirections
+      then oppositeDirection (ghostDirection ghost) -- if no allowed directions -> go back
+      else bestOf gstate ghost allowedDirections    -- else choose best direction
 
-    -- check if ghost has been moving to spawn and at location, then move ghost out of spawn again
-    isRespawning = isJust (destination ghost)
-    ghost' = if isRespawning && distance (ghostPosition ghost) spawn < 0.5 then ghost {destination = Nothing, ghostMode = Chase} else ghostStep gstate ghost bestDirection (ghostSpeed gstate)
-    spawn = case destination ghost of
-        Nothing -> error "this should not be possible due to lazy evaluation"
-        Just sl -> sl -- return spawn location
+  -- check if ghost has been moving to spawn and at location, then move ghost out of spawn again
+  isRespawning = isJust (destination ghost)
+  ghost' = if isRespawning && distance (ghostPosition ghost) spawn < 0.5
+            then ghost  {destination = Nothing, ghostMode = Chase }
+            else ghostStep gstate ghost bestDirection (ghostSpeed gstate)
+  spawn = case destination ghost of
+      Nothing -> error "this should not be possible due to lazy evaluation"
+      Just sl -> sl -- return spawn location
 
-    -- fright is applied elsewhere due to randomness
-    shouldntMove = getCount (frightTimer ghost) > 0 || getCount (releaseTimer ghost) > 0
+  -- fright is applied elsewhere due to randomness
+  shouldntMove = getCount (frightTimer ghost) > 0 || getCount (releaseTimer ghost) > 0
 
-    -- check all legal directions except opposite
-    allowedDirections = filter movableDirection $ delete (oppositeDirection (ghostDirection ghost)) allDirections
+  -- check all legal directions except opposite
+  allowedDirections = filter movableDirection $ delete (oppositeDirection (ghostDirection ghost)) allDirections
 
-    -- checks if the provided direction is allowed
-    movableDirection dir' =
-      case moveIsPossible gstate (ghostPosition ghost) (ghostSpeed gstate) dir' True of
-        Nothing   -> False
-        Just _    -> True
+  -- checks if the provided direction is allowed
+  movableDirection dir' =
+    case moveIsPossible gstate (ghostPosition ghost) (ghostSpeed gstate) dir' True of
+      Nothing   -> False
+      Just _    -> True
 
 -- set current location to middle of current tile or only the coordinate inline with the provided direction
 setToMiddle :: (Float,Float) -> Maybe Direction -> (Float,Float)
-setToMiddle (row,col) Nothing                                   = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
-setToMiddle (row,col) (Just dir) | dir == North || dir == South = (fromInteger (floor row) + 0.5, col)
-                                 | otherwise                    = (row, fromInteger (floor col) + 0.5)
+setToMiddle (row,col) Nothing
+  = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
+setToMiddle (row,col) (Just dir)
+  | dir == North || dir == South = (fromInteger (floor row) + 0.5, col)
+  | otherwise                    = (row, fromInteger (floor col) + 0.5)
 
 -- find best direction for move
 -- IMPORTANT: doesn't check for validity, provided list should contain only valid directions
 bestOf :: GameState -> Ghost -> [Direction] -> Direction
-bestOf _ ghost []              = ghostDirection ghost -- if no valid directions, return opposite of current ghostdirection
-bestOf gstate ghost directions = bestDirection        -- else find the best direction
+bestOf _ ghost []              = ghostDirection ghost                                        -- if no valid directions, return opposite of current ghostdirection
+bestOf gstate ghost directions = bestDirection                                               -- else find the best direction
  where
   bestDirection = directions !! closestToGoal
-  closestToGoal =
-    case elemIndex (foldl1' min distances) distances of
-      Nothing  -> 0
-      Just num -> num -- minimum distances `elem` distances
+  closestToGoal = fromMaybe 0 (elemIndex (foldl1' min distances) distances)                  -- minimum distances `elem` distances
   distances = map (distance ghostGoal . preMove currPosition (ghostSpeed gstate)) directions -- calculate all the distances of potential moves
   currPosition = ghostPosition ghost
   ghostGoal = goalAlgorithm gstate ghost
 
 preMove :: (Float,Float) -> Float -> Direction -> (Float,Float)
-preMove (x,y) speed dir = (x+speed*xOff ,y+speed*yOff)
-  where (xOff,yOff) = directionToTuple dir
+preMove (x, y) speed dir = (x + speed * xOff, y + speed * yOff)
+  where (xOff, yOff) = directionToTuple dir
 
 -- should have correct direction -> will execute the next move
 ghostStep :: GameState -> Ghost -> Direction -> Float -> Ghost
 ghostStep gstate ghost dir speed =
   case pos of
     Nothing -> ghost
-    Just a  -> ghost {ghostPosition = a, ghostDirection = dir}
-  where pos   = moveIsPossible gstate (ghostPosition ghost) speed' dir True
-        speed' = if isJust (destination ghost) then 2 *  speed else speed
+    Just a  -> ghost { ghostPosition = a, ghostDirection = dir } 
+  where pos    = moveIsPossible gstate (ghostPosition ghost) speed' dir True
+        speed' = if isJust (destination ghost) then 2 * speed else speed
 
 -- get coordinates of next tile
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
@@ -172,49 +181,52 @@ oppositeDirection West  = East
 
 -- in order of priority during scatter
 allDirections :: [Direction]
-allDirections = [North,West,South,East]
+allDirections = [North, West, South, East]
 
 -- returns actual goal destination, based on state of the game and ghostType
 goalAlgorithm :: GameState -> Ghost -> (Float,Float)
 goalAlgorithm gstate Ghost{..}
- | ghostMode == Chase =                   -- if ghost is chasing then apply chasing algorithm
-    case ghostType of 
-      Blinky -> position $ player gstate  -- direct chase
-      Inky   -> inky gstate ghostPosition -- relative to blinky and pac man
-      Pinky  -> twoInFrontPacman gstate   -- aim for 2 dots infront of pacman
+ | ghostMode == Chase =                                                  -- if ghost is chasing then apply chasing algorithm
+    case ghostType of
+      Blinky -> position $ player gstate                                 -- direct chase
+      Inky   -> inky gstate ghostPosition                                -- relative to blinky and pac man
+      Pinky  -> twoInFrontPacman gstate                                  -- aim for 2 dots infront of pacman
       Clyde  -> if distance ghostPosition (position $ player gstate) < 8 -- direct chase, but scatter if within 8 dots of pacman
-                then bottomLeft $ gameBoard $ level gstate
-                else twoInFrontPacman gstate
-  | ghostMode == Scatter =                             -- if ghost is scattering then apply scatter algorithm
-    case ghostType of 
-      Blinky -> topRight    $ gameBoard $ level gstate -- top-right corner
-      Inky   -> bottomRight $ gameBoard $ level gstate -- bottom-right corner
-      Pinky  -> topLeft     $ gameBoard $ level gstate -- top-left corner
-      Clyde  -> bottomLeft  $ gameBoard $ level gstate -- bottom-left corner
+                  then bottomLeft $ gameBoard $ level gstate
+                  else twoInFrontPacman gstate
+  | ghostMode == Scatter =                                               -- if ghost is scattering then apply scatter algorithm
+    case ghostType of
+      Blinky -> topRight    $ gameBoard $ level gstate
+      Inky   -> bottomRight $ gameBoard $ level gstate
+      Pinky  -> topLeft     $ gameBoard $ level gstate
+      Clyde  -> bottomLeft  $ gameBoard $ level gstate                   
   | isJust destination = case destination of
     Nothing -> error "impossible"
     Just a  -> a
   | otherwise = error "this shouldn't be possible"
 
--- base goal tile off of pacman & first Blinky ghost in list, if no Blinky in list -> use provided ghost-location instead
-inky :: GameState -> (Float,Float) -> (Float, Float) 
-inky gstate (x,y) = (refX + 2*xOff, refY + 2*yOff)
- where (xOff,yOff) = (pacX-refX,pacY-refY)
+-- base goal tile off of pacman & first Blinky ghost in list, 
+-- if no Blinky in list -> use provided ghost-location instead
+inky :: GameState -> (Float,Float) -> (Float, Float)
+inky gstate (x, y) = (refX + 2 * xOff, refY + 2 * yOff)
+ where (xOff, yOff) = (pacX - refX, pacY - refY)
        (pacX, pacY) = twoInFrontPacman gstate
-       (refX,refY) = if not (null allBlinkies) then ghostPosition $ head allBlinkies else (x,y)
+       (refX, refY) = if not (null allBlinkies) 
+                        then ghostPosition $ head allBlinkies 
+                        else (x, y)
        allBlinkies = filter (isBlinky . ghostType) ghostList
        ghostList = ghosts $ level gstate
-       isBlinky g = case g of 
+       isBlinky g = case g of
         Blinky -> True
-        _ -> False 
+        _      -> False
 
 -- get the index of pacman + 2 times its direction (to predict movement)
 twoInFrontPacman :: GameState -> (Float,Float)
-twoInFrontPacman gstate = (x+2*xOff,y+2*yOff)
-  where (x,y)       = position $ player gstate
-        (xOff,yOff) = directionToTuple $ direction $ player gstate
+twoInFrontPacman gstate = (x + 2 * xOff, y + 2 * yOff)
+  where (x, y)       = position $ player gstate
+        (xOff, yOff) = directionToTuple $ direction $ player gstate
 
 distance :: (Float,Float) -> (Float,Float) -> Float
-distance (x,y) (a,b) = sqrt $ (xOff * xOff) + (yOff * yOff)
+distance (x, y) (a, b) = sqrt $ (xOff * xOff) + (yOff * yOff)
   where xOff = x-a
         yOff = y-b
