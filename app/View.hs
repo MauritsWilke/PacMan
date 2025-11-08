@@ -14,14 +14,15 @@ import View.Scenes.Homescreen (renderHomescreen)
 import View.Lives (drawLives)
 import View.Paused
 import View.Scenes.SelectBoard (renderBoardSelection)
+import View.Scenes.LoadSave
 
 view :: GameState -> IO Picture
 view = return . viewPure
 
 viewPure :: GameState -> Picture
 viewPure gs = case scene gs of
-    Homescreen    -> renderHomescreen (screenSize gs) (tileWidth gs)
-    LoadGame      -> blank
+    Homescreen    -> renderHomescreen ((not . null . saves) gs) ((not . null . boards) gs) (screenSize gs) (tileWidth gs)
+    LoadGame      -> renderSaveselection gs
     ConfigureGame -> renderBoardSelection gs
     SinglePlayer  -> if debugView gs == 0
                      then viewDefault gs

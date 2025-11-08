@@ -6,7 +6,8 @@ import qualified Data.Set as S
 import System.Exit (exitSuccess)
 import Actions.Move
 import Actions.Interact as A
-import View.Scenes.SelectBoard (exitScene, enterScene, controlScene)
+import qualified View.Scenes.SelectBoard as SB
+import qualified View.Scenes.LoadSave as LS
 import Data.Maybe
 import System.Random
 import Utils.Count
@@ -91,9 +92,9 @@ updateKeyRegister' Up   k gs = gs { keys = S.delete k (keys gs) }
 inputKey :: GameState -> GameState
 inputKey gs = afterGhostMoves
   where afterKeyInput   = foldl (applyKey (scene gs)) gs (S.toList $ keys gs)
-        afterGhostMoves = if scene gs /= SinglePlayer 
-          then afterKeyInput 
-          else afterKeyInput 
+        afterGhostMoves = if scene gs /= SinglePlayer
+          then afterKeyInput
+          else afterKeyInput
             { level = (level gs) { ghosts = map (ghostMove gs) (ghosts (level gs)) } }
 
 applyKey :: Scene -> GameState -> Key -> GameState
@@ -105,11 +106,20 @@ applyKey _ gs (Char '2')                        = gs { debugView = 2 }
 applyKey _ gs (Char '3')                        = gs { debugView = 3 }
 -- HOMESCREEN 
 applyKey Homescreen gs (SpecialKey KeySpace)    = gs { scene = SinglePlayer }
-applyKey Homescreen gs (Char 's')               = (enterScene gs) { scene = ConfigureGame }
--- CONFIGURE 
-applyKey ConfigureGame gs (Char 's')            = controlScene (Char 's') gs
-applyKey ConfigureGame gs (Char 'w')            = controlScene (Char 'w') gs
-applyKey ConfigureGame gs (SpecialKey KeyEnter) = (exitScene gs) { scene = Homescreen }
+applyKey Homescreen gs (Char 's')               = if (not . null . boards) gs
+                                                  then (SB.enterScene gs) { scene = ConfigureGame }
+                                                  else gs
+applyKey Homescreen gs (Char 'l')               = if (not . null . saves) gs
+                                                  then (SB.enterScene gs) { scene = LoadGame }
+                                                  else gs
+-- CONFIGURE
+applyKey ConfigureGame gs (Char 's')            = SB.controlScene (Char 's') gs
+applyKey ConfigureGame gs (Char 'w')            = SB.controlScene (Char 'w') gs
+applyKey ConfigureGame gs (SpecialKey KeyEnter) = (SB.exitScene gs) { scene = Homescreen }
+-- LOAD GAME
+applyKey LoadGame gs (Char 's')                 = LS.controlScene (Char 's') gs
+applyKey LoadGame gs (Char 'w')                 = LS.controlScene (Char 's') gs
+applyKey LoadGame gs (SpecialKey KeyEnter)      = (LS.exitScene gs) { scene = SinglePlayer }
 -- MOVEMENT
 applyKey SinglePlayer gs (Char 'p')             = gs { paused = not (paused gs), scene = s' }
   where s' = if paused gs then SinglePlayer else Paused

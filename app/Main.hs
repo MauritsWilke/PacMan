@@ -7,12 +7,15 @@ import Controller
 import System.Directory (listDirectory)
 import System.FilePath (takeBaseName, (</>))
 import Utils.Board (parseBoard)
-import Model (NamedBoard(..), initialState)
+import Model (NamedBoard(..), initialState, NamedSave (..))
+import Data.Aeson (decodeFileStrict)
+import Data.Maybe
 
 main :: IO ()
 main = do
   namedBoards <- loadBoards
-  let st = initialState namedBoards
+  namedSaves <- loadSaves
+  let st = initialState namedBoards namedSaves
   playIO (InWindow "Pac-Man" (400, 400) (0, 0))
     black
     60
@@ -31,3 +34,14 @@ loadBoards = do
       boards = map parseBoard boardStrings 
 
   pure (zipWith NamedBoard names boards)
+
+loadSaves :: IO [NamedSave]
+loadSaves = do
+  files <- listDirectory "saves"
+  let paths = map ("saves" </>) files
+  saveStrings <- mapM decodeFileStrict paths
+
+  let names = map takeBaseName files
+      fltr = catMaybes saveStrings
+
+  pure (zipWith NamedSave names fltr)

@@ -18,6 +18,7 @@ data GameState = GameState
   , level        :: Level
   , player       :: Player
   , boards       :: [NamedBoard]
+  , saves        :: [NamedSave]
   -- COUNTERS
   , timer        :: Timer        -- >=0 
   , lives        :: LiveCounter  -- >=0
@@ -68,12 +69,13 @@ toSaveGameState gs = SaveGameState
   -- , poweredTimerSave = poweredTimer gs
   }
 
-initialState :: [NamedBoard] -> GameState
-initialState bs = GameState
+initialState :: [NamedBoard] -> [NamedSave] -> GameState
+initialState bs ss = GameState
   { scene        = Homescreen
   , level        = initialLevel bs
   , player       = initialPlayerTEMP
   , boards       = bs
+  , saves        = ss
   -- COUNTERS
   , timer        = timeCounter 0
   , lives        = liveCounter 3
@@ -234,6 +236,11 @@ data NamedBoard = NamedBoard
 
 instance ToJSON NamedBoard
 instance FromJSON NamedBoard
+
+data NamedSave = NamedSave
+  { saveName :: String
+  , saveData :: SaveGameState
+  } deriving (Show)
 
 -- NAME UTILS
 type TileWidth       = Float
