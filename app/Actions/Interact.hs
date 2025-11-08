@@ -10,11 +10,8 @@ import Utils.PlayerUtil
 
 interact :: GameState -> GameState
 interact gs = case scene gs of
-  SinglePlayer -> (interactGhosts . interactPellets . autoMovePacman . reduceTimers) gs
+  SinglePlayer -> (interactGhosts . interactPellets . playerMove . reduceTimers) gs
   _            -> gs
-
-autoMovePacman :: GameState -> GameState
-autoMovePacman = playerMove
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
 reduceTimers :: GameState -> GameState
