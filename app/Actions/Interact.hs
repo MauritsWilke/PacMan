@@ -37,18 +37,18 @@ playerKilled :: GameState -> GameState
 playerKilled gs = gs
   { lives  = lives' .- 1
   , level  = level'  { ghosts = resetGhosts gs ghosts' }
-  , player = player' {position = getPlayerSpawn board' }
+  , player = player' {position = getPlayerSpawn board', direction = East }
   } where player' = player gs
           board'  = gameBoard $ level gs
           lives'  = lives gs
-          ghosts' = ghosts $ level gs
+          ghosts' = standardGhosts (gameBoard (level gs))
           level'  = level gs
 
 resetGhosts :: GameState -> [Ghost] -> [Ghost]
 resetGhosts gs = reset' where
     reset' []      = []
     reset' (g:ghs) = g
-      { ghostPosition = getGhostSpawn (gameBoard (level gs)) (releaseIndex g) } : reset' ghs
+      { ghostPosition = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)} : reset' ghs
 
 interactGhosts  :: GameState -> GameState
 interactGhosts  gs = case afterCollisionRes of -- check if pacman is eaten
@@ -70,9 +70,9 @@ afterCollision gs ghosts
       Just False -> True   -- ghost eats player
       _          -> False
     update g = case hit g of
-        Just True -> g { destination = Just spawn, ghostMode = Spawn }  -- player eats ghost
+        Just True -> g { destination = Just destination, ghostMode = Spawn, frightTimer = frightTimeCounter 0 }  -- player eats ghost
         _         -> g
-      where spawn = getGhostSpawn (gameBoard (level gs)) 0
+      where destination = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)
 
 
 interactPellets :: GameState -> GameState
