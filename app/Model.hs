@@ -230,7 +230,7 @@ createGhost b orderIndex spawn typ = Ghost
   , destination    = Just (getGhostExit b)
   , scatterTimer   = scatterTimeCounter 0
   , frightTimer    = frightTimeCounter 0
-  , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60000)
+  , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60)
   }
 
 data NamedBoard = NamedBoard
