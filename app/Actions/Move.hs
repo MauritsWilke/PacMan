@@ -22,7 +22,6 @@ updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir
 playerMove :: GameState -> GameState
 playerMove gs = gs { player = plr' }
   where
-  where
     plr = player gs
     dir = direction plr
     que = queuedDir plr
@@ -62,9 +61,15 @@ moveIsPossible gs (x,y) speed dir allowedInSpawn = let
 
   in if isCloseEnough then case get tileToCheck brd of
    Nothing         -> getWrapAround (desiredX,desiredY) brd -- check for wrap-around if edge of map
-   Just Wall       -> if (x,y) == setToMiddle (x,y) (Just dir) then Nothing else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
-   Just GhostExit  -> if allowedInSpawn then Just (cornerSnap dir desiredX desiredY) else Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
-   Just GhostSpawn -> if allowedInSpawn then Just (cornerSnap dir desiredX desiredY) else Nothing
+   Just Wall       -> if (x,y) == setToMiddle (x,y) (Just dir) 
+                        then Nothing 
+                        else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
+   Just GhostExit  -> if allowedInSpawn 
+                        then Just (cornerSnap dir desiredX desiredY) 
+                        else Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
+   Just GhostSpawn -> if allowedInSpawn 
+                        then Just (cornerSnap dir desiredX desiredY) 
+                        else Nothing
    Just _          -> Just (cornerSnap dir desiredX desiredY) -- if move possible -> update offset of direction and set other direction to some n + 0.5 (to allign with middle)
   else Nothing -- if to far from edge -> check if move still possible if not, stay in place
 
@@ -114,7 +119,7 @@ ghostMove gstate ghost@Ghost{..}
     -- check if ghost has been moving to spawn and at location, then move ghost out of spawn again
     hasDestination = isJust destination
     isRespawning   = hasDestination && ghostMode == Spawn
-    ghost' | isRespawning   && distance ghostPosition destination' < 0.5 = ghost {destination = Just (getGhostExit (gameBoard (level gstate))), ghostMode = Chase}
+    ghost' | isRespawning   && distance ghostPosition destination' < 0.8 = ghost {destination = Just (getGhostExit (gameBoard (level gstate))), ghostMode = Chase}
            | hasDestination && distance ghostPosition destination' < 0.5 = ghost {destination = Nothing, ghostMode = Chase}
           --  | hasDestination = undefined -- 
            | otherwise      = ghostStep gstate ghost bestDirection (ghostSpeed gstate)
@@ -217,7 +222,6 @@ inky gstate (x,y) = (refX + 2*xOff, refY + 2*yOff)
                         else (x, y)
        allBlinkies = filter (isBlinky . ghostType) ghostList
        ghostList = ghosts $ level gstate
-       isBlinky g = case g of
        isBlinky g = case g of
         Blinky -> True
         _ -> False

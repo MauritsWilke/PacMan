@@ -3,7 +3,6 @@ module View.Ghost where
 import Utils.Count (getCount)
 import Model
 import Graphics.Gloss
-import Actions.Move (goalAlgorithm)
 import Data.Maybe
 
 type TileWidth = Float
@@ -36,7 +35,7 @@ regularGhostColor Ghost{..} = case ghostType of
     Clyde  -> orange
 
 drawGhostDebug :: GameState -> Float -> Int -> Board -> Ghost -> Picture
-drawGhostDebug gs tw i Board{..} g@Ghost{..}
+drawGhostDebug _ tw i Board{..} Ghost{..}
   | i == 2 = let (x, y) = ghostPosition in
     Translate (- (0.5 * tw)) (0.5 * tw)
       $ positionGhost tw (y, x) width height

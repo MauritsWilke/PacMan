@@ -136,10 +136,10 @@ initialPlayerTEMP = Player
 
 standardGhosts :: Board -> [Ghost]
 standardGhosts b =
-  [ createGhost 0 (getGhostSpawn b 0) Blinky
-  , createGhost 1 (getGhostSpawn b 1) Inky
-  , createGhost 2 (getGhostSpawn b 2) Pinky
-  , createGhost 3 (getGhostSpawn b 3) Clyde
+  [ createGhost b 0 (getGhostSpawn b 0) Blinky
+  , createGhost b 1 (getGhostSpawn b 1) Inky
+  , createGhost b 2 (getGhostSpawn b 2) Pinky
+  , createGhost b 3 (getGhostSpawn b 3) Clyde
   ]
 
 getPlayerSpawn :: Board -> (Float, Float)
@@ -220,14 +220,14 @@ data Ghost = Ghost
   , scatterTimer   :: ScatterTimer -- >=0, counts down
   } deriving (Show, Eq, Generic, FromJSON, ToJSON)
 
-createGhost :: Int -> (Float,Float) -> GhostType -> Ghost
-createGhost orderIndex spawn typ = Ghost
+createGhost :: Board -> Int -> (Float,Float) -> GhostType -> Ghost
+createGhost b orderIndex spawn typ = Ghost
   { ghostType      = typ
-  , ghostMode      = Spawn
+  , ghostMode      = Chase
   , ghostPosition  = spawn
   , ghostDirection = North
   , releaseIndex   = orderIndex
-  , destination    = Just spawn
+  , destination    = Just (getGhostExit b)
   , scatterTimer   = scatterTimeCounter 0
   , frightTimer    = frightTimeCounter 0
   , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60)
