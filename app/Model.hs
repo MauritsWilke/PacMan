@@ -26,7 +26,7 @@ data GameState = GameState
   -- ROUND SPECIFIC
   , pelletsEaten :: Int
   , ghostsEaten  :: Int -- Resets when eating power pellet
-  , poweredTimer :: PoweredTimer
+  -- , poweredTimer :: PoweredTimer
   -- GAME CONTROLS
   , keys         :: S.Set Graphics.Gloss.Interface.IO.Game.Key
   , screenSize   :: (Int,Int)
@@ -49,7 +49,7 @@ data SaveGameState = SaveGameState
   -- ROUND SPECIFIC
   , pelletsEatenSave :: Int
   , ghostsEatenSave  :: Int -- Resets when eating power pellet
-  , poweredTimerSave :: PoweredTimer
+  -- , poweredTimerSave :: PoweredTimer
   } deriving (Show, Generic, ToJSON, FromJSON)
 
 toSaveGameState :: GameState -> SaveGameState
@@ -58,15 +58,15 @@ toSaveGameState gs = SaveGameState
   , playerSave = player gs
   , boardsSave = boards gs
   -- COUNTERS
-  , timerSave = timer gs  
-  , livesSave = lives gs 
-  , scoreSave = score gs 
-  , roundSave = round gs 
+  , timerSave = timer gs
+  , livesSave = lives gs
+  , scoreSave = score gs
+  , roundSave = round gs
   -- ROUND SPECIFIC
   , pelletsEatenSave = pelletsEaten gs
   , ghostsEatenSave = ghostsEaten gs
-  , poweredTimerSave = poweredTimer gs
-  } 
+  -- , poweredTimerSave = poweredTimer gs
+  }
 
 initialState :: [NamedBoard] -> GameState
 initialState bs = GameState
@@ -82,7 +82,7 @@ initialState bs = GameState
   -- ROUND SPECIFIC
   , pelletsEaten = 0
   , ghostsEaten  = 0
-  , poweredTimer = poweredTimeCounter 0
+  -- , poweredTimer = poweredTimeCounter 0
   -- GAME CONTROLS
   , keys         = S.empty
   , screenSize   = (400,400)
@@ -98,7 +98,7 @@ initialLevel b = Level
   { spawnPosition = (13.5, 14)
   , gameBoard = boardData firstBoard
   , nameBoard = boardName firstBoard
-  , ghosts = standardGhosts
+  , ghosts = standardGhosts $ boardData firstBoard
   } where firstBoard = head b
 
 initialLevelTEMP :: Level
@@ -106,7 +106,7 @@ initialLevelTEMP = Level
   { spawnPosition = (13.5, 14)
   , gameBoard = realBoard
   , nameBoard = "realBoard"
-  , ghosts = standardGhosts
+  , ghosts = standardGhosts realBoard
   }
 
 realBoard :: Board
@@ -130,6 +130,36 @@ initialPlayerTEMP = Player
   , mode = Normal
   }
 
+standardGhosts :: Board -> [Ghost]
+standardGhosts b =
+  [ createGhost 0 (getGhostSpawn b 0) Blinky
+  , createGhost 1 (getGhostSpawn b 1) Inky
+  , createGhost 2 (getGhostSpawn b 2) Pinky
+  , createGhost 3 (getGhostSpawn b 3) Clyde
+  ]
+
+getPlayerSpawn :: Board -> (Float, Float)
+getPlayerSpawn Board{..} 
+ | null ints = (1.5,1.5)
+ | otherwise = parseToMiddle $ indexToCoord (fst (head ints)) width
+  where ints    = Prelude.filter ((== PlayerSpawn) . snd) (I.toList board)
+
+-- used for eaten ghosts to return to spawn
+getGhostSpawn :: Board -> Int -> (Float, Float)
+getGhostSpawn Board{..} ghostIndex = parseToMiddle $ indexToCoord (fst (ints !! index)) width
+  where ints    = Prelude.filter ((== GhostSpawn) . snd) (I.toList board)
+        index   = ghostIndex `mod` length ints
+
+getGhostExit :: Board -> (Float,Float)
+getGhostExit Board{..} = parseToMiddle $ indexToCoord (fst (head ints)) width
+  where ints    = Prelude.filter ((== GhostExit) . snd) (I.toList board)
+
+parseToMiddle :: (Int,Int) -> (Float,Float)
+parseToMiddle (x,y) = (fromIntegral x + 0.5, fromIntegral y + 0.5)
+
+indexToCoord :: Int -> Int -> (Int, Int)
+indexToCoord i w = (i `div` w, i `mod` w)
+
 data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer | Paused
   deriving (Show, Eq)
 
@@ -140,7 +170,7 @@ data Level = NoLevel | Level
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic, ToJSON, FromJSON)
 
-data Tile = Wall | Empty | Pellet | PowerPellet | Fruit | GhostSpawn | GhostExit
+data Tile = Wall | Empty | Pellet | PowerPellet | Fruit | GhostSpawn | GhostExit | PlayerSpawn
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data Board = Board
@@ -158,7 +188,7 @@ instance FromJSON Board
 data Direction = North | South | West | East
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
-data PlayerMode = Normal | Powered | Dead | Respawning | LevelComplete
+data PlayerMode = Normal | Dead | Respawning | LevelComplete
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data Player = NoPlayer | Player
@@ -179,29 +209,22 @@ data Ghost = Ghost
   , ghostMode      :: GhostMode
   , ghostPosition  :: (Float,Float)
   , ghostDirection :: Direction
-  -- , destination    :: Maybe (Float,Float)  -- only changed when at destination or when switching mode 
-  , frightTimer   :: FrightTimer -- >=0, counts down
+  , respawning     :: Maybe (Float, Float) -- Nothing if not respawning else Just (spawnpoint)
+  , frightTimer    :: FrightTimer -- >=0, counts down
   , releaseTimer   :: ReleaseTimer -- >=0, counts down
   , scatterTimer   :: ScatterTimer -- >=0, counts down
   } deriving (Show, Eq, Generic, FromJSON, ToJSON)
 
-standardGhosts :: [Ghost]
-standardGhosts =
-  [ createGhost (1.5,1.5) Blinky
-  , createGhost (2.5,1.5) Inky
-  , createGhost (1.5,2.5) Pinky
-  , createGhost (1.5,3.5) Clyde
-  ]
-
-createGhost :: (Float,Float) -> GhostType -> Ghost
-createGhost spawn typ = Ghost
-  { ghostType = typ
-  , ghostMode = Scatter
-  , ghostPosition = spawn
+createGhost :: Int -> (Float,Float) -> GhostType -> Ghost
+createGhost orderIndex spawn typ = Ghost
+  { ghostType      = typ
+  , ghostMode      = Chase
+  , ghostPosition  = spawn
   , ghostDirection = North
-  , scatterTimer = scatterTimeCounter 0
-  , frightTimer = frightTimeCounter 0
-  , releaseTimer = releaseTimeCounter 0
+  , respawning     = Nothing
+  , scatterTimer   = scatterTimeCounter 0
+  , frightTimer    = frightTimeCounter 0
+  , releaseTimer   = releaseTimeCounter (orderIndex * 5)
   }
 
 data NamedBoard = NamedBoard
@@ -246,7 +269,7 @@ ghostSpeed gstate  | roundIndex > 4  = 0.14875
 
 --get all ghosts that currently are in frightened mode
 frightenedGhosts :: [Ghost] -> [Ghost]
-frightenedGhosts [] = []
+frightenedGhosts []     = []
 frightenedGhosts (x:xs) = if frightened x then x : remainder else remainder
   where frightened Ghost{..} = getCount frightTimer > 0
         remainder = frightenedGhosts xs

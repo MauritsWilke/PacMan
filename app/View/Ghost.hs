@@ -4,6 +4,7 @@ import Utils.Count (getCount)
 import Model
 import Graphics.Gloss
 import Actions.Move (goalAlgorithm)
+import Data.Maybe
 
 type TileWidth = Float
 
@@ -21,14 +22,18 @@ drawGhost l Board{..} Ghost{..} = let (x, y) = ghostPosition in
   positionGhost l (y,x) width height
     $ Color ghostColor
     $ circleSolid (0.5 * l)
-  where ghostColor = if getCount frightTimer /= 0 then blue else getGhostColor ghostType
+  where ghostColor = getGhostColor Ghost{..}--ghostType
 -- for each ghost -> draw
 
-getGhostColor :: GhostType -> Color
-getGhostColor Inky = cyan
-getGhostColor Blinky = red
-getGhostColor Pinky = rose
-getGhostColor Clyde = orange
+getGhostColor :: Ghost -> Color
+getGhostColor Ghost{..} 
+ | isJust respawning        = dark green
+ | getCount frightTimer > 0 = blue
+ | otherwise = case ghostType of
+    Inky   -> cyan
+    Blinky -> red
+    Pinky  -> rose
+    Clyde  -> orange
 
 
 drawGhostDebug :: GameState -> Float -> Int -> Board -> Ghost -> Picture

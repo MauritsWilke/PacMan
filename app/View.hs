@@ -33,7 +33,7 @@ viewPure gs = case scene gs of
 
 viewDefault :: GameState -> Picture
 viewDefault gs =
-    let i = if poweredTimer gs == poweredTimeCounter 0 then 2 else 1
+    let i = if null (frightenedGhosts (ghosts (level gs))) then 2 else 1
     in Pictures $ insertAt i (viewGhosts gs)
        [ drawLevel' gs
        , drawPlayer' gs
@@ -56,7 +56,7 @@ viewGUI :: GameState -> Picture
 viewGUI gs =
     Pictures
       [ drawScore  (tileWidth gs) (gameBoard (level gs)) (score gs)
-      , drawLives  (tileWidth gs) (gameBoard (level gs)) 3
+      , drawLives  (tileWidth gs) (gameBoard (level gs)) (getCount (lives gs))
       , drawPaused (tileWidth gs) (gameBoard (level gs)) (paused gs)
       ]
 
@@ -67,7 +67,7 @@ insertAt i x xs =
 
 viewDebug :: GameState -> Picture
 viewDebug gs =
-    let i = if poweredTimer gs == poweredTimeCounter 0 then 2 else 1
+    let i = if null (frightenedGhosts (ghosts (level gs))) then 2 else 1
     in Pictures $ insertAt i (viewGhostsDebug gs)
       [ drawLevelDebug  (tileWidth gs) (debugView gs) (level gs)
       , drawPlayerDebug (tileWidth gs) (debugView gs) (gameBoard (level gs)) (player gs)

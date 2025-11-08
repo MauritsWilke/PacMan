@@ -14,7 +14,7 @@ reset gs = gs
   , Model.round  = roundCounter 0
   , pelletsEaten = 0
   , ghostsEaten  = 0
-  , poweredTimer = poweredTimeCounter 0
+  -- , poweredTimer = poweredTimeCounter 0
   , keys         = S.empty
   , paused       = False
   }

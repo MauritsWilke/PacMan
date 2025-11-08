@@ -19,7 +19,7 @@ step _ gs
   | shouldQuit gs = exitSuccess
   | shouldSave gs = saveGameState "savegame.json" gs
   | paused gs     = pure (inputKey gs)
-  | otherwise         = randomMoves $ A.interact $ inputKey gs
+  | otherwise     = randomMoves $ A.interact $ inputKey gs
 
 -- Looping input function
 input :: Event -> GameState -> IO GameState
@@ -62,7 +62,7 @@ applyRandom gs ghost = do
       allowedMoves = filter (validMove ghost) allowedDirections
 
       validMove gh d =
-        isJust $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d False
+        isJust $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d True
 
   dir <- case allowedMoves of
     []  -> return $ oppositeDirection (ghostDirection ghost)
@@ -118,7 +118,9 @@ applyKey SinglePlayer gs (Char 'a')             = updatePlayerDir gs West
 applyKey SinglePlayer gs (Char 's')             = updatePlayerDir gs South
 applyKey SinglePlayer gs (Char 'd')             = updatePlayerDir gs East
 -- PAUSE
-applyKey Paused gs (Char 'h')                   = (reset gs) { scene = Homescreen }
+applyKey Paused gs (Char 'h')                   = (Actions.Reset.reset gs) { scene = Homescreen }
 applyKey Paused gs (Char 's')                   = gs { shouldSave = True }
+applyKey Paused gs (Char 'p')                   = gs { paused = not (paused gs), scene = s' }
+  where s' = if paused gs then SinglePlayer else Paused
 -- CATCH ALL 
 applyKey _ gs _                                 = gs

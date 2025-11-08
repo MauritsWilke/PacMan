@@ -6,7 +6,9 @@ import Model
 
 drawLives :: TileWidth -> Board -> Int -> Picture
 drawLives _ _ 0          = blank
-drawLives tw b@Board{..} l = Pictures 
+drawLives tw b@Board{..} l 
+  | l < 0 = blank
+  | otherwise = Pictures 
   [ Translate (fromIntegral (l - 1) * tw) 0
   $ Translate baseTranslationX baseTranslationY
   $ Color yellow

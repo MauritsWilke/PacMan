@@ -7,6 +7,7 @@ import GHC.Num (integerFromInt)
 import Data.Fixed (mod')
 import Data.List
 import Utils.Count
+import Data.Maybe
 
 updatePlayerDir :: GameState -> Direction -> GameState
 updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir } }
@@ -37,7 +38,7 @@ playerMove gs = gs { player = plr' }
 -- check if provided argument is close enough to some n + 0.5 (for corner snap allowance)
 closeEnough :: Float -> Bool
 closeEnough v = abs (fromInteger (floor v) - v + 0.5) < allowedOffset
-  where allowedOffset = 0.08
+  where allowedOffset = 0.09
 
 -- set fractional part of orthogonal direction to some n + 0.5
 cornerSnap :: Direction -> Float -> Float -> (Float, Float)
@@ -101,7 +102,7 @@ ghostMove gstate ghost =
     where
     bestDirection = if null allowedDirections
           then oppositeDirection (ghostDirection ghost) -- if no allowed directions -> go back
-          else bestOf gstate ghost allowedDirections (getCount (Model.scatterTimer ghost) > 0)   -- else choose best direction
+          else bestOf gstate ghost allowedDirections    -- else choose best direction
 
     -- check all legal directions except opposite
     allowedDirections = filter movableDirection $ delete (oppositeDirection (ghostDirection ghost)) allDirections
@@ -120,9 +121,9 @@ setToMiddle (row,col) (Just dir) | dir == North || dir == South = (fromInteger (
 
 -- find best direction for move
 -- IMPORTANT: doesn't check for validity, provided list should contain only valid directions
-bestOf :: GameState -> Ghost -> [Direction] -> Bool -> Direction
-bestOf _ ghost [] _                       = ghostDirection ghost -- if no valid directions, return opposite of current ghostdirection
-bestOf gstate ghost directions scattering = bestDirection        -- else find the best direction
+bestOf :: GameState -> Ghost -> [Direction] -> Direction
+bestOf _ ghost []              = ghostDirection ghost -- if no valid directions, return opposite of current ghostdirection
+bestOf gstate ghost directions = bestDirection        -- else find the best direction
  where
   bestDirection = directions !! closestToGoal
   closestToGoal =
@@ -131,7 +132,7 @@ bestOf gstate ghost directions scattering = bestDirection        -- else find th
       Just num -> num -- minimum distances `elem` distances
   distances = map (distance ghostGoal . preMove currPosition (ghostSpeed gstate)) directions -- calculate all the distances of potential moves
   currPosition = ghostPosition ghost
-  ghostGoal = if scattering then scatter gstate ghost else goalAlgorithm gstate ghost
+  ghostGoal = goalAlgorithm gstate ghost
 
 preMove :: (Float,Float) -> Float -> Direction -> (Float,Float)
 preMove (x,y) speed dir = (x+speed*xOff ,y+speed*yOff)
@@ -163,22 +164,25 @@ allDirections = [North,West,South,East]
 
 -- returns actual goal destination, based on state of the game and ghostType
 goalAlgorithm :: GameState -> Ghost -> (Float,Float)
-goalAlgorithm gstate Ghost{..} = 
-  case ghostType of 
-    Blinky -> position $ player gstate  -- direct chase
-    Inky   -> inky gstate ghostPosition -- relative to blinky and pac man
-    Pinky  -> twoInFrontPacman gstate  -- aim for 2 dots infront of pacman
-    Clyde  -> if distance ghostPosition (position $ player gstate) < 8 -- direct chase, but scatter if within 8 dots of pacman
-              then bottomLeft $ gameBoard $ level gstate
-              else twoInFrontPacman gstate 
-
-scatter :: GameState -> Ghost -> (Float,Float)
-scatter gstate Ghost{..} = 
-  case ghostType of 
-    Blinky -> topRight $ gameBoard $ level gstate  -- top-right corner
-    Inky   -> bottomRight $ gameBoard $ level gstate -- bottom-right corner
-    Pinky  -> topLeft $ gameBoard $ level gstate  -- top-left corner
-    Clyde  -> bottomLeft $ gameBoard $ level gstate -- bottom-left corner
+goalAlgorithm gstate Ghost{..}
+ | ghostMode == Chase =                  -- if ghost is chasing then apply chasing algorithm
+    case ghostType of 
+      Blinky -> position $ player gstate  -- direct chase
+      Inky   -> inky gstate ghostPosition -- relative to blinky and pac man
+      Pinky  -> twoInFrontPacman gstate   -- aim for 2 dots infront of pacman
+      Clyde  -> if distance ghostPosition (position $ player gstate) < 8 -- direct chase, but scatter if within 8 dots of pacman
+                then bottomLeft $ gameBoard $ level gstate
+                else twoInFrontPacman gstate
+  | ghostMode == Scatter =                             -- if ghost is scattering then apply scatter algorithm
+    case ghostType of 
+      Blinky -> topRight    $ gameBoard $ level gstate -- top-right corner
+      Inky   -> bottomRight $ gameBoard $ level gstate -- bottom-right corner
+      Pinky  -> topLeft     $ gameBoard $ level gstate -- top-left corner
+      Clyde  -> bottomLeft  $ gameBoard $ level gstate -- bottom-left corner
+  | isJust respawning = case respawning of
+    Nothing -> error "impossible"
+    Just a  -> a
+  | otherwise = error "this shouldn't be possible"
 
 -- base goal tile off of pacman & first Blinky ghost in list, if no Blinky in list -> use provided ghost-location instead
 inky :: GameState -> (Float,Float) -> (Float, Float) 
@@ -199,6 +203,6 @@ twoInFrontPacman gstate = (x+2*xOff,y+2*yOff)
         (xOff,yOff) = directionToTuple $ direction $ player gstate
 
 distance :: (Float,Float) -> (Float,Float) -> Float
-distance (x,y) (a,b) = sqrt $ xOff * xOff + yOff * yOff
+distance (x,y) (a,b) = sqrt $ (xOff * xOff) + (yOff * yOff)
   where xOff = x-a
         yOff = y-b

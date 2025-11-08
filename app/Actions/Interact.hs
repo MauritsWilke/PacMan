@@ -6,10 +6,11 @@ import Utils.Board as GB
 import Data.Bifunctor (bimap)
 import Utils.Count
 import Actions.Move
+import Utils.PlayerUtil
 
 interact :: GameState -> GameState
 interact gs = case scene gs of
-  SinglePlayer -> (interactPellets . autoMovePacman . reduceTimers) gs
+  SinglePlayer -> (interactGhosts . interactPellets . autoMovePacman . reduceTimers) gs
   _            -> gs
 
 autoMovePacman :: GameState -> GameState
@@ -30,11 +31,48 @@ reduceGhostTimers (g@Ghost{..} : gs)
  , releaseTimer = releaseTimer .- 1
  } : reduceGhostTimers gs
 
+playerKilled :: GameState -> GameState
+playerKilled gs = gs {lives = lives' .- 1, level = level' {ghosts = resetGhosts gs ghosts'}, player = player' {position = getPlayerSpawn board'}}
+  where player' = player gs
+        board'  = gameBoard $ level gs
+        lives'  = lives gs
+        ghosts' = ghosts $ level gs
+        level'  = level gs
+
+resetGhosts :: GameState -> [Ghost] -> [Ghost]
+resetGhosts gs = reset' 0
+  where reset' _ []    = []
+        reset' i (g:ghs) = g {ghostPosition = getGhostSpawn (gameBoard (level gs)) i} : reset' (i+1) ghs
+
+interactGhosts  :: GameState -> GameState
+interactGhosts  gs = case afterCollisionRes of -- check if pacman is eaten
+  Nothing -> playerKilled gs                   -- if so, soft reset
+  Just a  -> gs {level = lvl {ghosts = a}}     -- if not, update ghosts
+  where afterCollisionRes = afterCollision gs currGhostList
+        currGhostList     = ghosts $ level gs
+        lvl               = level gs
+
+-- returns nothing if level requires soft reset, returns Just [Ghost] if pacman not eaten with the updated ghostlist
+afterCollision :: GameState -> [Ghost] -> Maybe [Ghost]
+afterCollision gs ghs  | reset     = Nothing
+                       | otherwise = Just newGhosts
+  where reset          = any needsReset ghs -- check if any ghost eats pacman
+        needsReset g'  = case hitCheckResult g' of
+          Nothing -> False
+          Just True -> False
+          Just False -> True
+        hitCheckResult = eats (player gs)
+        newGhosts      = map updateGhost ghs
+        updateGhost g'  = case eats (player gs) g' of
+          Nothing    -> g' -- if ghost doesn't hit player, nothing happens
+          Just True  -> g' {respawning = Just (getGhostSpawn (gameBoard (level gs)) 0), ghostMode = Spawn}   -- if player eats ghost, ghost return to spawn
+          Just False -> error "this should be covered by reset check"
+
 interactPellets :: GameState -> GameState
 interactPellets gs = action gs
   { level        = lvl { gameBoard = board' }
   , score        = score'
-  , poweredTimer = poweredTimeCounter 10
+  -- , poweredTimer = poweredTimeCounter 10
   , ghostsEaten  = ghs'
   }
   where
