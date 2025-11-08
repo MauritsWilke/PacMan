@@ -2,6 +2,7 @@
 module View.Player where
 import Model
 import Graphics.Gloss
+import Utils.Count (AnimationTimer (AnimationTimer))
 
 positionPlayer :: Float -> (Float,Float) -> Int -> Int -> Picture -> Picture
 positionPlayer tw (x,y) width height =
@@ -9,6 +10,12 @@ positionPlayer tw (x,y) width height =
   where
     dx = x - (0.5 * fromIntegral width)
     dy = y - (0.5 * fromIntegral height)
+
+rotatePlayer :: Direction -> Picture -> Picture
+rotatePlayer West  = Rotate 180
+rotatePlayer East  = Rotate 0
+rotatePlayer South = Rotate 90
+rotatePlayer North = Rotate 270
 
 positionArrow :: Float -> Direction -> Picture -> Picture
 positionArrow tw dir = Translate dx dy . Rotate rot
@@ -20,21 +27,33 @@ positionArrow tw dir = Translate dx dy . Rotate rot
       South -> (0, -offset, 180)
       North -> (0,  offset, 0)
 
-drawPlayer :: Float -> Board -> Player -> Picture
-drawPlayer _ _ NoPlayer   = blank
-drawPlayer l Board{..} Player{..} =
+drawPlayer :: AnimationTimer -> Float -> Board -> Player -> Picture
+drawPlayer _ _ _ NoPlayer   = blank
+drawPlayer (AnimationTimer f) tw Board{..} Player{..} =
   let
     (x, y) = position
   in Pictures
-    [ positionPlayer l (y,x) width height
-        $ Color yellow
-        $ circleSolid (0.5 * l)
-    , positionPlayer l (y,x) width height
+    [ positionPlayer tw (y,x) width height
+      $ rotatePlayer direction
+      $ if f < 12 then closedMouth tw else openMouth tw
+    , positionPlayer tw (y,x) width height
         $ Color red
-        $ positionArrow l queuedDir
+        $ positionArrow tw queuedDir
         $ Translate (- arrowSize) 0
         $ polygon [(0,0), (arrowSize, arrowSize), (2 * arrowSize, 0)]
     ] where arrowSize = 7
+
+closedMouth :: Float -> Picture
+closedMouth tw = Color yellow $ circleSolid (0.5 * tw)
+
+openMouth :: Float -> Picture
+openMouth tw =
+  Pictures
+    [ Color yellow 
+      $ circleSolid (0.5 * tw)
+    , Color black  
+      $ polygon [(0, 0), ( 0.5 * tw,  0.25 * tw), ( 0.5 * tw,- (0.25 * tw))]
+    ]
 
 drawPlayerDebug :: Float -> Int -> Board -> Player -> Picture
 drawPlayerDebug _ _ _ NoPlayer =
