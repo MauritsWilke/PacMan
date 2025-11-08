@@ -40,9 +40,9 @@ playerKilled gs = gs {lives = lives' .- 1, level = level' {ghosts = resetGhosts 
         level'  = level gs
 
 resetGhosts :: GameState -> [Ghost] -> [Ghost]
-resetGhosts gs = reset' 0
-  where reset' _ []    = []
-        reset' i (g:ghs) = g {ghostPosition = getGhostSpawn (gameBoard (level gs)) i} : reset' (i+1) ghs
+resetGhosts gs         = reset'
+  where reset' []      = []
+        reset' (g:ghs) = g {ghostPosition = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)} : reset' ghs
 
 interactGhosts  :: GameState -> GameState
 interactGhosts  gs = case afterCollisionRes of -- check if pacman is eaten
@@ -65,7 +65,7 @@ afterCollision gs ghs  | reset     = Nothing
         newGhosts      = map updateGhost ghs
         updateGhost g'  = case eats (player gs) g' of
           Nothing    -> g' -- if ghost doesn't hit player, nothing happens
-          Just True  -> g' {respawning = Just (getGhostSpawn (gameBoard (level gs)) 0), ghostMode = Spawn}   -- if player eats ghost, ghost return to spawn
+          Just True  -> g' {destination = Just (getGhostSpawn (gameBoard (level gs)) 0), ghostMode = Spawn}   -- if player eats ghost, ghost return to spawn
           Just False -> error "this should be covered by reset check"
 
 interactPellets :: GameState -> GameState
@@ -102,5 +102,5 @@ freightenGhosts gstate = gstate { level = newLevel }
     ghostList = ghosts lvl
     freighten ghost = ghost
       { ghostDirection = oppositeDirection (ghostDirection ghost)
-      , frightTimer    = frightTimeCounter 480 -- 8 sec * 60 fps
+      , frightTimer    = frightTimeCounter 480 -- 8 sec * 60 step function calls per second
       }

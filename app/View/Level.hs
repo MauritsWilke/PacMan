@@ -1,7 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 module View.Level where
 import Model
-import Utils.Board
 import Graphics.Gloss
 import qualified Data.IntMap as I
 
@@ -47,7 +46,7 @@ tileAsset l Wall        = Color blue   $ rectangleWire l l
 tileAsset l Pellet      = Color white  $ rectangleSolid (l / 4) (l / 4)
 tileAsset l PowerPellet = Color white  $ circleSolid (l / 3)
 tileAsset l Fruit       = Color red    $ circleSolid $ l / 4
-tileAsset l GhostSpawn  = Color green  $ rectangleSolid l l
+tileAsset _ GhostSpawn  = blank --Color green  $ rectangleSolid l l
 tileAsset l GhostExit   = Color orange $ rectangleSolid l l
 tileAsset _ PlayerSpawn = blank
 tileAsset _ Empty       = blank

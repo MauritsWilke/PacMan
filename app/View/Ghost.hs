@@ -27,8 +27,8 @@ drawGhost l Board{..} Ghost{..} = let (x, y) = ghostPosition in
 
 getGhostColor :: Ghost -> Color
 getGhostColor Ghost{..} 
- | isJust respawning        = dark green
- | getCount frightTimer > 0 = blue
+ | isJust destination && ghostMode == Spawn = dark green
+ | getCount frightTimer > 0                 = blue
  | otherwise = case ghostType of
     Inky   -> cyan
     Blinky -> red

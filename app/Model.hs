@@ -211,8 +211,9 @@ data Ghost = Ghost
   , ghostMode      :: GhostMode
   , ghostPosition  :: (Float,Float)
   , ghostDirection :: Direction
-  , respawning     :: Maybe (Float, Float) -- Nothing if not respawning else Just (spawnpoint)
-  , frightTimer    :: FrightTimer -- >=0, counts down
+  , releaseIndex   :: Int          -- defines the order of release
+  , destination    :: Maybe (Float, Float) -- locks all interactions until at destination
+  , frightTimer    :: FrightTimer  -- >=0, counts down
   , releaseTimer   :: ReleaseTimer -- >=0, counts down
   , scatterTimer   :: ScatterTimer -- >=0, counts down
   } deriving (Show, Eq, Generic, FromJSON, ToJSON)
@@ -223,10 +224,11 @@ createGhost orderIndex spawn typ = Ghost
   , ghostMode      = Chase
   , ghostPosition  = spawn
   , ghostDirection = North
-  , respawning     = Nothing
+  , releaseIndex   = orderIndex
+  , destination     = Nothing
   , scatterTimer   = scatterTimeCounter 0
   , frightTimer    = frightTimeCounter 0
-  , releaseTimer   = releaseTimeCounter (orderIndex * 5)
+  , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60)
   }
 
 data NamedBoard = NamedBoard

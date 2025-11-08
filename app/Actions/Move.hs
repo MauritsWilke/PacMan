@@ -97,12 +97,24 @@ getTileToCheck (x,y) dir
 -- ghost moves 
 -- -> do a move based on gamestate and ghost input
 ghostMove :: GameState -> Ghost -> Ghost
-ghostMove gstate ghost = 
-    if getCount (frightTimer ghost) > 0 then ghost else ghostStep gstate ghost bestDirection
+ghostMove gstate ghost 
+    | shouldntMove  = ghost
+    | isRespawning  = ghost'
+    | otherwise     = ghostStep gstate ghost bestDirection (ghostSpeed gstate)
     where
     bestDirection = if null allowedDirections
           then oppositeDirection (ghostDirection ghost) -- if no allowed directions -> go back
           else bestOf gstate ghost allowedDirections    -- else choose best direction
+
+    -- check if ghost has been moving to spawn and at location, then move ghost out of spawn again
+    isRespawning = isJust (destination ghost)
+    ghost' = if isRespawning && distance (ghostPosition ghost) spawn < 0.5 then ghost {destination = Nothing, ghostMode = Chase} else ghostStep gstate ghost bestDirection (ghostSpeed gstate)
+    spawn = case destination ghost of
+        Nothing -> error "this should not be possible due to lazy evaluation"
+        Just sl -> sl -- return spawn location
+
+    -- fright is applied elsewhere due to randomness
+    shouldntMove = getCount (frightTimer ghost) > 0 || getCount (releaseTimer ghost) > 0
 
     -- check all legal directions except opposite
     allowedDirections = filter movableDirection $ delete (oppositeDirection (ghostDirection ghost)) allDirections
@@ -110,14 +122,14 @@ ghostMove gstate ghost =
     -- checks if the provided direction is allowed
     movableDirection dir' =
       case moveIsPossible gstate (ghostPosition ghost) (ghostSpeed gstate) dir' True of
-         Nothing   -> False
-         Just _    -> True
+        Nothing   -> False
+        Just _    -> True
 
 -- set current location to middle of current tile or only the coordinate inline with the provided direction
 setToMiddle :: (Float,Float) -> Maybe Direction -> (Float,Float)
 setToMiddle (row,col) Nothing                                   = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
 setToMiddle (row,col) (Just dir) | dir == North || dir == South = (fromInteger (floor row) + 0.5, col)
-                                 | otherwise                    =  (row, fromInteger (floor col) + 0.5)
+                                 | otherwise                    = (row, fromInteger (floor col) + 0.5)
 
 -- find best direction for move
 -- IMPORTANT: doesn't check for validity, provided list should contain only valid directions
@@ -139,13 +151,13 @@ preMove (x,y) speed dir = (x+speed*xOff ,y+speed*yOff)
   where (xOff,yOff) = directionToTuple dir
 
 -- should have correct direction -> will execute the next move
-ghostStep :: GameState -> Ghost -> Direction -> Ghost
-ghostStep gstate ghost dir =
+ghostStep :: GameState -> Ghost -> Direction -> Float -> Ghost
+ghostStep gstate ghost dir speed =
   case pos of
     Nothing -> ghost
-    Just a  -> ghost {ghostPosition = a, ghostDirection = dir} --if a == setToMiddle' (ghostPosition ghost)  (Just dir) then ghost else 
-  -- ghost { ghostPosition = pos, ghostDirection = dir}
-  where pos = moveIsPossible gstate (ghostPosition ghost) (ghostSpeed gstate) dir True
+    Just a  -> ghost {ghostPosition = a, ghostDirection = dir}
+  where pos   = moveIsPossible gstate (ghostPosition ghost) speed' dir True
+        speed' = if isJust (destination ghost) then 2 *  speed else speed
 
 -- get coordinates of next tile
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
@@ -165,7 +177,7 @@ allDirections = [North,West,South,East]
 -- returns actual goal destination, based on state of the game and ghostType
 goalAlgorithm :: GameState -> Ghost -> (Float,Float)
 goalAlgorithm gstate Ghost{..}
- | ghostMode == Chase =                  -- if ghost is chasing then apply chasing algorithm
+ | ghostMode == Chase =                   -- if ghost is chasing then apply chasing algorithm
     case ghostType of 
       Blinky -> position $ player gstate  -- direct chase
       Inky   -> inky gstate ghostPosition -- relative to blinky and pac man
@@ -179,7 +191,7 @@ goalAlgorithm gstate Ghost{..}
       Inky   -> bottomRight $ gameBoard $ level gstate -- bottom-right corner
       Pinky  -> topLeft     $ gameBoard $ level gstate -- top-left corner
       Clyde  -> bottomLeft  $ gameBoard $ level gstate -- bottom-left corner
-  | isJust respawning = case respawning of
+  | isJust destination = case destination of
     Nothing -> error "impossible"
     Just a  -> a
   | otherwise = error "this shouldn't be possible"

@@ -37,14 +37,14 @@ resize _ gs               = gs
 getRandomFrom :: [a] -> IO a
 getRandomFrom [] = error "can't get element from empty list"
 getRandomFrom as = do
-    index <- randomRIO (0,length as -1)
-    return $ as !! index
+          index <- randomRIO (0,length as -1)
+          return $ as !! index
 
 randomMoves :: GameState -> IO GameState
 randomMoves gs = do
-  let lvl = level gs
-      allGhosts = ghosts lvl
-      frightened = frightenedGhosts allGhosts
+  let lvl           = level gs
+      allGhosts     = ghosts lvl
+      frightened    = frightenedGhosts allGhosts
       nonFrightened = filter ((== 0) . getCount . frightTimer ) allGhosts
 
   -- applyRandom move to all frightened ghosts
@@ -58,11 +58,11 @@ randomMoves gs = do
 
 applyRandom :: GameState -> Ghost -> IO Ghost
 applyRandom gs ghost = do
-  let avoid = oppositeDirection (ghostDirection ghost)
+  let avoid             = oppositeDirection (ghostDirection ghost)
       allowedDirections = filter (/= avoid) allDirections
-      allowedMoves = filter (validMove ghost) allowedDirections
+      allowedMoves      = filter (validMove ghost) allowedDirections
 
-      validMove gh d =
+      validMove gh d    =
         isJust $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d True
 
   dir <- case allowedMoves of
@@ -70,7 +70,7 @@ applyRandom gs ghost = do
     [d] -> return d
     _   -> getRandomFrom allowedMoves
 
-  return (ghostStep gs ghost dir)
+  return $ if getCount (releaseTimer ghost) > 0 then ghost else ghostStep gs ghost dir (0.5* ghostSpeed gs)
 
 
 keysThatCantRepeat :: [Key]
