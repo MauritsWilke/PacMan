@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 module View.Ghost where
-import Utils.Count (getCount)
+import Utils.Count (getCount, AnimationTimer (AnimationTimer))
 import Model
 import Graphics.Gloss
 import Data.Maybe
@@ -13,11 +13,11 @@ positionGhost tw (x, y) width height = Translate (dx * tw ) (dy * tw)
   where dx = x - (0.5 * fromIntegral width)
         dy = y - (0.5 * fromIntegral height)
 
-drawGhost :: Float -> Board -> Ghost -> Picture
-drawGhost tw Board{..} Ghost{..} = let (x, y) = ghostPosition in
+drawGhost :: AnimationTimer -> Float -> Board -> Ghost -> Picture
+drawGhost (AnimationTimer f) tw Board{..} Ghost{..} = let (x, y) = ghostPosition in
   positionGhost tw (y,x) width height
     $ Color ghostColor
-    $ ghostShape tw ghostDirection
+    $ ghostShape f tw ghostDirection
   where ghostColor = getGhostColor Ghost{..}
 
 getGhostColor :: Ghost -> Color
@@ -53,16 +53,38 @@ ghostEye dir tw = rotatePlayer dir $ Pictures
     $ circleSolid (0.06 * tw )
   ]
 
-ghostShape :: Float -> Direction -> Picture
-ghostShape tw dir =
+ghostShape :: Int -> Float -> Direction -> Picture
+ghostShape f tw dir =
   let
     body = Pictures
       [ Translate 0 (0.1 * tw) $ circleSolid (0.3 * tw) -- 6px width and 1px up from center
-      , Translate 0 (- (0.1 * tw)) $ rectangleSolid (0.6 * tw) (0.3 * tw) -- 6px w 3px h 1px up
+      , Translate 0 (- (0.1 * tw)) $ rectangleSolid (0.6 * tw) (0.2 * tw) -- 6px w 3px h 1px up
+      , Translate (- (0.5 * tw)) (- (0.45 * tw)) $
+        if f < 12 then wave
+        else wave'
       ]
 
     eyes = Pictures
       [ Translate (- (0.15 * tw)) (0.2 * tw) $ ghostEye dir tw
       , Translate (0.15 * tw) (0.2 * tw) $ ghostEye dir tw
       ]
+
+    wave = polygon
+      [ (0.20 * tw, 0.1 * tw)
+      , (0.35 * tw, 0.3 * tw)
+      , (0.50 * tw, 0.1 * tw)
+      , (0.65 * tw, 0.3 * tw)
+      , (0.80 * tw, 0.1 * tw)
+      , (0.80 * tw, 0.3 * tw)
+      , (0.20 * tw, 0.3 * tw)
+      ]
+    wave' = polygon 
+      [ (0.20 * tw, 0.3 * tw)
+      , (0.35 * tw, 0.1 * tw)
+      , (0.50 * tw, 0.3 * tw)
+      , (0.65 * tw, 0.1 * tw)
+      , (0.80 * tw, 0.3 * tw)
+      , (0.20 * tw, 0.3 * tw)
+      ]
+
   in Pictures [body, eyes]
