@@ -8,24 +8,25 @@ import Data.Fixed (mod')
 import Data.List
 import Utils.Count
 import Data.Maybe
+import qualified Data.Bifunctor as B
 
 updatePlayerDir :: GameState -> Direction -> GameState
 updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir } }
   where
-    plr = player gs
+    plr          = player gs
     dirIsAllowed = moveIsPossible gs (position plr) (playerSpeed gs) dir False
-    newDir = case dirIsAllowed of
-      Just _  -> dir
-      Nothing -> direction plr
+    newDir       = case dirIsAllowed of
+                    Just _  -> dir
+                    Nothing -> direction plr
 
 
 playerMove :: GameState -> GameState
 playerMove gs = gs { player = plr' }
   where
-    plr = player gs
-    dir = direction plr
-    que = queuedDir plr
-    pos = position plr
+    plr    = player gs
+    dir    = direction plr
+    que    = queuedDir plr
+    pos    = position plr
     movQue = moveIsPossible gs pos (playerSpeed gs) que False
     movDir = moveIsPossible gs pos (playerSpeed gs) dir False
 
@@ -36,9 +37,9 @@ playerMove gs = gs { player = plr' }
         Nothing -> plr
 
 -- check if provided argument is close enough to some n + 0.5 (for corner snap allowance)
-closeEnough :: Float -> Bool
-closeEnough v = abs (fromInteger (floor v) - v + 0.5) < allowedOffset
-  where allowedOffset = 0.09
+closeEnough :: Float -> Float -> Bool
+closeEnough speed v = abs (fromInteger (floor v) - v + 0.5) < allowedOffset
+  where allowedOffset = speed - 0.01
 
 -- set fractional part of orthogonal direction to some n + 0.5
 cornerSnap :: Direction -> Float -> Float -> (Float, Float)
@@ -56,19 +57,19 @@ moveIsPossible gs (x,y) speed dir allowedInSpawn = let
   tileToCheck          = getTileToCheck (desiredX,desiredY) dir
   brd                  = gameBoard $ level gs
   isCloseEnough        = if dir == North || dir == South
-                          then closeEnough y
-                          else closeEnough x
+                          then closeEnough speed y
+                          else closeEnough speed x
 
   in if isCloseEnough then case get tileToCheck brd of
    Nothing         -> getWrapAround (desiredX,desiredY) brd -- check for wrap-around if edge of map
-   Just Wall       -> if (x,y) == setToMiddle (x,y) (Just dir) 
-                        then Nothing 
+   Just Wall       -> if (x,y) == setToMiddle (x,y) (Just dir)
+                        then Nothing
                         else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
-   Just GhostExit  -> if allowedInSpawn 
-                        then Just (cornerSnap dir desiredX desiredY) 
+   Just GhostExit  -> if allowedInSpawn
+                        then Just (cornerSnap dir desiredX desiredY)
                         else Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
-   Just GhostSpawn -> if allowedInSpawn 
-                        then Just (cornerSnap dir desiredX desiredY) 
+   Just GhostSpawn -> if allowedInSpawn
+                        then Just (cornerSnap dir desiredX desiredY)
                         else Nothing
    Just _          -> Just (cornerSnap dir desiredX desiredY) -- if move possible -> update offset of direction and set other direction to some n + 0.5 (to allign with middle)
   else Nothing -- if to far from edge -> check if move still possible if not, stay in place
@@ -110,7 +111,7 @@ ghostMove :: GameState -> Ghost -> Ghost
 ghostMove gstate ghost@Ghost{..}
     | shouldntMove   = ghost
     | hasDestination = ghost'
-    | otherwise      = ghostStep gstate ghost bestDirection (ghostSpeed gstate)
+    | otherwise      = ghostStep gstate ghost bestDirection speed
     where
     bestDirection = if null allowedDirections
           then oppositeDirection ghostDirection -- if no allowed directions -> go back
@@ -119,14 +120,21 @@ ghostMove gstate ghost@Ghost{..}
     -- check if ghost has been moving to spawn and at location, then move ghost out of spawn again
     hasDestination = isJust destination
     isRespawning   = hasDestination && ghostMode == Spawn
-    ghost' | isRespawning   && distance ghostPosition destination' < 0.8 = ghost {destination = Just (getGhostExit (gameBoard (level gstate))), ghostMode = Chase}
-           | hasDestination && distance ghostPosition destination' < 0.5 = ghost {destination = Nothing, ghostMode = Chase}
-          --  | hasDestination = undefined -- 
-           | otherwise      = ghostStep gstate ghost bestDirection (ghostSpeed gstate)
+    movingInSpawn  = case get (B.bimap floor floor ghostPosition) (gameBoard (level gstate)) of
+                      Nothing -> False
+                      Just _  -> True
+    ghost' | isRespawning   && distance ghostPosition destination' < 0.8 && movingInSpawn =
+              ghost {destination = Just (getGhostExit (gameBoard (level gstate))), ghostMode = Chase}
+           | isRespawning   && distance ghostPosition destination' < 0.5 =
+              ghost {destination = Just (getGhostSpawn (gameBoard (level gstate)) releaseIndex), ghostMode = Spawn}
+           | hasDestination && distance ghostPosition destination' < 0.2 =
+              ghost {destination = Nothing, ghostMode = Chase}
+           | otherwise      = ghostStep gstate ghost bestDirection speed
 -- if isRespawning && distance (ghostPosition ghost) spawn < 0.5 then ghost {destination = Nothing, ghostMode = Chase} else ghostStep gstate ghost bestDirection (ghostSpeed gstate)
     destination' = case destination of
         Nothing -> error "this should not be possible due to lazy evaluation"
         Just sl -> sl -- return destination
+    speed = if ghostMode == Spawn then 2 * ghostSpeed gstate else ghostSpeed gstate
 
     -- fright is applied elsewhere due to randomness
     shouldntMove = getCount frightTimer > 0 || getCount releaseTimer > 0
@@ -136,10 +144,10 @@ ghostMove gstate ghost@Ghost{..}
 
     -- checks if the provided direction is allowed
     movableDirection dir' =
-      case moveIsPossible gstate ghostPosition (ghostSpeed gstate) dir' passThroughExit of
+      case moveIsPossible gstate ghostPosition speed dir' passThroughExit of
         Nothing   -> False
         Just _    -> True
-    passThroughExit = isJust $ destination
+    passThroughExit = isJust destination
 
 -- set current location to middle of current tile or only the coordinate inline with the provided direction
 setToMiddle :: (Float,Float) -> Maybe Direction -> (Float,Float)
@@ -157,9 +165,10 @@ bestOf gstate ghost directions = bestDirection                                  
  where
   bestDirection = directions !! closestToGoal
   closestToGoal = fromMaybe 0 (elemIndex (foldl1' min distances) distances)                  -- minimum distances `elem` distances
-  distances = map (distance ghostGoal . preMove currPosition (ghostSpeed gstate)) directions -- calculate all the distances of potential moves
-  currPosition = ghostPosition ghost
-  ghostGoal    = goalAlgorithm gstate ghost
+  distances     = map (distance ghostGoal . preMove currPosition speed) directions -- calculate all the distances of potential moves
+  speed         = if ghostMode ghost == Spawn then 2 * ghostSpeed gstate else ghostSpeed gstate
+  currPosition  = ghostPosition ghost
+  ghostGoal     = goalAlgorithm gstate ghost
 
 -- check which spot one would en up on if moved to provided direction
 preMove :: (Float,Float) -> Float -> Direction -> (Float,Float)
@@ -172,8 +181,7 @@ ghostStep gstate ghost dir speed =
   case pos of
     Nothing -> ghost
     Just a  -> ghost {ghostPosition = a, ghostDirection = dir}
-  where pos   = moveIsPossible gstate (ghostPosition ghost) speed' dir True
-        speed' = if ghostMode ghost == Spawn then 4 *  speed else speed
+  where pos   = moveIsPossible gstate (ghostPosition ghost) speed dir True
 
 -- get coordinates of next tile
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
@@ -217,8 +225,8 @@ inky :: GameState -> (Float,Float) -> (Float, Float)
 inky gstate (x,y) = (refX + 2*xOff, refY + 2*yOff)
  where (xOff,yOff) = (pacX-refX,pacY-refY)
        (pacX, pacY) = twoInFrontPacman gstate
-       (refX, refY) = if not (null allBlinkies) 
-                        then ghostPosition $ head allBlinkies 
+       (refX, refY) = if not (null allBlinkies)
+                        then ghostPosition $ head allBlinkies
                         else (x, y)
        allBlinkies = filter (isBlinky . ghostType) ghostList
        ghostList = ghosts $ level gstate

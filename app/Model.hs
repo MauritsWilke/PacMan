@@ -205,7 +205,7 @@ data Player = NoPlayer | Player
 data GhostType = Inky | Blinky | Pinky | Clyde
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
-data GhostMode = Chase | Scatter | Fright | Spawn
+data GhostMode = Chase | Scatter | Fright | Spawn | ExitSpawn
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data Ghost = Ghost
@@ -230,7 +230,7 @@ createGhost b orderIndex spawn typ = Ghost
   , destination    = Just (getGhostExit b)
   , scatterTimer   = scatterTimeCounter 0
   , frightTimer    = frightTimeCounter 0
-  , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60)
+  , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60000)
   }
 
 data NamedBoard = NamedBoard
