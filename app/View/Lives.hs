@@ -12,8 +12,7 @@ drawLives tw b@Board{..} l
   | otherwise = Pictures 
   [ Translate (fromIntegral (l - 1) * tw) 0
   $ Translate baseTranslationX baseTranslationY
-  $ openMouth liveSize
+  $ openMouth tw
   , drawLives tw b (l - 1)
   ] where baseTranslationX = - (fromIntegral width * (0.5 * tw) - 0.5 * tw)
           baseTranslationY = - (fromIntegral height * (0.5 * tw)) - 0.75 * tw
-          liveSize         = 0.8* tw

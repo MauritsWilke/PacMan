@@ -43,16 +43,18 @@ drawPlayer (AnimationTimer f) tw Board{..} Player{..} =
         $ polygon [(0,0), (arrowSize, arrowSize), (2 * arrowSize, 0)]
     ] where arrowSize = 7
 
+pacmanSize :: Float
+pacmanSize = 0.42
+
 closedMouth :: Float -> Picture
-closedMouth tw = Color yellow $ circleSolid (0.5 * tw)
+closedMouth tw = Color yellow $ circleSolid (pacmanSize * tw)
 
 openMouth :: Float -> Picture
 openMouth tw =
   Pictures
-    [ Color yellow 
-      $ circleSolid (0.5 * tw)
+    [ closedMouth tw
     , Color black  
-      $ polygon [(0, 0), ( 0.5 * tw,  0.25 * tw), ( 0.5 * tw,- (0.25 * tw))]
+      $ polygon [(0, 0), ( pacmanSize * tw,  0.25 * tw), ( pacmanSize * tw,- (0.25 * tw))]
     ]
 
 drawPlayerDebug :: Float -> Int -> Board -> Player -> Picture
