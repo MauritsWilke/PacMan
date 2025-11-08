@@ -37,10 +37,10 @@ parseBoard contents =
 
 -- get the indices of the corners of the board
 topLeft :: Board -> (Float,Float)
-topLeft Board{..}    = (fromIntegral height,0)
+topLeft Board{..} = (fromIntegral height,0)
 
 topRight :: Board -> (Float,Float)
-topRight Board{..}    = (fromIntegral height,fromIntegral width) 
+topRight Board{..} = (fromIntegral height,fromIntegral width) 
 
 bottomLeft :: Board -> (Float,Float)
 bottomLeft _ = (0,0) 

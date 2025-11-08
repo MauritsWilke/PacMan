@@ -1,6 +1,7 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module Utils.Count where
 
@@ -19,11 +20,15 @@ class Count a where
 infixl 6 .-, .+
 
 instance Count NonNeg where
+  getCount :: NonNeg -> Int
   getCount (NonNeg a) = a
+  (.-) :: NonNeg -> Int -> NonNeg
   NonNeg a .- b = NonNeg (max 0 (a - b))
+  (.+) :: NonNeg -> Int -> NonNeg
   NonNeg a .+ b = NonNeg (max 0 (a + b))
 
 instance Show NonNeg where
+  show :: NonNeg -> String
   show (NonNeg a) = show a 
 
 -- Counters
