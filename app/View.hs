@@ -15,6 +15,7 @@ import View.Lives (drawLives)
 import View.Paused
 import View.Scenes.SelectBoard (renderBoardSelection)
 import View.Scenes.LoadSave
+import View.GameOver (drawGameOver)
 
 view :: GameState -> IO Picture
 view = return . viewPure
@@ -31,6 +32,9 @@ viewPure gs = case scene gs of
                      then viewDefault gs
                      else Pictures [viewDefault gs, viewDebug gs]
     MultiPlayer   -> blank
+    GameOver      -> if debugView gs == 0
+                     then viewDefault gs
+                     else Pictures [viewDefault gs, viewDebug gs]
 
 viewDefault :: GameState -> Picture
 viewDefault gs =
@@ -56,9 +60,10 @@ viewGhostsDebug gs = Pictures $ map (drawGhostDebug gs (tileWidth gs) (debugView
 viewGUI :: GameState -> Picture
 viewGUI gs =
     Pictures
-      [ drawScore  (tileWidth gs) (gameBoard (level gs)) (score gs)
-      , drawLives  (tileWidth gs) (gameBoard (level gs)) (getCount (lives gs))
-      , drawPaused (tileWidth gs) (gameBoard (level gs)) (paused gs)
+      [ drawScore    (tileWidth gs) (gameBoard (level gs)) (score gs)
+      , drawLives    (tileWidth gs) (gameBoard (level gs)) (getCount (lives gs))
+      , drawPaused   (tileWidth gs) (gameBoard (level gs)) (paused gs)
+      , drawGameOver (tileWidth gs) (gameBoard (level gs)) (scene gs == GameOver)
       ]
 
 insertAt :: Int -> a -> [a] -> [a]
