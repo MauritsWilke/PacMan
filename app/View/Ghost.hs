@@ -4,6 +4,7 @@ import Utils.Count (getCount)
 import Model
 import Graphics.Gloss
 import Data.Maybe
+import View.Player (rotatePlayer)
 
 type TileWidth = Float
 
@@ -16,12 +17,11 @@ drawGhost :: Float -> Board -> Ghost -> Picture
 drawGhost tw Board{..} Ghost{..} = let (x, y) = ghostPosition in
   positionGhost tw (y,x) width height
     $ Color ghostColor
-    $ circleSolid (0.5 * tw)
-  where ghostColor = getGhostColor Ghost{..}--ghostType
--- for each ghost -> draw
+    $ ghostShape tw ghostDirection
+  where ghostColor = getGhostColor Ghost{..}
 
 getGhostColor :: Ghost -> Color
-getGhostColor Ghost{..} 
+getGhostColor Ghost{..}
  | getCount releaseTimer > 0 = regularGhostColor Ghost{..}
  | isJust destination && ghostMode == Spawn = dark green
  | getCount frightTimer > 0                 = blue
@@ -43,3 +43,26 @@ drawGhostDebug _ tw i Board{..} Ghost{..}
       $ Color red
       $ Text ("(" ++ show x ++ ", " ++ show y ++ ") " ++ show ghostDirection ++ show destination )
   | otherwise = blank
+
+ghostEye :: Direction -> Float -> Picture
+ghostEye dir tw = rotatePlayer dir $ Pictures
+  [ Color white
+    $ circleSolid (0.12 * tw)
+  , Color black
+    $ Translate (0.04 * tw) 0
+    $ circleSolid (0.06 * tw )
+  ]
+
+ghostShape :: Float -> Direction -> Picture
+ghostShape tw dir =
+  let
+    body = Pictures
+      [ Translate 0 (0.1 * tw) $ circleSolid (0.3 * tw) -- 6px width and 1px up from center
+      , Translate 0 (- (0.1 * tw)) $ rectangleSolid (0.6 * tw) (0.3 * tw) -- 6px w 3px h 1px up
+      ]
+
+    eyes = Pictures
+      [ Translate (- (0.15 * tw)) (0.2 * tw) $ ghostEye dir tw
+      , Translate (0.15 * tw) (0.2 * tw) $ ghostEye dir tw
+      ]
+  in Pictures [body, eyes]
