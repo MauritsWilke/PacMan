@@ -2,7 +2,8 @@
 module Utils.Board where
 import qualified Data.IntMap.Lazy as I
 import Model
-
+import Data.List
+import Data.Char (isSpace)
 
 set :: TileCoordinates -> Tile -> Board -> Board
 set (row,col) t (Board m w h) = Board (I.adjustWithKey f ((row * w) + col) m) w h
@@ -25,22 +26,41 @@ charToTile 'H' = GhostExit
 charToTile 'X' = PlayerSpawn
 charToTile _   = Empty
 
-parseBoard :: String -> Board
-parseBoard contents =
-  let rows        = lines contents
-      boardHeight = length rows
-      boardWidth  = length (words (head rows))
-      tiles       = Prelude.map (charToTile . head) . concatMap words . reverse $ rows
-      coords      = [0 .. length tiles - 1]
-      boardList   = zip coords tiles
-  in Board (I.fromList boardList) boardWidth boardHeight
+sameLengths :: [[a]] -> Bool
+sameLengths [] = True
+sameLengths (x:xs) = all (\y -> length y == length x) xs
+
+trim :: String -> String
+trim = dropWhileEnd isSpace . dropWhile isSpace
+
+verifyBoard :: String -> Bool
+verifyBoard contents = validRows && hasGhostSpawn && hasPlayerSpawn && hasOnePellet
+  where
+    rows = map trim (lines contents)
+    validRows = sameLengths rows -- indirectly also validates columns
+
+    hasGhostSpawn  = 'G' `elem` contents -- trivial
+    hasPlayerSpawn = 'X' `elem` contents -- trivial
+    hasOnePellet   = 'P' `elem` contents -- else you always win the level
+
+parseBoard :: String -> Maybe Board
+parseBoard contents = if verifyBoard contents then
+  let 
+    rows        = lines contents
+    boardHeight = length rows
+    boardWidth  = length (words (head rows))
+    tiles       = Prelude.map (charToTile . head) . concatMap words . reverse $ rows
+    coords      = [0 .. length tiles - 1]
+    boardList   = zip coords tiles
+  in   Just (Board (I.fromList boardList) boardWidth boardHeight)
+  else Nothing
 
 -- get the indices of the corners of the board
 topLeft :: Board -> (Float,Float)
-topLeft Board{..}    = (fromIntegral height,0)
+topLeft Board{..} = (fromIntegral height,0)
 
 topRight :: Board -> (Float,Float)
-topRight Board{..}    = (fromIntegral height,fromIntegral width) 
+topRight Board{..} = (fromIntegral height,fromIntegral width) 
 
 bottomLeft :: Board -> (Float,Float)
 bottomLeft _ = (0,0) 

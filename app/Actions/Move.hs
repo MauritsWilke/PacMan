@@ -22,6 +22,7 @@ updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir
 playerMove :: GameState -> GameState
 playerMove gs = gs { player = plr' }
   where
+  where
     plr = player gs
     dir = direction plr
     que = queuedDir plr
@@ -55,7 +56,10 @@ moveIsPossible gs (x,y) speed dir allowedInSpawn = let
   (desiredX, desiredY) = (x + xOff * speed, y + yOff * speed)
   tileToCheck          = getTileToCheck (desiredX,desiredY) dir
   brd                  = gameBoard $ level gs
-  isCloseEnough        = if dir == North || dir == South then closeEnough y else closeEnough x
+  isCloseEnough        = if dir == North || dir == South
+                          then closeEnough y
+                          else closeEnough x
+
   in if isCloseEnough then case get tileToCheck brd of
    Nothing         -> getWrapAround (desiredX,desiredY) brd -- check for wrap-around if edge of map
    Just Wall       -> if (x,y) == setToMiddle (x,y) (Just dir) then Nothing else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
@@ -134,29 +138,28 @@ ghostMove gstate ghost@Ghost{..}
 
 -- set current location to middle of current tile or only the coordinate inline with the provided direction
 setToMiddle :: (Float,Float) -> Maybe Direction -> (Float,Float)
-setToMiddle (row,col) Nothing                                   = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
-setToMiddle (row,col) (Just dir) | dir == North || dir == South = (fromInteger (floor row) + 0.5, col)
-                                 | otherwise                    = (row, fromInteger (floor col) + 0.5)
+setToMiddle (row,col) Nothing
+  = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
+setToMiddle (row,col) (Just dir)
+  | dir == North || dir == South = (fromInteger (floor row) + 0.5, col)
+  | otherwise                    = (row, fromInteger (floor col) + 0.5)
 
 -- find best direction for move
 -- IMPORTANT: doesn't check for validity, provided list should contain only valid directions
 bestOf :: GameState -> Ghost -> [Direction] -> Direction
-bestOf _ ghost []              = ghostDirection ghost -- if no valid directions, return opposite of current ghostdirection
-bestOf gstate ghost directions = bestDirection        -- else find the best direction
+bestOf _ ghost []              = ghostDirection ghost                                        -- if no valid directions, return opposite of current ghostdirection
+bestOf gstate ghost directions = bestDirection                                               -- else find the best direction
  where
   bestDirection = directions !! closestToGoal
-  closestToGoal =
-    case elemIndex (foldl1' min distances) distances of
-      Nothing  -> 0
-      Just num -> num -- minimum distances `elem` distances
+  closestToGoal = fromMaybe 0 (elemIndex (foldl1' min distances) distances)                  -- minimum distances `elem` distances
   distances = map (distance ghostGoal . preMove currPosition (ghostSpeed gstate)) directions -- calculate all the distances of potential moves
   currPosition = ghostPosition ghost
   ghostGoal    = goalAlgorithm gstate ghost
 
 -- check which spot one would en up on if moved to provided direction
 preMove :: (Float,Float) -> Float -> Direction -> (Float,Float)
-preMove (x,y) speed dir = (x+speed*xOff ,y+speed*yOff)
-  where (xOff,yOff) = directionToTuple dir
+preMove (x, y) speed dir = (x + speed * xOff, y + speed * yOff)
+  where (xOff, yOff) = directionToTuple dir
 
 -- should have correct direction -> will execute the next move
 ghostStep :: GameState -> Ghost -> Direction -> Float -> Ghost
@@ -180,7 +183,7 @@ oppositeDirection West  = East
 
 -- in order of priority during scatter
 allDirections :: [Direction]
-allDirections = [North,West,South,East]
+allDirections = [North, West, South, East]
 
 -- returns actual goal destination, based on state of the game and ghostType
 goalAlgorithm :: GameState -> Ghost -> (Float,Float)
@@ -209,20 +212,23 @@ inky :: GameState -> (Float,Float) -> (Float, Float)
 inky gstate (x,y) = (refX + 2*xOff, refY + 2*yOff)
  where (xOff,yOff) = (pacX-refX,pacY-refY)
        (pacX, pacY) = twoInFrontPacman gstate
-       (refX,refY) = if not (null allBlinkies) then ghostPosition $ head allBlinkies else (x,y)
+       (refX, refY) = if not (null allBlinkies) 
+                        then ghostPosition $ head allBlinkies 
+                        else (x, y)
        allBlinkies = filter (isBlinky . ghostType) ghostList
        ghostList = ghosts $ level gstate
+       isBlinky g = case g of
        isBlinky g = case g of
         Blinky -> True
         _ -> False
 
 -- get the index of pacman + 2 times its direction (to predict movement)
 twoInFrontPacman :: GameState -> (Float,Float)
-twoInFrontPacman gstate = (x+2*xOff,y+2*yOff)
-  where (x,y)       = position $ player gstate
-        (xOff,yOff) = directionToTuple $ direction $ player gstate
+twoInFrontPacman gstate = (x + 2 * xOff, y + 2 * yOff)
+  where (x, y)       = position $ player gstate
+        (xOff, yOff) = directionToTuple $ direction $ player gstate
 
 distance :: (Float,Float) -> (Float,Float) -> Float
-distance (x,y) (a,b) = sqrt $ (xOff * xOff) + (yOff * yOff)
+distance (x, y) (a, b) = sqrt $ (xOff * xOff) + (yOff * yOff)
   where xOff = x-a
         yOff = y-b

@@ -1,6 +1,7 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module Utils.Count where
 
@@ -19,26 +20,33 @@ class Count a where
 infixl 6 .-, .+
 
 instance Count NonNeg where
+  getCount :: NonNeg -> Int
   getCount (NonNeg a) = a
+  (.-) :: NonNeg -> Int -> NonNeg
   NonNeg a .- b = NonNeg (max 0 (a - b))
+  (.+) :: NonNeg -> Int -> NonNeg
   NonNeg a .+ b = NonNeg (max 0 (a + b))
 
 instance Show NonNeg where
+  show :: NonNeg -> String
   show (NonNeg a) = show a 
 
 -- Counters
-newtype LevelCounter   = LevelCounter Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype LiveCounter    = LiveCounter  Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype RoundCounter   = RoundCounter Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype Timer          = Timer        Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype FrightTimer    = FrightTimer  Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype ReleaseTimer   = ReleaseTimer Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype ScoreCounter   = ScoreCounter Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype FruitTimer     = FruitTimer   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype PoweredTimer   = PoweredTimer Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype ScatterTimer   = ScatterTimer Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype LevelCounter     = LevelCounter   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype LiveCounter      = LiveCounter    Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype RoundCounter     = RoundCounter   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype Timer            = Timer          Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype FrightTimer      = FrightTimer    Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype ReleaseTimer     = ReleaseTimer   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype ScoreCounter     = ScoreCounter   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype FruitTimer       = FruitTimer     Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype PoweredTimer     = PoweredTimer   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype ScatterTimer     = ScatterTimer   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
+newtype AnimationTimer   = AnimationTimer Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 
--- Smart constructors
+animationTimer :: Int -> AnimationTimer
+animationTimer = AnimationTimer . max 0
+
 levelCounter :: Int -> LevelCounter
 levelCounter = LevelCounter . max 0
 

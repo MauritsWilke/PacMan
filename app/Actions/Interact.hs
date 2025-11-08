@@ -10,16 +10,18 @@ import Utils.PlayerUtil
 
 interact :: GameState -> GameState
 interact gs = case scene gs of
-  SinglePlayer -> (interactGhosts . interactPellets . autoMovePacman . reduceTimers) gs
+  SinglePlayer -> (interactGhosts . interactPellets . playerMove . reduceTimers) gs
   _            -> gs
-
-autoMovePacman :: GameState -> GameState
-autoMovePacman = playerMove
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
 reduceTimers :: GameState -> GameState
-reduceTimers gs = gs { level = updatedLevel }
+reduceTimers gs = gs
+  { level = updatedLevel
+  , animation = animation' (animation gs)
+  }
   where updatedLevel = let lvl = level gs in lvl { ghosts = reduceGhostTimers (ghosts lvl) }
+        animation' (AnimationTimer i) = AnimationTimer ((i + 1)`mod` 24)
+
 
 -- reduce ghostTimers
 reduceGhostTimers :: [Ghost] -> [Ghost]
@@ -32,41 +34,46 @@ reduceGhostTimers (g@Ghost{..} : gs)
  } : reduceGhostTimers gs
 
 playerKilled :: GameState -> GameState
-playerKilled gs = gs {lives = lives' .- 1, level = level' {ghosts = resetGhosts gs ghosts'}, player = player' {position = getPlayerSpawn board'}}
-  where player' = player gs
-        board'  = gameBoard $ level gs
-        lives'  = lives gs
-        ghosts' = ghosts $ level gs
-        level'  = level gs
+playerKilled gs = gs
+  { lives  = lives' .- 1
+  , level  = level'  { ghosts = resetGhosts gs ghosts' }
+  , player = player' {position = getPlayerSpawn board' }
+  } where player' = player gs
+          board'  = gameBoard $ level gs
+          lives'  = lives gs
+          ghosts' = ghosts $ level gs
+          level'  = level gs
 
 resetGhosts :: GameState -> [Ghost] -> [Ghost]
-resetGhosts gs         = reset'
-  where reset' []      = []
-        reset' (g:ghs) = g {ghostPosition = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)} : reset' ghs
+resetGhosts gs = reset' where
+    reset' []      = []
+    reset' (g:ghs) = g
+      { ghostPosition = getGhostSpawn (gameBoard (level gs)) (releaseIndex g) } : reset' ghs
 
 interactGhosts  :: GameState -> GameState
 interactGhosts  gs = case afterCollisionRes of -- check if pacman is eaten
   Nothing -> playerKilled gs                   -- if so, soft reset
-  Just a  -> gs {level = lvl {ghosts = a}}     -- if not, update ghosts
+  Just a  -> gs { level = lvl { ghosts = a } }     -- if not, update ghosts
   where afterCollisionRes = afterCollision gs currGhostList
         currGhostList     = ghosts $ level gs
         lvl               = level gs
 
--- returns nothing if level requires soft reset, returns Just [Ghost] if pacman not eaten with the updated ghostlist
+-- returns nothing if level requires soft reset, 
+-- returns Just [Ghost] if pacman not eaten with the updated ghostlist
 afterCollision :: GameState -> [Ghost] -> Maybe [Ghost]
-afterCollision gs ghs  | reset     = Nothing
-                       | otherwise = Just newGhosts
-  where reset          = any needsReset ghs -- check if any ghost eats pacman
-        needsReset g'  = case hitCheckResult g' of
-          Nothing -> False
-          Just True -> False
-          Just False -> True
-        hitCheckResult = eats (player gs)
-        newGhosts      = map updateGhost ghs
-        updateGhost g'  = case eats (player gs) g' of
-          Nothing    -> g' -- if ghost doesn't hit player, nothing happens
-          Just True  -> g' {destination = Just (getGhostSpawn (gameBoard (level gs)) 0), ghostMode = Spawn}   -- if player eats ghost, ghost return to spawn
-          Just False -> error "this should be covered by reset check"
+afterCollision gs ghosts
+  | any playerGetsEaten ghosts = Nothing
+  | otherwise                  = Just (map update ghosts)
+  where
+    hit = eats (player gs)
+    playerGetsEaten g = case hit g of
+      Just False -> True   -- ghost eats player
+      _          -> False
+    update g = case hit g of
+        Just True -> g { destination = Just spawn, ghostMode = Spawn }  -- player eats ghost
+        _         -> g
+      where spawn = getGhostSpawn (gameBoard (level gs)) 0
+
 
 interactPellets :: GameState -> GameState
 interactPellets gs = action gs
@@ -74,8 +81,7 @@ interactPellets gs = action gs
   , score        = score'
   -- , poweredTimer = poweredTimeCounter 10
   , ghostsEaten  = ghs'
-  }
-  where
+  } where
     lvl       = level gs
     brd       = gameBoard lvl
     plr       = player gs

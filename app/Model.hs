@@ -24,6 +24,7 @@ data GameState = GameState
   , lives        :: LiveCounter  -- >=0
   , score        :: ScoreCounter -- >=0
   , round        :: RoundCounter -- > 0
+  , animation    :: AnimationTimer
   -- ROUND SPECIFIC
   , pelletsEaten :: Int
   , ghostsEaten  :: Int -- Resets when eating power pellet
@@ -81,6 +82,7 @@ initialState bs ss = GameState
   , lives        = liveCounter 3
   , score        = scoreCounter 0
   , Model.round  = roundCounter 0
+  , animation    = animationTimer 0
   -- ROUND SPECIFIC
   , pelletsEaten = 0
   , ghostsEaten  = 0
