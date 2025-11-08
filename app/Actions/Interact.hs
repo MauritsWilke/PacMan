@@ -15,8 +15,13 @@ interact gs = case scene gs of
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
 reduceTimers :: GameState -> GameState
-reduceTimers gs = gs { level = updatedLevel }
+reduceTimers gs = gs
+  { level = updatedLevel
+  , animation = animation' (animation gs)
+  }
   where updatedLevel = let lvl = level gs in lvl { ghosts = reduceGhostTimers (ghosts lvl) }
+        animation' (AnimationTimer i) = AnimationTimer ((i + 1)`mod` 24)
+
 
 -- reduce ghostTimers
 reduceGhostTimers :: [Ghost] -> [Ghost]
@@ -29,7 +34,7 @@ reduceGhostTimers (g@Ghost{..} : gs)
  } : reduceGhostTimers gs
 
 playerKilled :: GameState -> GameState
-playerKilled gs = gs 
+playerKilled gs = gs
   { lives  = lives' .- 1
   , level  = level'  { ghosts = resetGhosts gs ghosts' }
   , player = player' {position = getPlayerSpawn board' }
@@ -40,7 +45,7 @@ playerKilled gs = gs
           level'  = level gs
 
 resetGhosts :: GameState -> [Ghost] -> [Ghost]
-resetGhosts gs = reset' where 
+resetGhosts gs = reset' where
     reset' []      = []
     reset' (g:ghs) = g
       { ghostPosition = getGhostSpawn (gameBoard (level gs)) (releaseIndex g) } : reset' ghs
