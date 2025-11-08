@@ -63,7 +63,7 @@ viewGUI gs =
       [ drawScore    (tileWidth gs) (gameBoard (level gs)) (score gs)
       , drawLives    (tileWidth gs) (gameBoard (level gs)) (getCount (lives gs))
       , drawPaused   (tileWidth gs) (gameBoard (level gs)) (paused gs)
-      , drawGameOver (tileWidth gs) (gameBoard (level gs)) (scene gs == GameOver)
+      , drawGameOver (tileWidth gs) (gameBoard (level gs)) (scene gs == GameOver) (score gs)
       ]
 
 insertAt :: Int -> a -> [a] -> [a]
