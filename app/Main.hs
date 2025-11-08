@@ -31,7 +31,7 @@ loadBoards = do
   boardStrings <- mapM readFile paths
 
   let names  = map takeBaseName files
-      boards = map parseBoard boardStrings 
+      boards = mapMaybe parseBoard boardStrings 
 
   pure (zipWith NamedBoard names boards)
 
