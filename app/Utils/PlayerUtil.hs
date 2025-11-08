@@ -11,8 +11,8 @@ getPlayerPosition = position . player
 -- Just True  -> if player hits ghost and player eats ghost
 -- Just False -> if player hits ghost and ghost eats player
 eats :: Player -> Ghost -> Maybe Bool
-eats p g | hit && frighten = Just True
-         | hit             = Just False
-         | otherwise       = Nothing
+eats p g | hit && frighten               = Just True
+         | hit && (ghostMode g /= Spawn) = Just False
+         | otherwise                     = Nothing
  where frighten = getCount (frightTimer g) > 0 
        hit      = distance (position p) (ghostPosition g) < 0.5
