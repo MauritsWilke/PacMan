@@ -45,7 +45,7 @@ drawLevel' :: GameState -> Picture
 drawLevel' gs = drawLevel (tileWidth gs) (level gs)
 
 drawPlayer' :: GameState -> Picture
-drawPlayer' gs = drawPlayer (tileWidth gs) (gameBoard (level gs)) (player gs)
+drawPlayer' gs = drawPlayer (animation gs) (tileWidth gs) (gameBoard (level gs)) (player gs)
 
 viewGhosts :: GameState -> Picture
 viewGhosts gs = Pictures $ map (drawGhost (tileWidth gs) (gameBoard (level gs))) (ghosts (level gs))
