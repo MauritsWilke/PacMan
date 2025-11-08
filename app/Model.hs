@@ -221,11 +221,11 @@ data Ghost = Ghost
 createGhost :: Int -> (Float,Float) -> GhostType -> Ghost
 createGhost orderIndex spawn typ = Ghost
   { ghostType      = typ
-  , ghostMode      = Chase
+  , ghostMode      = Spawn
   , ghostPosition  = spawn
   , ghostDirection = North
   , releaseIndex   = orderIndex
-  , destination     = Nothing
+  , destination    = Just spawn
   , scatterTimer   = scatterTimeCounter 0
   , frightTimer    = frightTimeCounter 0
   , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60)

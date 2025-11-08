@@ -27,9 +27,13 @@ drawGhost l Board{..} Ghost{..} = let (x, y) = ghostPosition in
 
 getGhostColor :: Ghost -> Color
 getGhostColor Ghost{..} 
+ | getCount releaseTimer > 0 = regularGhostColor Ghost{..}
  | isJust destination && ghostMode == Spawn = dark green
  | getCount frightTimer > 0                 = blue
- | otherwise = case ghostType of
+ | otherwise = regularGhostColor Ghost{..}
+
+regularGhostColor :: Ghost -> Color
+regularGhostColor Ghost{..} = case ghostType of
     Inky   -> cyan
     Blinky -> red
     Pinky  -> rose
@@ -43,5 +47,5 @@ drawGhostDebug gs tw i Board{..} g@Ghost{..}
       $ positionGhost tw (y,x) width height
       $ Scale 0.08 0.08
       $ Color red
-      $ Text ("(" ++ show x ++ ", " ++ show y ++ ") " ++ show ghostDirection ++ show (goalAlgorithm gs g) )
+      $ Text ("(" ++ show x ++ ", " ++ show y ++ ") " ++ show ghostDirection ++ show destination )
   | otherwise = blank

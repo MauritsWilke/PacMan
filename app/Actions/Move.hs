@@ -21,7 +21,7 @@ updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir
 
 playerMove :: GameState -> GameState
 playerMove gs = gs { player = plr' }
-  where 
+  where
     plr = player gs
     dir = direction plr
     que = queuedDir plr
@@ -50,17 +50,18 @@ cornerSnap dir x y
 -- returns Nothing if not and Just (Float,Float) 
 -- if it is with the coordinates after the move
 moveIsPossible :: GameState -> (Float, Float) -> Speed -> Direction -> Bool -> Maybe (Float,Float)
-moveIsPossible gs (x,y) speed dir isGhost = let
+moveIsPossible gs (x,y) speed dir allowedInSpawn = let
   (xOff, yOff)         = directionToTuple dir
   (desiredX, desiredY) = (x + xOff * speed, y + yOff * speed)
   tileToCheck          = getTileToCheck (desiredX,desiredY) dir
   brd                  = gameBoard $ level gs
   isCloseEnough        = if dir == North || dir == South then closeEnough y else closeEnough x
   in if isCloseEnough then case get tileToCheck brd of
-   Nothing        -> getWrapAround (desiredX,desiredY) brd -- check for wrap-around if edge of map
-   Just Wall      -> if (x,y) == setToMiddle (x,y) (Just dir) then Nothing else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
-   Just GhostExit -> if isGhost then Just (cornerSnap dir desiredX desiredY) else Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
-   Just _         -> Just (cornerSnap dir desiredX desiredY) -- if move possible -> update offset of direction and set other direction to some n + 0.5 (to allign with middle)
+   Nothing         -> getWrapAround (desiredX,desiredY) brd -- check for wrap-around if edge of map
+   Just Wall       -> if (x,y) == setToMiddle (x,y) (Just dir) then Nothing else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
+   Just GhostExit  -> if allowedInSpawn then Just (cornerSnap dir desiredX desiredY) else Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
+   Just GhostSpawn -> if allowedInSpawn then Just (cornerSnap dir desiredX desiredY) else Nothing
+   Just _          -> Just (cornerSnap dir desiredX desiredY) -- if move possible -> update offset of direction and set other direction to some n + 0.5 (to allign with middle)
   else Nothing -- if to far from edge -> check if move still possible if not, stay in place
 
 getWrapAround :: (Float, Float) -> Board -> Maybe (Float, Float)
@@ -97,33 +98,39 @@ getTileToCheck (x,y) dir
 -- ghost moves 
 -- -> do a move based on gamestate and ghost input
 ghostMove :: GameState -> Ghost -> Ghost
-ghostMove gstate ghost 
-    | shouldntMove  = ghost
-    | isRespawning  = ghost'
-    | otherwise     = ghostStep gstate ghost bestDirection (ghostSpeed gstate)
+ghostMove gstate ghost@Ghost{..}
+    | shouldntMove   = ghost
+    | hasDestination = ghost'
+    | otherwise      = ghostStep gstate ghost bestDirection (ghostSpeed gstate)
     where
     bestDirection = if null allowedDirections
-          then oppositeDirection (ghostDirection ghost) -- if no allowed directions -> go back
+          then oppositeDirection ghostDirection -- if no allowed directions -> go back
           else bestOf gstate ghost allowedDirections    -- else choose best direction
 
     -- check if ghost has been moving to spawn and at location, then move ghost out of spawn again
-    isRespawning = isJust (destination ghost)
-    ghost' = if isRespawning && distance (ghostPosition ghost) spawn < 0.5 then ghost {destination = Nothing, ghostMode = Chase} else ghostStep gstate ghost bestDirection (ghostSpeed gstate)
-    spawn = case destination ghost of
+    hasDestination = isJust destination
+    isRespawning   = hasDestination && ghostMode == Spawn
+    ghost' | isRespawning   && distance ghostPosition destination' < 0.5 = ghost {destination = Just (getGhostExit (gameBoard (level gstate))), ghostMode = Chase}
+           | hasDestination && distance ghostPosition destination' < 0.5 = ghost {destination = Nothing, ghostMode = Chase}
+          --  | hasDestination = undefined -- 
+           | otherwise      = ghostStep gstate ghost bestDirection (ghostSpeed gstate)
+-- if isRespawning && distance (ghostPosition ghost) spawn < 0.5 then ghost {destination = Nothing, ghostMode = Chase} else ghostStep gstate ghost bestDirection (ghostSpeed gstate)
+    destination' = case destination of
         Nothing -> error "this should not be possible due to lazy evaluation"
-        Just sl -> sl -- return spawn location
+        Just sl -> sl -- return destination
 
     -- fright is applied elsewhere due to randomness
-    shouldntMove = getCount (frightTimer ghost) > 0 || getCount (releaseTimer ghost) > 0
+    shouldntMove = getCount frightTimer > 0 || getCount releaseTimer > 0
 
     -- check all legal directions except opposite
-    allowedDirections = filter movableDirection $ delete (oppositeDirection (ghostDirection ghost)) allDirections
+    allowedDirections = filter movableDirection $ delete (oppositeDirection ghostDirection) allDirections
 
     -- checks if the provided direction is allowed
     movableDirection dir' =
-      case moveIsPossible gstate (ghostPosition ghost) (ghostSpeed gstate) dir' True of
+      case moveIsPossible gstate ghostPosition (ghostSpeed gstate) dir' passThroughExit of
         Nothing   -> False
         Just _    -> True
+    passThroughExit = isJust $ destination
 
 -- set current location to middle of current tile or only the coordinate inline with the provided direction
 setToMiddle :: (Float,Float) -> Maybe Direction -> (Float,Float)
@@ -144,8 +151,9 @@ bestOf gstate ghost directions = bestDirection        -- else find the best dire
       Just num -> num -- minimum distances `elem` distances
   distances = map (distance ghostGoal . preMove currPosition (ghostSpeed gstate)) directions -- calculate all the distances of potential moves
   currPosition = ghostPosition ghost
-  ghostGoal = goalAlgorithm gstate ghost
+  ghostGoal    = goalAlgorithm gstate ghost
 
+-- check which spot one would en up on if moved to provided direction
 preMove :: (Float,Float) -> Float -> Direction -> (Float,Float)
 preMove (x,y) speed dir = (x+speed*xOff ,y+speed*yOff)
   where (xOff,yOff) = directionToTuple dir
@@ -157,7 +165,7 @@ ghostStep gstate ghost dir speed =
     Nothing -> ghost
     Just a  -> ghost {ghostPosition = a, ghostDirection = dir}
   where pos   = moveIsPossible gstate (ghostPosition ghost) speed' dir True
-        speed' = if isJust (destination ghost) then 2 *  speed else speed
+        speed' = if ghostMode ghost == Spawn then 4 *  speed else speed
 
 -- get coordinates of next tile
 tileMove :: (Float,Float) -> Direction -> (Float,Float)
@@ -177,8 +185,11 @@ allDirections = [North,West,South,East]
 -- returns actual goal destination, based on state of the game and ghostType
 goalAlgorithm :: GameState -> Ghost -> (Float,Float)
 goalAlgorithm gstate Ghost{..}
+ | isJust destination = case destination of
+    Nothing -> error "impossible"
+    Just a  -> a
  | ghostMode == Chase =                   -- if ghost is chasing then apply chasing algorithm
-    case ghostType of 
+    case ghostType of
       Blinky -> position $ player gstate  -- direct chase
       Inky   -> inky gstate ghostPosition -- relative to blinky and pac man
       Pinky  -> twoInFrontPacman gstate   -- aim for 2 dots infront of pacman
@@ -186,27 +197,24 @@ goalAlgorithm gstate Ghost{..}
                 then bottomLeft $ gameBoard $ level gstate
                 else twoInFrontPacman gstate
   | ghostMode == Scatter =                             -- if ghost is scattering then apply scatter algorithm
-    case ghostType of 
+    case ghostType of
       Blinky -> topRight    $ gameBoard $ level gstate -- top-right corner
       Inky   -> bottomRight $ gameBoard $ level gstate -- bottom-right corner
       Pinky  -> topLeft     $ gameBoard $ level gstate -- top-left corner
       Clyde  -> bottomLeft  $ gameBoard $ level gstate -- bottom-left corner
-  | isJust destination = case destination of
-    Nothing -> error "impossible"
-    Just a  -> a
-  | otherwise = error "this shouldn't be possible"
+  | otherwise = error "invalid ghost provided"
 
 -- base goal tile off of pacman & first Blinky ghost in list, if no Blinky in list -> use provided ghost-location instead
-inky :: GameState -> (Float,Float) -> (Float, Float) 
+inky :: GameState -> (Float,Float) -> (Float, Float)
 inky gstate (x,y) = (refX + 2*xOff, refY + 2*yOff)
  where (xOff,yOff) = (pacX-refX,pacY-refY)
        (pacX, pacY) = twoInFrontPacman gstate
        (refX,refY) = if not (null allBlinkies) then ghostPosition $ head allBlinkies else (x,y)
        allBlinkies = filter (isBlinky . ghostType) ghostList
        ghostList = ghosts $ level gstate
-       isBlinky g = case g of 
+       isBlinky g = case g of
         Blinky -> True
-        _ -> False 
+        _ -> False
 
 -- get the index of pacman + 2 times its direction (to predict movement)
 twoInFrontPacman :: GameState -> (Float,Float)
