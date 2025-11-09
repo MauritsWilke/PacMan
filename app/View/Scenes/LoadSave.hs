@@ -8,6 +8,7 @@ import Prelude hiding (round)
 -- DEFAULT SCENE FUNCTIONS --
 -----------------------------
 
+-- | Ensure the menu helper is within the allowed range for this scene
 enterScene :: GameState -> GameState
 enterScene gs0 =
   let
@@ -15,6 +16,7 @@ enterScene gs0 =
     clamped = localiseMenuHelper 0 hi (menuHelper gs0)
   in gs0 { menuHelper = clamped }
 
+-- | Apply all changes made in this scene to global state
 exitScene :: GameState -> GameState
 exitScene gs0 = 
   let idx = menuHelper gs0
@@ -29,6 +31,7 @@ exitScene gs0 =
   , ghostsEaten  = ghostsEatenSave sav
   }
 
+-- | Passthrough for controls to improve modularity
 controlScene :: Key -> GameState -> GameState
 controlScene (Char 's') gs = gs { menuHelper = min (menuHelper gs + 1) ((length . saves) gs - 1) }
 controlScene (Char 'w') gs = gs { menuHelper = max (menuHelper gs - 1) 0 }
@@ -38,13 +41,16 @@ controlScene _          gs = gs
 -- RENDERING FUNCTIONS     --
 -----------------------------
 
+-- | Util function for better text rendering
 oneLine :: Float -> Float
 oneLine tw = - (2 * tw)
 
+-- | Used to clamp values
 -- min val, max val, curr val
 localiseMenuHelper :: Int -> Int -> Int -> Int
 localiseMenuHelper lo hi x = max lo (min hi x)
 
+-- | Render scene
 renderSaveselection :: GameState -> Picture
 renderSaveselection gs =
     Translate (-(5 * tw)) 0
@@ -56,7 +62,7 @@ renderSaveselection gs =
     header = Color white $ Scale (tw / 128) (tw / 128) $ Text "Select a save:"
     footer = Color white $ Scale (tw / 128) (tw / 128) $ Text "Press enter to select"
 
-
+-- | Helper function to draw all found saves to the screen
 rendersaves :: GameState -> [Picture]
 rendersaves gs = map draw svs
   where
