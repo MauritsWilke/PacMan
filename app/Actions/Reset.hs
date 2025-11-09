@@ -7,7 +7,7 @@ import qualified Data.Set as S
 reset :: GameState -> GameState
 reset gs = gs
   { level        = initialLevel
-  , player       = initialPlayerTEMP
+  , player       = initialPlayer
   -- COUNTERS (ALL MUST BE RESET)
   , lives        = liveCounter 3
   , score        = scoreCounter 0
