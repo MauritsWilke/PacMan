@@ -49,6 +49,7 @@ data SaveGameState = SaveGameState
   , ghostsEatenSave  :: Int -- Resets when eating power pellet
   } deriving (Show, Generic, ToJSON, FromJSON)
 
+-- parse gamestate into saveable gamestate
 toSaveGameState :: GameState -> SaveGameState
 toSaveGameState gs = SaveGameState
   { levelSave        = level gs
@@ -63,6 +64,7 @@ toSaveGameState gs = SaveGameState
   , ghostsEatenSave  = ghostsEaten gs
   }
 
+-- initialize gamestate based on provided custom levels and save files
 initialState :: [NamedBoard] -> [NamedSave] -> GameState
 initialState bs ss = GameState
   { scene        = Homescreen
@@ -91,6 +93,7 @@ initialState bs ss = GameState
       { boardName = nameBoard initialLevel
       , boardData = gameBoard initialLevel }
 
+-- standard initial level
 initialLevel :: Level
 initialLevel = Level
   { gameBoard = originalBoard
@@ -98,6 +101,7 @@ initialLevel = Level
   , ghosts = standardGhosts originalBoard
   }
 
+-- standard initial player for standard initial level
 initialPlayer :: Player
 initialPlayer = Player
   { position = getPlayerSpawn (gameBoard initialLevel)
@@ -109,8 +113,8 @@ data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | Paused | Gam
   deriving (Show, Eq)
 
 data Level = Level
-  { gameBoard     :: Board
-  , nameBoard     :: String
+  { gameBoard     :: Board     -- contains the board data of the level
+  , nameBoard     :: String    -- stores the name of the board
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic, ToJSON, FromJSON)
 
@@ -118,7 +122,7 @@ data Tile = Wall | Empty | Pellet | PowerPellet | GhostSpawn | GhostExit | Playe
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data Board = Board
-  { board :: I.IntMap Tile
+  { board :: I.IntMap Tile   -- contains the boardstate
   , width :: Int
   , height:: Int
   } deriving (Show, Generic, ToJSON, FromJSON)
@@ -152,6 +156,7 @@ data Ghost = Ghost
   , scatterTimer   :: ScatterTimer -- >=0, counts down
   } deriving (Show, Eq, Generic, FromJSON, ToJSON)
 
+-- static record of board
 data NamedBoard = NamedBoard
   { boardName :: String
   , boardData :: Board
@@ -160,6 +165,7 @@ data NamedBoard = NamedBoard
 instance ToJSON NamedBoard
 instance FromJSON NamedBoard
 
+-- record of safe file
 data NamedSave = NamedSave
   { saveName :: String
   , saveData :: SaveGameState
@@ -173,6 +179,7 @@ type BoardWidth      = Int
 type BoardHeight     = Int
 type Score           = Int
 
+-- based on screensize, change tilewidth to optimally fit the screen
 tileWidth :: GameState -> Float
 tileWidth gstate
   | aspectRatioScreen < aspectRatioBoard = screenWidth / boardWidth
@@ -207,19 +214,21 @@ frightenedGhosts :: [Ghost] -> [Ghost]
 frightenedGhosts = filter frightened
   where frightened Ghost{..} = getCount frightTimer > 0 && isNothing destination
 
+-- easier function to create a ghost
 createGhost :: Board -> Int -> GhostType -> Ghost
 createGhost b orderIndex typ = Ghost
   { ghostType      = typ
   , ghostMode      = Chase
   , ghostPosition  = getGhostSpawn b orderIndex
   , ghostDirection = North
-  , releaseIndex   = orderIndex
+  , releaseIndex   = orderIndex  -- defines in which order the ghost is released
   , destination    = Just (getGhostExit b orderIndex)
   , scatterTimer   = scatterTimeCounter 0
   , frightTimer    = frightTimeCounter 0
-  , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60)
+  , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60) -- wait five seconds per index value
   }
 
+-- list of standard ghosts
 standardGhosts :: Board -> [Ghost]
 standardGhosts b =
   [ createGhost b 0 Blinky
@@ -228,23 +237,26 @@ standardGhosts b =
   , createGhost b 3 Clyde
   ]
 
+-- find the location of the playerspawn tile at the board, return middle of tile
 getPlayerSpawn :: Board -> (Float, Float)
 getPlayerSpawn Board{..}
  | null ints = (1.5, 1.5)
  | otherwise = parseToMiddle $ indexToCoord (fst (head ints)) width
   where ints    = Prelude.filter ((== PlayerSpawn) . snd) (I.toList board)
 
--- used for eaten ghosts to return to spawn
+-- used for eaten ghosts to return to spawn, distibuted evenly across the board
 getGhostSpawn :: Board -> Int -> (Float, Float)
 getGhostSpawn Board{..} ghostIndex = parseToMiddle $ indexToCoord (fst (ints !! index)) width
   where ints    = Prelude.filter ((== GhostSpawn) . snd) (I.toList board)
         index   = ghostIndex `mod` length ints
 
+-- find the respective ghost exit, distributed in the same manner as ghost spawns
 getGhostExit :: Board -> Int -> (Float,Float)
 getGhostExit Board{..} ghostIndex= parseToMiddle $ indexToCoord (fst (ints !! index)) width
   where ints    = Prelude.filter ((== GhostExit) . snd) (I.toList board)
         index   = ghostIndex `mod` length ints
 
+-- check if the board is empty (does not contain Pellets or PowerPellets)
 emptyBoard :: Board -> Bool
 emptyBoard b = not (any (filled . snd) (I.toList (board b)))
   where filled x = case x of
@@ -252,12 +264,15 @@ emptyBoard b = not (any (filled . snd) (I.toList (board b)))
           PowerPellet -> True
           _           -> False
 
+-- set tile location to middle of the tile
 parseToMiddle :: (Int,Int) -> (Float,Float)
 parseToMiddle (x,y) = (fromIntegral x + 0.5, fromIntegral y + 0.5)
 
+-- based on index and width, find the 2D index
 indexToCoord :: Int -> Int -> (Int, Int)
 indexToCoord i w = (i `div` w, i `mod` w)
 
+-- standard board for original pacman game
 originalBoard :: Board
 originalBoard = Board {
   board = I.fromList boardList,
