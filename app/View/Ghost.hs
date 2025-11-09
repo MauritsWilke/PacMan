@@ -8,11 +8,13 @@ import View.Player (rotatePlayer)
 
 type TileWidth = Float
 
+-- | Util function to align ghost on tile
 positionGhost :: Float -> (Float,Float) -> Int -> Int -> Picture -> Picture
 positionGhost tw (x, y) width height = Translate (dx * tw ) (dy * tw)
   where dx = x - (0.5 * fromIntegral width)
         dy = y - (0.5 * fromIntegral height)
 
+-- | Main function used to draw a ghost
 drawGhost :: AnimationTimer -> Float -> Board -> Ghost -> Picture
 drawGhost (AnimationTimer f) tw Board{..} Ghost{..} = let (x, y) = ghostPosition in
   positionGhost tw (y,x) width height
@@ -20,6 +22,7 @@ drawGhost (AnimationTimer f) tw Board{..} Ghost{..} = let (x, y) = ghostPosition
     $ ghostShape f tw ghostDirection
   where ghostColor = getGhostColor Ghost{..}
 
+-- | Ensures proper colours
 getGhostColor :: Ghost -> Color
 getGhostColor Ghost{..}
  | getCount releaseTimer > 0                = regularGhostColor Ghost{..}
@@ -28,12 +31,14 @@ getGhostColor Ghost{..}
  | otherwise                                = regularGhostColor Ghost{..}
   where fright = getCount frightTimer
 
+-- | Causes blue / white blinking
 blinkFrightTimer :: Int -> Color
 blinkFrightTimer i
-  | i > 120 = blue
+  | i > 120 = blue            -- Two seconds of blinking (2 * 60fps)
   | even (i `div` 10) = blue
   | otherwise = white
 
+-- | Map ghosts to their original colour in Pac-Man
 regularGhostColor :: Ghost -> Color
 regularGhostColor Ghost{..} = case ghostType of
     Inky   -> cyan
@@ -41,6 +46,7 @@ regularGhostColor Ghost{..} = case ghostType of
     Pinky  -> rose
     Clyde  -> orange
 
+-- | Draw relevant debugging information
 drawGhostDebug :: GameState -> Float -> Int -> Board -> Ghost -> Picture
 drawGhostDebug _ tw i Board{..} Ghost{..}
   | i == 2 = let (x, y) = ghostPosition in
@@ -51,6 +57,8 @@ drawGhostDebug _ tw i Board{..} Ghost{..}
       $ Text ("(" ++ show x ++ ", " ++ show y ++ ") " ++ show ghostDirection ++ show destination )
   | otherwise = blank
 
+-- | Ghost eye util
+-- | White dot with black dot rotated to where the ghost is moving
 ghostEye :: Direction -> Float -> Picture
 ghostEye dir tw = rotatePlayer dir $ Pictures
   [ Color white
@@ -60,9 +68,11 @@ ghostEye dir tw = rotatePlayer dir $ Pictures
     $ circleSolid (0.06 * tw )
   ]
 
+-- | Ghost shape builder
 ghostShape :: Int -> Float -> Direction -> Picture
 ghostShape f tw dir =
   let
+    -- Solid body (circle + rectangle + waves)
     body = Pictures
       [ Translate 0 (0.1 * tw) $ circleSolid (0.3 * tw) -- 6px width and 1px up from center
       , Translate 0 (- (0.1 * tw)) $ rectangleSolid (0.6 * tw) (0.2 * tw) -- 6px w 3px h 1px up
@@ -71,11 +81,7 @@ ghostShape f tw dir =
         else wave'
       ]
 
-    eyes = Pictures
-      [ Translate (- (0.15 * tw)) (0.2 * tw) $ ghostEye dir tw
-      , Translate (0.15 * tw) (0.2 * tw) $ ghostEye dir tw
-      ]
-
+    -- 3 points
     wave = polygon
       [ (0.20 * tw, 0.1 * tw)
       , (0.35 * tw, 0.3 * tw)
@@ -85,6 +91,7 @@ ghostShape f tw dir =
       , (0.80 * tw, 0.3 * tw)
       , (0.20 * tw, 0.3 * tw)
       ]
+    -- 2 points
     wave' = polygon
       [ (0.20 * tw, 0.3 * tw)
       , (0.35 * tw, 0.1 * tw)
@@ -94,4 +101,11 @@ ghostShape f tw dir =
       , (0.20 * tw, 0.3 * tw)
       ]
 
+    -- eye overlay, aligned to the left and right of the ghost center
+    eyes = Pictures
+      [ Translate (- (0.15 * tw)) (0.2 * tw) $ ghostEye dir tw
+      , Translate (0.15 * tw) (0.2 * tw) $ ghostEye dir tw
+      ]
+
+  -- Combine and render
   in Pictures [body, eyes]

@@ -2,27 +2,28 @@ module View.Paused where
 import Graphics.Gloss
 import Model
 
+-- | Draw paused menu overlay if the game is paused
 drawPaused :: TileWidth -> Board -> Bool -> Picture
 drawPaused tw Board{} p
   | p = Pictures $
-    Color (makeColor 0 0 0 0.7) (rectangleSolid 10000 10000) 
+    Color (makeColor 0 0 0 0.7) (rectangleSolid 10000 10000) -- Blur the game background
     : zipWith (\i -> let j = i * (tw / 20) in Translate ((-7.5) * tw - j) j) 
       [0..] -- Gloss does not have bold text, so I'll do it myself
       (replicate 10 (Color white $ Scale (tw / 32) (tw / 32) $ Text "PAUSED"))
     ++ 
-    [ Translate ((-7.6125) * tw) (- (tw * 2)) 
+    [ Translate ((-7.6125) * tw) (- (tw * 2))   -- Medium text with alignment
       $ Color white 
       $ Scale (tw / 128) (tw / 128) 
       $ Text "press 'p' to continue playing"
-    , Translate ((-7.35) * tw) (- (tw * 4)) 
+    , Translate ((-7.35) * tw) (- (tw * 4))     -- Medium text with alignment
       $ Color white 
       $ Scale (tw / 128) (tw / 128) 
       $ Text "press 'esc' to exit the game"
-    , Translate ((-9.7125) * tw) (- (tw * 6)) 
+    , Translate ((-9.7125) * tw) (- (tw * 6))   -- Medium text with alignment
       $ Color white 
       $ Scale (tw / 128) (tw / 128) 
       $ Text "press 'h' to return to the homescreen"
-    , Translate ((-9.7125) * tw) (- (tw * 8)) 
+    , Translate ((-9.7125) * tw) (- (tw * 8))   -- Medium text with alignment
       $ Color white 
       $ Scale (tw / 128) (tw / 128) 
       $ Text "press 's' to save the current game"
