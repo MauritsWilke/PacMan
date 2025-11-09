@@ -41,7 +41,7 @@ drawPlayer (AnimationTimer f) tw Board{..} Player{..} =
         $ positionArrow tw queuedDir
         $ Translate (- arrowSize) 0
         $ polygon [(0,0), (arrowSize, arrowSize), (2 * arrowSize, 0)]
-    ] where arrowSize = 7
+    ] where arrowSize = 0.25 * tw
 
 pacmanSize :: Float
 pacmanSize = 0.42
