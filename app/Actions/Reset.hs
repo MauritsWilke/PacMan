@@ -6,7 +6,7 @@ import qualified Data.Set as S
 
 reset :: GameState -> GameState
 reset gs = gs
-  { level        = initialLevel (boards gs)
+  { level        = initialLevel
   , player       = initialPlayerTEMP
   -- COUNTERS (ALL MUST BE RESET)
   , timer        = timeCounter 0
