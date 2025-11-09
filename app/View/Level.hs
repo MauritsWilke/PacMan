@@ -4,6 +4,7 @@ import Model
 import Graphics.Gloss
 import qualified Data.IntMap as I
 
+-- | Align tile properly on the board
 positionTile :: TileWidth -> BoardWidth -> BoardHeight -> Int -> Picture -> Picture
 positionTile tw width height i = Translate
     (baseX + fromIntegral (i `mod` width) * tw)
@@ -12,15 +13,17 @@ positionTile tw width height i = Translate
     baseX = -(fromIntegral width  * 0.5 * tw) + 0.5 * tw
     baseY = -(fromIntegral height * 0.5 * tw) + 0.5 * tw
 
+-- | Render an entire level
 drawLevel :: TileWidth -> Level -> Picture
 drawLevel tw Level{ gameBoard = Board{..} } =
   Pictures . I.elems $ I.mapWithKey (renderTile tw) board
   where renderTile w i t = positionTile w width height i (tileAsset w t)
 
+-- | Overlay different types of debug information
 drawLevelDebug :: TileWidth -> Int -> Level -> Picture
 drawLevelDebug tw i Level{ gameBoard = Board{..} }
-  | i == 1    = Pictures $ I.elems $ I.mapWithKey renderTile board
-  | i == 3    = Pictures $ I.elems $ I.mapWithKey renderTileCoords board
+  | i == 1    = Pictures $ I.elems $ I.mapWithKey renderTile board        -- Add tile index
+  | i == 3    = Pictures $ I.elems $ I.mapWithKey renderTileCoords board  -- Add tile coordinates
   | otherwise = blank
   where 
     debugTranslation = -(0.5 * tw) + 0.15 * tw
@@ -37,6 +40,7 @@ drawLevelDebug tw i Level{ gameBoard = Board{..} }
         $ Color red
         $ Text (show j))
 
+-- | Simple mapping for all tiles
 tileAsset :: TileWidth -> Tile -> Picture
 tileAsset tw Wall        = Color blue   $ rectangleWire tw tw
 tileAsset tw Pellet      = Color white  $ rectangleSolid (tw / 4) (tw / 4)

@@ -5,6 +5,7 @@ import Graphics.Gloss
 import Model
 import View.Player (openMouth)
 
+-- | Draw lives to the bottom left of the screen
 drawLives :: TileWidth -> Board -> Int -> Picture
 drawLives _ _ 0          = blank
 drawLives tw b@Board{..} l 
