@@ -56,8 +56,8 @@ reduceGhostTimers (g@Ghost{..} : gs)
  } : reduceGhostTimers gs
  where
   resetTimer = case ghostMode' of
-    Chase   -> 20 * 60
-    Scatter -> 7  * 60
+    Chase   -> 20 * 60 -- 20 seconds * 60 frames per second
+    Scatter -> 7  * 60 -- 7  seconds * 60 frames per second 
     _       -> 0
 
   ghostMode' = if getCount scatterTimer == 0 then switch ghostMode else ghostMode
