@@ -163,7 +163,7 @@ parseToMiddle (x,y) = (fromIntegral x + 0.5, fromIntegral y + 0.5)
 indexToCoord :: Int -> Int -> (Int, Int)
 indexToCoord i w = (i `div` w, i `mod` w)
 
-data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer | Paused
+data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer | Paused | GameOver
   deriving (Show, Eq)
 
 data Level = NoLevel | Level

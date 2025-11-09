@@ -132,5 +132,7 @@ applyKey Paused gs (Char 'h')                   = (Actions.Reset.reset gs) { sce
 applyKey Paused gs (Char 's')                   = gs { shouldSave = True }
 applyKey Paused gs (Char 'p')                   = gs { paused = not (paused gs), scene = s' }
   where s' = if paused gs then SinglePlayer else Paused
+-- GAME OVER
+applyKey GameOver gs (Char 'h')                 = (Actions.Reset.reset gs) { scene = Homescreen }
 -- CATCH ALL 
 applyKey _ gs _                                 = gs

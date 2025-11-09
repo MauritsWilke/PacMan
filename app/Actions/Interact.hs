@@ -10,7 +10,7 @@ import Utils.PlayerUtil
 
 interact :: GameState -> GameState
 interact gs = case scene gs of
-  SinglePlayer -> (interactGhosts . interactPellets . playerMove . reduceTimers) gs
+  SinglePlayer -> (checkGameOver . interactGhosts . interactPellets . playerMove . reduceTimers) gs
   _            -> gs
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
@@ -22,6 +22,10 @@ reduceTimers gs = gs
   where updatedLevel = let lvl = level gs in lvl { ghosts = reduceGhostTimers (ghosts lvl) }
         animation' (AnimationTimer i) = AnimationTimer ((i + 1)`mod` 24)
 
+checkGameOver :: GameState -> GameState
+checkGameOver gs = case lives gs of
+  LiveCounter 0 -> gs { scene = GameOver }
+  _             -> gs
 
 -- reduce ghostTimers
 reduceGhostTimers :: [Ghost] -> [Ghost]
