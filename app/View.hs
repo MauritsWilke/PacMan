@@ -21,7 +21,7 @@ import View.Round
 view :: GameState -> IO Picture
 view = return . viewPure
 
--- Scene management
+-- | Scene management
 viewPure :: GameState -> Picture
 viewPure gs = case scene gs of
     Homescreen    -> renderHomescreen ((not . null . saves) gs) ((not . null . boards) gs) (screenSize gs) (tileWidth gs)
@@ -31,11 +31,15 @@ viewPure gs = case scene gs of
     Paused        -> viewWithOverlay gs
     GameOver      -> viewWithOverlay gs
 
+-- | Helper function as this logic is repeated several times
 viewWithOverlay :: GameState -> Picture
 viewWithOverlay gs = if debugView gs == 0
                       then viewDefault gs
                       else Pictures [viewDefault gs, viewDebug gs]
 
+-- | The default rendering of the board, player and GUI
+-- | If ghosts are frightened, Pac-Man should be on top to eat them
+-- | Otherwise, ghosts eat Pac-Man and should be on top
 viewDefault :: GameState -> Picture
 viewDefault gs =
     let i = if null (frightenedGhosts (ghosts (level gs))) then 2 else 1
@@ -45,9 +49,11 @@ viewDefault gs =
        , viewGUI gs
        ]
 
+-- | Extract relevant information and render level
 drawLevel' :: GameState -> Picture
 drawLevel' gs = drawLevel (tileWidth gs) (level gs)
 
+-- | Extract relevant information and render player
 drawPlayer' :: GameState -> Picture
 drawPlayer' gs = drawPlayer anim tw brd p
   where
@@ -56,7 +62,7 @@ drawPlayer' gs = drawPlayer anim tw brd p
     brd  = gameBoard (level gs)
     p    = player gs
 
-
+-- | Render ghosts with relevant information
 viewGhosts :: GameState -> Picture
 viewGhosts gs = Pictures ghostPics
   where
@@ -66,7 +72,7 @@ viewGhosts gs = Pictures ghostPics
     ghostList = ghosts (level gs)
     ghostPics = map (drawGhost anim tw brd) ghostList
 
-
+-- | Show ghost debug information
 viewGhostsDebug :: GameState -> Picture
 viewGhostsDebug gs = Pictures ghostPics
   where
@@ -76,6 +82,7 @@ viewGhostsDebug gs = Pictures ghostPics
     ghostList = ghosts (level gs)
     ghostPics = map (drawGhostDebug gs tw dbg brd) ghostList
 
+-- | Render GUI with content to the screen
 viewGUI :: GameState -> Picture
 viewGUI gs = Pictures
   [ drawScore tw brd (score gs)
@@ -88,11 +95,13 @@ viewGUI gs = Pictures
     tw  = tileWidth gs
     brd = gameBoard (level gs)
 
+-- | Helper function to add the ghosts to the right location
 insertAt :: Int -> a -> [a] -> [a]
 insertAt i x xs =
     let (before, after) = splitAt i xs
     in before ++ [x] ++ after
 
+-- | Show debug information based on the debug index
 viewDebug :: GameState -> Picture
 viewDebug gs = Pictures $ insertAt ghostIndex (viewGhostsDebug gs) debugPics
   where

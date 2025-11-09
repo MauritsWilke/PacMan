@@ -14,7 +14,7 @@ import Utils.Count
 import Actions.Reset (reset)
 import Utils.SaveGame (saveGameState)
 
--- 
+-- | General step function with guidance for certain cases
 step :: Float -> GameState -> IO GameState
 step _ gs
   | shouldQuit gs       = exitSuccess
@@ -22,22 +22,24 @@ step _ gs
   | scene gs == Paused  = pure (inputKey gs)
   | otherwise           = randomMoves $ A.interact $ inputKey gs
 
--- Looping input function
+-- | Looping input function
 input :: Event -> GameState -> IO GameState
 input e@(EventKey {})    = return . updateKeyRegister e
 input e@(EventResize {}) = return . resize e
 input _                  = return
 
--- Adjust board to resized window
+-- | Adjust board to resized window
 resize :: Event-> GameState -> GameState
 resize (EventResize x) gs = gs { screenSize = x }
 resize _ gs               = gs
 
+-- | Get a random element from an array
 getRandomFrom :: [a] -> IO a
 getRandomFrom [] = error "can't get element from empty list"
 getRandomFrom as = do index <- randomRIO (0, length as - 1)
                       return $ as !! index
 
+-- | Generate random moves for ghosts in fright mode
 randomMoves :: GameState -> IO GameState
 randomMoves gs = do
   let lvl           = level gs
@@ -56,6 +58,7 @@ randomMoves gs = do
 
   return gs'
 
+-- | Apply random IO to ghosts 
 applyRandom :: GameState -> Ghost -> IO Ghost
 applyRandom gs ghost = do
   let avoid             = oppositeDirection (ghostDirection ghost)
@@ -72,24 +75,27 @@ applyRandom gs ghost = do
 
   return $ if getCount (releaseTimer ghost) > 0 
             then ghost 
-            else ghostStep gs ghost dir (0.5* ghostSpeed gs)
+            else ghostStep gs ghost dir (0.5 * ghostSpeed gs) -- Slow down ghosts when frightened
 
+-- | Prevent entering a key every frame as menus would become un-navigate-able
 keysThatCantRepeat :: [Key]
 keysThatCantRepeat = [Char 'p', Char 'w', Char 'a', Char 's', Char 'd']
 
--- Add or remove keys from active key register
+-- | Add or remove keys from active key register
+-- | Used for repeating inputs
 updateKeyRegister :: Event -> GameState -> GameState
 updateKeyRegister (EventKey k Down _ _) gs
-  | k `elem` keysThatCantRepeat          = applyKey (scene gs) gs k
-  | otherwise                            = updateKeyRegister' Down k gs
+  | k `elem` keysThatCantRepeat          = applyKey (scene gs) gs k -- Apply directly if no repeat
+  | otherwise                            = updateKeyRegister' Down k gs -- else register it
 updateKeyRegister (EventKey k Up _ _) gs = updateKeyRegister' Up k gs
 updateKeyRegister _ gs                   = gs
 
+-- | Register key to the list
 updateKeyRegister' :: KeyState -> Key -> GameState -> GameState
 updateKeyRegister' Down k gs = gs { keys = S.insert k (keys gs) }
 updateKeyRegister' Up   k gs = gs { keys = S.delete k (keys gs) }
 
--- For each key that is pressed, apply the action bound to that key
+-- | For each key that is pressed, apply the action bound to that key
 inputKey :: GameState -> GameState
 inputKey gs = afterGhostMoves
   where afterKeyInput   = foldl (applyKey (scene gs)) gs (S.toList $ keys gs)
@@ -98,6 +104,7 @@ inputKey gs = afterGhostMoves
           else afterKeyInput
             { level = (level gs) { ghosts = map (ghostMove gs) (ghosts (level gs)) } }
 
+-- | Bind the key to the relevant action based on the scene
 applyKey :: Scene -> GameState -> Key -> GameState
 -- META CONTROLS
 applyKey _ gs (SpecialKey KeyEsc)               = gs { shouldQuit = True }
