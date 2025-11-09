@@ -21,7 +21,6 @@ data GameState = GameState
   , boards       :: [NamedBoard]
   , saves        :: [NamedSave]
   -- COUNTERS
-  , timer        :: Timer        -- >=0 
   , lives        :: LiveCounter  -- >=0
   , score        :: ScoreCounter -- >=0
   , round        :: RoundCounter -- > 0
@@ -36,7 +35,6 @@ data GameState = GameState
   , screenSize   :: (Int,Int)
   , shouldQuit   :: Bool
   , shouldSave   :: Bool
-  , paused       :: Bool
   , debugView    :: Int
   , menuHelper   :: Int -- Used for keeping track of selected item
   } deriving (Show, Generic)
@@ -45,7 +43,6 @@ data SecondPlayerState = SecondPlayerState
   { levelTwo        :: Level
   , playerTwo       :: Player
   -- COUNTERS
-  , timerTwo        :: Timer        -- >=0 
   , livesTwo        :: LiveCounter  -- >=0
   , scoreTwo        :: ScoreCounter -- >=0
   , roundTwo        :: RoundCounter -- > 0
@@ -63,7 +60,6 @@ data SaveGameState = SaveGameState
   , playerSave       :: Player
   , boardsSave       :: [NamedBoard]
   -- COUNTERS
-  , timerSave        :: Timer        -- >=0 
   , livesSave        :: LiveCounter  -- >=0
   , scoreSave        :: ScoreCounter -- >=0
   , roundSave        :: RoundCounter -- > 0
@@ -79,7 +75,6 @@ toSaveGameState gs = SaveGameState
   , playerSave       = player gs
   , boardsSave       = boards gs
   -- COUNTERS
-  , timerSave        = timer gs
   , livesSave        = lives gs
   , scoreSave        = score gs
   , roundSave        = round gs
@@ -97,7 +92,6 @@ initialState bs ss = GameState
   , boards       = hardcodedBoard : bs
   , saves        = ss
   -- COUNTERS
-  , timer        = timeCounter 0
   , lives        = liveCounter 3
   , score        = scoreCounter 0
   , Model.round  = roundCounter 0
@@ -111,7 +105,6 @@ initialState bs ss = GameState
   , screenSize   = (400,400)
   , shouldQuit   = False
   , shouldSave   = False
-  , paused       = False
   , debugView    = 0
   , menuHelper   = 0
   } 
@@ -145,7 +138,6 @@ initialPlayerTEMP = Player
   { position = getPlayerSpawn (gameBoard initialLevel)
   , direction = East
   , queuedDir = East
-  , mode = Normal
   }
 
 standardGhosts :: Board -> [Ghost]
@@ -211,14 +203,10 @@ instance FromJSON Board
 data Direction = North | South | West | East
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
-data PlayerMode = Normal | Dead | Respawning | LevelComplete
-  deriving (Show, Eq, Generic, ToJSON, FromJSON)
-
 data Player = NoPlayer | Player
   { position  :: (Float, Float) -- offset for player
   , direction :: Direction
   , queuedDir :: Direction
-  , mode      :: PlayerMode
   } deriving (Show, Generic, ToJSON, FromJSON)
 
 data GhostType = Inky | Blinky | Pinky | Clyde
