@@ -15,4 +15,4 @@ eats p g | hit && frighten               = Just True
          | hit && (ghostMode g /= Spawn) = Just False
          | otherwise                     = Nothing
  where frighten = getCount (frightTimer g) > 0 
-       hit      = distance (position p) (ghostPosition g) < 0.5
+       hit      = distance (position p) (ghostPosition g) < 0.5 -- hitbox size half a tile (circular)
