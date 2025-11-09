@@ -119,12 +119,14 @@ interactPellets gs = checkLevelComplete $ action gs
       _                -> (score gs,       id              , ghostsEaten gs)
 
 checkLevelComplete :: GameState -> GameState
-checkLevelComplete gs = if emptyBoard (gameBoard (level gs))
-  then (exitScene gs) {lives = currLives, M.round = newRound, score = currScore}--gs {round = M.round gs .+ 1, level = lvl}
+checkLevelComplete gs = if emptyBoard b
+  then (exitScene gs) {player = player', lives = currLives, M.round = newRound, score = currScore}--gs {round = M.round gs .+ 1, level = lvl}
   else gs
   where currLives = lives gs
         newRound  = M.round gs .+ 1
         currScore = score gs
+        player'    = (player gs) {position = getPlayerSpawn b, direction = East }
+        b = gameBoard $ level gs
 
 
 

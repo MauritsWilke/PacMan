@@ -180,7 +180,11 @@ getGhostExit Board{..} = parseToMiddle $ indexToCoord (fst (head ints)) width
   where ints    = Prelude.filter ((== GhostExit) . snd) (I.toList board)
 
 emptyBoard :: Board -> Bool
-emptyBoard b = not (any ((== Pellet) . snd) (I.toList (board b)))
+emptyBoard b = not (any (filled . snd) (I.toList (board b)))
+  where filled x = case x of
+          Pellet      -> True
+          PowerPellet -> True
+          _           -> False
 
 parseToMiddle :: (Int,Int) -> (Float,Float)
 parseToMiddle (x,y) = (fromIntegral x + 0.5, fromIntegral y + 0.5)
