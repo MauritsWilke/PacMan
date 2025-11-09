@@ -22,10 +22,17 @@ drawGhost (AnimationTimer f) tw Board{..} Ghost{..} = let (x, y) = ghostPosition
 
 getGhostColor :: Ghost -> Color
 getGhostColor Ghost{..}
- | getCount releaseTimer > 0 = regularGhostColor Ghost{..}
+ | getCount releaseTimer > 0                = regularGhostColor Ghost{..}
  | isJust destination && ghostMode == Spawn = makeColor 1 1 1 0 -- only eyes remain when eaten
- | getCount frightTimer > 0                 = blue
- | otherwise = regularGhostColor Ghost{..}
+ | fright > 0                               = blinkFrightTimer fright
+ | otherwise                                = regularGhostColor Ghost{..}
+  where fright = getCount frightTimer
+
+blinkFrightTimer :: Int -> Color
+blinkFrightTimer i
+  | i > 120 = blue
+  | even (i `div` 10) = blue
+  | otherwise = white
 
 regularGhostColor :: Ghost -> Color
 regularGhostColor Ghost{..} = case ghostType of
@@ -78,7 +85,7 @@ ghostShape f tw dir =
       , (0.80 * tw, 0.3 * tw)
       , (0.20 * tw, 0.3 * tw)
       ]
-    wave' = polygon 
+    wave' = polygon
       [ (0.20 * tw, 0.3 * tw)
       , (0.35 * tw, 0.1 * tw)
       , (0.50 * tw, 0.3 * tw)
