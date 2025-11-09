@@ -105,7 +105,7 @@ initialPlayer = Player
   , queuedDir = East
   }
 
-data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer | Paused | GameOver
+data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | Paused | GameOver
   deriving (Show, Eq)
 
 data Level = Level
