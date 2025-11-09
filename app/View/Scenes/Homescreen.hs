@@ -38,8 +38,10 @@ randomPacmans (sw, sh) tw =
   let g0       = mkStdGen 2609 -- I like this number
       pacmans  = 120           -- Same goes for this one
       (gx, gy) = splitGen g0
+      (gr, _)  = splitGen gy   -- extra generator for rotation
       halfW    = fromIntegral sw / 2
       halfH    = fromIntegral sh / 2
       xs       = take pacmans (randomRs (-halfW, halfW) gx)
       ys       = take pacmans (randomRs (-halfH, halfH) gy)
-  in zipWith (\x y -> Translate x y (openMouth tw)) xs ys
+      rots     = take pacmans (randomRs (0, 360) gr)  -- degrees
+  in zipWith3 (\x y deg -> Translate x y (Rotate deg (openMouth tw))) xs ys rots
