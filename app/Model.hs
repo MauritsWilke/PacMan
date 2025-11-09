@@ -27,10 +27,7 @@ data GameState = GameState
   , round        :: RoundCounter -- > 0
   , animation    :: AnimationTimer
   , livesAwarded :: Int
-  -- ROUND SPECIFIC
-  , pelletsEaten :: Int
   , ghostsEaten  :: Int -- Resets when eating power pellet
-  -- , poweredTimer :: PoweredTimer
   -- GAME CONTROLS
   , keys         :: S.Set Graphics.Gloss.Interface.IO.Game.Key
   , screenSize   :: (Int,Int)
@@ -51,8 +48,6 @@ data SecondPlayerState = SecondPlayerState
   , roundTwo        :: RoundCounter -- > 0
   , animationTwo    :: AnimationTimer
   , livesAwardedTwo :: Int
-  -- ROUND SPECIFIC
-  , pelletsEatenTwo :: Int
   , ghostsEatenTwo  :: Int -- Resets when eating power pellet
   -- GAME CONTROLS
   , keysTwo         :: S.Set Graphics.Gloss.Interface.IO.Game.Key    
@@ -69,7 +64,6 @@ data SaveGameState = SaveGameState
   , roundSave        :: RoundCounter -- > 0
   -- ROUND SPECIFIC
   , livesAwardedSave :: Int
-  , pelletsEatenSave :: Int
   , ghostsEatenSave  :: Int -- Resets when eating power pellet
   } deriving (Show, Generic, ToJSON, FromJSON)
 
@@ -85,7 +79,6 @@ toSaveGameState gs = SaveGameState
   , roundSave        = round gs
   -- ROUND SPECIFIC
   , livesAwardedSave = livesAwarded gs
-  , pelletsEatenSave = pelletsEaten gs
   , ghostsEatenSave  = ghostsEaten gs
   }
 
@@ -104,7 +97,6 @@ initialState bs ss = GameState
   , animation    = animationTimer 0
   -- ROUND SPECIFIC
   , livesAwarded = 0
-  , pelletsEaten = 0
   , ghostsEaten  = 0
   -- GAME CONTROLS
   , keys         = S.empty

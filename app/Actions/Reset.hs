@@ -16,7 +16,6 @@ reset gs = gs
   , animation    = animationTimer 0
   -- ROUND SPECIFIC, ALL MUST BE RESET
   , livesAwarded = 0
-  , pelletsEaten = 0
   , ghostsEaten  = 0
   -- META RESET
   , keys         = S.empty
