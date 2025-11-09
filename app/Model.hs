@@ -96,7 +96,7 @@ initialState bs ss = GameState
   { scene        = Homescreen
   , level        = initialLevel
   , player       = initialPlayerTEMP
-  , boards       = bs
+  , boards       = hardcodedBoard : bs
   , saves        = ss
   -- COUNTERS
   , timer        = timeCounter 0
@@ -116,7 +116,11 @@ initialState bs ss = GameState
   , paused       = False
   , debugView    = 0
   , menuHelper   = 0
-  }
+  } 
+  where 
+    hardcodedBoard = NamedBoard
+      { boardName = nameBoard initialLevel
+      , boardData = gameBoard initialLevel }
 
 initialLevel :: Level
 initialLevel = Level
