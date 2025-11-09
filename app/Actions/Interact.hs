@@ -79,12 +79,17 @@ afterCollision gs ghosts
   | otherwise                  = Just (map update ghosts)
   where
     hit = eats (player gs)
-    playerGetsEaten g = case hit g of
-      Just False -> True   -- ghost eats player
+    playerGetsEaten g = case hit g of -- ghost eats player
+      Just False -> True   
       _          -> False
-    update g = case hit g of
-        Just True -> g { destination = Just destination, ghostMode = Spawn, frightTimer = frightTimeCounter 0 }  -- player eats ghost
-        _         -> g
+
+    update g = case hit g of -- player eats ghost
+      Just True -> g 
+                    { destination = Just destination
+                    , ghostMode   = Spawn
+                    , frightTimer = frightTimeCounter 0
+                    }
+      _         -> g
       where destination = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)
 
 
