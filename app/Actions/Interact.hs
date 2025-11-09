@@ -43,9 +43,20 @@ reduceGhostTimers [] = []
 reduceGhostTimers (g@Ghost{..} : gs)
  = g
  { frightTimer  = frightTimer  .- 1
- , scatterTimer = scatterTimer .- 1
+ , scatterTimer = if getCount scatterTimer == 0 then ScatterTimer resetTimer else scatterTimer .- 1
  , releaseTimer = releaseTimer .- 1
+ , ghostMode    = ghostMode'
  } : reduceGhostTimers gs
+ where resetTimer = case ghostMode' of
+          Chase   -> 20 * 60
+          Scatter -> 7  * 60
+          _       -> 0
+
+       ghostMode' = if getCount scatterTimer == 0 then switch ghostMode else ghostMode
+       switch m   = case m of
+          Chase   -> Scatter
+          Scatter -> Chase
+          x       -> x
 
 playerKilled :: GameState -> GameState
 playerKilled gs = gs
@@ -67,7 +78,7 @@ resetGhosts gs = reset' where
 interactGhosts  :: GameState -> GameState
 interactGhosts  gs = case afterCollisionRes of -- check if pacman is eaten
   Nothing    -> playerKilled gs                   -- if so, soft reset
-  Just (s,a) -> let extraPoints = if s > 0 then ghostPoints (ghostsEaten gs + s) else 0 
+  Just (s,a) -> let extraPoints = if s > 0 then ghostPoints (ghostsEaten gs + s) else 0
     in gs { score = score gs .+ extraPoints, ghostsEaten = ghostsEaten gs +  s, level = lvl { ghosts = a } } -- if not, update ghosts and score
   where afterCollisionRes = afterCollision gs currGhostList
         currGhostList     = ghosts $ level gs
