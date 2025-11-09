@@ -108,18 +108,20 @@ applyKey _ gs (Char '3')                        = gs { debugView = 3 }
 -- HOMESCREEN 
 applyKey Homescreen gs (SpecialKey KeySpace)    = gs { scene = SinglePlayer }
 applyKey Homescreen gs (Char 's')               = if (not . null . boards) gs
-                                                  then (SB.enterScene gs) { scene = ConfigureGame }
-                                                  else gs
+                                                    then (SB.enterScene gs) { scene = ConfigureGame }
+                                                    else gs
 applyKey Homescreen gs (Char 'l')               = if (not . null . saves) gs
-                                                  then (SB.enterScene gs) { scene = LoadGame }
-                                                  else gs
+                                                    then (SB.enterScene gs) { scene = LoadGame }
+                                                    else gs
 -- CONFIGURE
 applyKey ConfigureGame gs (Char 's')            = SB.controlScene (Char 's') gs
 applyKey ConfigureGame gs (Char 'w')            = SB.controlScene (Char 'w') gs
+applyKey ConfigureGame gs (Char 'h')            = gs { scene = Homescreen }
 applyKey ConfigureGame gs (SpecialKey KeyEnter) = (SB.exitScene gs) { scene = Homescreen }
 -- LOAD GAME
 applyKey LoadGame gs (Char 's')                 = LS.controlScene (Char 's') gs
 applyKey LoadGame gs (Char 'w')                 = LS.controlScene (Char 's') gs
+applyKey LoadGame gs (Char 'h')                 = gs { scene = Homescreen }
 applyKey LoadGame gs (SpecialKey KeyEnter)      = (LS.exitScene gs) { scene = SinglePlayer }
 -- MOVEMENT
 applyKey SinglePlayer gs (Char 'p')             = gs { scene = Paused }
