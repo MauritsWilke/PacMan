@@ -67,7 +67,7 @@ moveIsPossible gs (x,y) speed dir allowedInSpawn = let
                         else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
    Just GhostExit  -> if allowedInSpawn
                         then Just (cornerSnap dir desiredX desiredY)
-                        else Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
+                        else Nothing --Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
    Just GhostSpawn -> if allowedInSpawn
                         then Just (cornerSnap dir desiredX desiredY)
                         else Nothing
@@ -122,14 +122,21 @@ ghostMove gstate ghost@Ghost{..}
     isRespawning   = hasDestination && ghostMode == Spawn
     movingInSpawn  = case get (B.bimap floor floor ghostPosition) (gameBoard (level gstate)) of
                       Nothing -> False
-                      Just _  -> True
+                      Just GhostSpawn  -> True
+                      Just GhostExit   -> True
+                      Just _ -> False
     ghost' | isRespawning   && distance ghostPosition destination' < 0.8 && movingInSpawn =
               ghost {destination = Just (getGhostExit (gameBoard (level gstate))), ghostMode = Chase}
            | isRespawning   && distance ghostPosition destination' < 0.5 =
               ghost {destination = Just (getGhostSpawn (gameBoard (level gstate)) releaseIndex), ghostMode = Spawn}
-           | hasDestination && distance ghostPosition destination' < 0.2 =
-              ghost {destination = Nothing, ghostMode = Chase}
+           | hasDestination && distance ghostPosition destination' < 0.1 =
+              ghost {ghostPosition = outsideSpawn,destination = Nothing, ghostMode = Chase}
            | otherwise      = ghostStep gstate ghost bestDirection speed
+
+    -- set outside of spawn
+    outsideSpawn = let (x,y) = destination'
+                       (a,b) = directionToTuple bestDirection
+                   in (x+0.4*a,y+0.4*b)
 
     -- parse destination to its value
     destination' = case destination of
