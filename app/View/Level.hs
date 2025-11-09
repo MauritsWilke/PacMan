@@ -41,7 +41,7 @@ tileAsset :: TileWidth -> Tile -> Picture
 tileAsset tw Wall        = Color blue   $ rectangleWire tw tw
 tileAsset tw Pellet      = Color white  $ rectangleSolid (tw / 4) (tw / 4)
 tileAsset tw PowerPellet = Color white  $ circleSolid (tw / 3)
-tileAsset tw GhostExit   = Color orange $ rectangleSolid tw tw
+tileAsset tw GhostExit   = Color (0.2 `withAlpha` blue) $ rectangleSolid tw tw
 tileAsset _  GhostSpawn  = blank
 tileAsset _  PlayerSpawn = blank
 tileAsset _  Empty       = blank
