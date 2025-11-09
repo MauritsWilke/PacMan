@@ -17,10 +17,10 @@ import Utils.SaveGame (saveGameState)
 -- 
 step :: Float -> GameState -> IO GameState
 step _ gs
-  | shouldQuit gs = exitSuccess
-  | shouldSave gs = saveGameState "savegame.json" gs
-  | paused gs     = pure (inputKey gs)
-  | otherwise     = randomMoves $ A.interact $ inputKey gs
+  | shouldQuit gs       = exitSuccess
+  | shouldSave gs       = saveGameState "savegame.json" gs
+  | scene gs == Paused  = pure (inputKey gs)
+  | otherwise           = randomMoves $ A.interact $ inputKey gs
 
 -- Looping input function
 input :: Event -> GameState -> IO GameState
@@ -123,8 +123,7 @@ applyKey LoadGame gs (Char 's')                 = LS.controlScene (Char 's') gs
 applyKey LoadGame gs (Char 'w')                 = LS.controlScene (Char 's') gs
 applyKey LoadGame gs (SpecialKey KeyEnter)      = (LS.exitScene gs) { scene = SinglePlayer }
 -- MOVEMENT
-applyKey SinglePlayer gs (Char 'p')             = gs { paused = not (paused gs), scene = s' }
-  where s' = if paused gs then SinglePlayer else Paused
+applyKey SinglePlayer gs (Char 'p')             = gs { scene = Paused }
 applyKey SinglePlayer gs (Char 'w')             = updatePlayerDir gs North
 applyKey SinglePlayer gs (Char 'a')             = updatePlayerDir gs West
 applyKey SinglePlayer gs (Char 's')             = updatePlayerDir gs South
@@ -132,8 +131,7 @@ applyKey SinglePlayer gs (Char 'd')             = updatePlayerDir gs East
 -- PAUSE
 applyKey Paused gs (Char 'h')                   = (Actions.Reset.reset gs) { scene = Homescreen }
 applyKey Paused gs (Char 's')                   = gs { shouldSave = True }
-applyKey Paused gs (Char 'p')                   = gs { paused = not (paused gs), scene = s' }
-  where s' = if paused gs then SinglePlayer else Paused
+applyKey Paused gs (Char 'p')                   = gs { scene = SinglePlayer }
 -- GAME OVER
 applyKey GameOver gs (Char 'h')                 = (Actions.Reset.reset gs) { scene = Homescreen }
 -- CATCH ALL 

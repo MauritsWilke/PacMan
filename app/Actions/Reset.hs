@@ -9,7 +9,6 @@ reset gs = gs
   { level        = initialLevel
   , player       = initialPlayerTEMP
   -- COUNTERS (ALL MUST BE RESET)
-  , timer        = timeCounter 0
   , lives        = liveCounter 3
   , score        = scoreCounter 0
   , Model.round  = roundCounter 0
@@ -19,6 +18,5 @@ reset gs = gs
   , ghostsEaten  = 0
   -- META RESET
   , keys         = S.empty
-  , paused       = False
   , menuHelper   = 0
   }

@@ -63,7 +63,7 @@ viewGUI gs =
     Pictures
       [ drawScore    (tileWidth gs) (gameBoard (level gs)) (score gs)
       , drawLives    (tileWidth gs) (gameBoard (level gs)) (getCount (lives gs))
-      , drawPaused   (tileWidth gs) (gameBoard (level gs)) (paused gs)
+      , drawPaused   (tileWidth gs) (gameBoard (level gs)) (scene gs == Paused)
       , drawGameOver (tileWidth gs) (gameBoard (level gs)) (scene gs == GameOver) (score gs)
       , drawRoundIndicator (tileWidth gs) (gameBoard (level gs)) (Model.round gs)
       ]

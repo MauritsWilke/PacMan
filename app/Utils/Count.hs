@@ -35,7 +35,6 @@ instance Show NonNeg where
 newtype LevelCounter     = LevelCounter   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype LiveCounter      = LiveCounter    Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype RoundCounter     = RoundCounter   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype Timer            = Timer          Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype FrightTimer      = FrightTimer    Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype ReleaseTimer     = ReleaseTimer   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype ScoreCounter     = ScoreCounter   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
@@ -55,9 +54,6 @@ liveCounter = LiveCounter . max 0
 
 roundCounter :: Int -> RoundCounter
 roundCounter = RoundCounter . max 0
-
-timeCounter :: Int -> Timer
-timeCounter = Timer . max 0
 
 frightTimeCounter :: Int -> FrightTimer
 frightTimeCounter = FrightTimer . max 0

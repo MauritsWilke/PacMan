@@ -23,7 +23,6 @@ exitScene gs0 =
   { level        = levelSave sav
   , player       = playerSave sav
   , boards       = boardsSave sav
-  , timer        = timerSave sav
   , lives        = livesSave sav
   , score        = scoreSave sav
   , round        = roundSave sav
