@@ -128,7 +128,7 @@ data Board = Board
 data Direction = North | South | West | East
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
-data Player = NoPlayer | Player
+data Player = Player
   { position  :: (Float, Float) -- offset for player
   , direction :: Direction
   , queuedDir :: Direction
