@@ -12,6 +12,7 @@ import Graphics.Gloss.Interface.IO.Game (Key)
 import qualified Data.IntMap as I
 import Data.Aeson
 import Prelude hiding (round)
+import Data.Maybe (isNothing)
 
 data GameState = GameState
   { scene        :: Scene
@@ -309,5 +310,5 @@ ghostSpeed gstate  | roundIndex > 4  = 0.14875
 frightenedGhosts :: [Ghost] -> [Ghost]
 frightenedGhosts []     = []
 frightenedGhosts (x:xs) = if frightened x then x : remainder else remainder
-  where frightened Ghost{..} = getCount frightTimer > 0
+  where frightened Ghost{..} = getCount frightTimer > 0 && isNothing destination
         remainder = frightenedGhosts xs

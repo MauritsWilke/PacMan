@@ -45,7 +45,9 @@ randomMoves gs = do
   let lvl           = level gs
       allGhosts     = ghosts lvl
       frightened    = frightenedGhosts allGhosts
-      nonFrightened = filter ((== 0) . getCount . frightTimer ) allGhosts
+      nonFrightened = filter noRandomMove allGhosts
+      noRandomMove g =
+        ((== 0) . getCount . frightTimer) g || isJust (destination g)
 
   -- applyRandom move to all frightened ghosts
   updatedFrightened <- mapM (applyRandom gs) frightened

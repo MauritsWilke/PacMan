@@ -137,7 +137,7 @@ ghostMove gstate ghost@Ghost{..}
     speed = if ghostMode == Spawn then 2 * ghostSpeed gstate else ghostSpeed gstate
 
     -- fright is applied elsewhere due to randomness
-    shouldntMove = getCount frightTimer > 0 || getCount releaseTimer > 0
+    shouldntMove = (getCount frightTimer > 0 && isNothing destination) || getCount releaseTimer > 0
 
     -- check all legal directions except opposite
     allowedDirections = filter movableDirection $ delete (oppositeDirection ghostDirection) allDirections
