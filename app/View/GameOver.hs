@@ -1,6 +1,6 @@
 module View.GameOver where
 import Graphics.Gloss
-import Model
+import Model hiding (score)
 import Utils.Count (ScoreCounter, Count (getCount))
 
 drawGameOver :: TileWidth -> Board -> Bool -> ScoreCounter -> Picture
