@@ -36,20 +36,6 @@ data GameState = GameState
   , menuHelper   :: Int -- Used for keeping track of selected item
   } deriving (Show, Generic)
 
-data SecondPlayerState = SecondPlayerState
-  { levelTwo        :: Level
-  , playerTwo       :: Player
-  -- COUNTERS
-  , livesTwo        :: LiveCounter  -- >=0
-  , scoreTwo        :: ScoreCounter -- >=0
-  , roundTwo        :: RoundCounter -- > 0
-  , animationTwo    :: AnimationTimer
-  , livesAwardedTwo :: Int
-  , ghostsEatenTwo  :: Int -- Resets when eating power pellet
-  -- GAME CONTROLS
-  , keysTwo         :: S.Set Graphics.Gloss.Interface.IO.Game.Key    
-  }
-
 data SaveGameState = SaveGameState
   { levelSave        :: Level
   , playerSave       :: Player
