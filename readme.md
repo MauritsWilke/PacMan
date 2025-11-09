@@ -8,7 +8,7 @@ For extra options:
 Both have one example file included!
 
 ### Controls:
-- Navigate around menus using `w` `s` and `enter`
+- Navigate around menus using `w` `s` and `enter`, return to home screen using 'h'
 - Control Pac-Man with `w` `a` `s` `d`
 - Pause the game at any time with `p` (and save with `s`)
 - Use `esc` at any point to exit the game
