@@ -25,6 +25,7 @@ data GameState = GameState
   , score        :: ScoreCounter -- >=0
   , round        :: RoundCounter -- > 0
   , animation    :: AnimationTimer
+  , livesAwarded :: Int
   -- ROUND SPECIFIC
   , pelletsEaten :: Int
   , ghostsEaten  :: Int -- Resets when eating power pellet
@@ -39,6 +40,24 @@ data GameState = GameState
   , menuHelper   :: Int -- Used for keeping track of selected item
   } deriving (Show, Generic)
 
+data SecondPlayerState = SecondPlayerState
+  { levelTwo        :: Level
+  , playerTwo       :: Player
+  -- COUNTERS
+  , timerTwo        :: Timer        -- >=0 
+  , livesTwo        :: LiveCounter  -- >=0
+  , scoreTwo        :: ScoreCounter -- >=0
+  , roundTwo        :: RoundCounter -- > 0
+  , animationTwo    :: AnimationTimer
+  , livesAwardedTwo :: Int
+  -- ROUND SPECIFIC
+  , pelletsEatenTwo :: Int
+  , ghostsEatenTwo  :: Int -- Resets when eating power pellet
+  -- , poweredTimer :: PoweredTimer
+  -- GAME CONTROLS
+  , keysTwo         :: S.Set Graphics.Gloss.Interface.IO.Game.Key    
+  }
+
 data SaveGameState = SaveGameState
   { levelSave        :: Level
   , playerSave       :: Player
@@ -49,6 +68,7 @@ data SaveGameState = SaveGameState
   , scoreSave        :: ScoreCounter -- >=0
   , roundSave        :: RoundCounter -- > 0
   -- ROUND SPECIFIC
+  , livesAwardedSave :: Int
   , pelletsEatenSave :: Int
   , ghostsEatenSave  :: Int -- Resets when eating power pellet
   -- , poweredTimerSave :: PoweredTimer
@@ -56,17 +76,18 @@ data SaveGameState = SaveGameState
 
 toSaveGameState :: GameState -> SaveGameState
 toSaveGameState gs = SaveGameState
-  { levelSave = level gs
-  , playerSave = player gs
-  , boardsSave = boards gs
+  { levelSave        = level gs
+  , playerSave       = player gs
+  , boardsSave       = boards gs
   -- COUNTERS
-  , timerSave = timer gs
-  , livesSave = lives gs
-  , scoreSave = score gs
-  , roundSave = round gs
+  , timerSave        = timer gs
+  , livesSave        = lives gs
+  , scoreSave        = score gs
+  , roundSave        = round gs
   -- ROUND SPECIFIC
+  , livesAwardedSave = livesAwarded gs
   , pelletsEatenSave = pelletsEaten gs
-  , ghostsEatenSave = ghostsEaten gs
+  , ghostsEatenSave  = ghostsEaten gs
   -- , poweredTimerSave = poweredTimer gs
   }
 
@@ -84,6 +105,7 @@ initialState bs ss = GameState
   , Model.round  = roundCounter 0
   , animation    = animationTimer 0
   -- ROUND SPECIFIC
+  , livesAwarded = 0
   , pelletsEaten = 0
   , ghostsEaten  = 0
   -- GAME CONTROLS

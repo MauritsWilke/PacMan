@@ -76,6 +76,7 @@ executable pacman
                       View.Score,
                       View.Paused,
                       View.GameOver,
+                      View.Round,
                       View.Scenes.Homescreen,
                       View.Scenes.SelectBoard,
                       View.Scenes.LoadSave,

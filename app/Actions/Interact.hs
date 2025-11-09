@@ -11,7 +11,7 @@ import View.Scenes.SelectBoard (exitScene)
 
 interact :: GameState -> GameState
 interact gs = case scene gs of
-  SinglePlayer -> (checkGameOver . interactGhosts . interactPellets . playerMove . reduceTimers) gs
+  SinglePlayer -> (checkGameOver . interactGhosts . awardExtraLives . interactPellets . playerMove . reduceTimers) gs
   _            -> gs
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
@@ -27,6 +27,15 @@ checkGameOver :: GameState -> GameState
 checkGameOver gs = case lives gs of
   LiveCounter 0 -> gs { scene = GameOver }
   _             -> gs
+
+awardExtraLives :: GameState -> GameState
+awardExtraLives gs = gs 
+  { lives = currentLives .+ toBeGranted
+  , livesAwarded = alreadyawarded + toBeGranted 
+  } where currentLives     = lives gs
+          livesToBeAwarded = (getCount .score) gs `div` 10000
+          alreadyawarded   = livesAwarded gs
+          toBeGranted      = livesToBeAwarded - alreadyawarded
 
 -- reduce ghostTimers
 reduceGhostTimers :: [Ghost] -> [Ghost]
@@ -71,12 +80,17 @@ afterCollision gs ghosts
   | otherwise                  = Just (map update ghosts)
   where
     hit = eats (player gs)
-    playerGetsEaten g = case hit g of
-      Just False -> True   -- ghost eats player
+    playerGetsEaten g = case hit g of -- ghost eats player
+      Just False -> True   
       _          -> False
-    update g = case hit g of
-        Just True -> g { destination = Just destination, ghostMode = Spawn, frightTimer = frightTimeCounter 0 }  -- player eats ghost
-        _         -> g
+
+    update g = case hit g of -- player eats ghost
+      Just True -> g 
+                    { destination = Just destination
+                    , ghostMode   = Spawn
+                    , frightTimer = frightTimeCounter 0
+                    }
+      _         -> g
       where destination = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)
 
 

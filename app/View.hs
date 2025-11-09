@@ -16,6 +16,7 @@ import View.Paused
 import View.Scenes.SelectBoard (renderBoardSelection)
 import View.Scenes.LoadSave
 import View.GameOver (drawGameOver)
+import View.Round
 
 view :: GameState -> IO Picture
 view = return . viewPure
@@ -64,6 +65,7 @@ viewGUI gs =
       , drawLives    (tileWidth gs) (gameBoard (level gs)) (getCount (lives gs))
       , drawPaused   (tileWidth gs) (gameBoard (level gs)) (paused gs)
       , drawGameOver (tileWidth gs) (gameBoard (level gs)) (scene gs == GameOver) (score gs)
+      , drawRoundIndicator (tileWidth gs) (gameBoard (level gs)) (Model.round gs)
       ]
 
 insertAt :: Int -> a -> [a] -> [a]
