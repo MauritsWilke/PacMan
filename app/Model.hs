@@ -122,7 +122,7 @@ initialPlayer = Player
 data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer | Paused | GameOver
   deriving (Show, Eq)
 
-data Level = NoLevel | Level
+data Level = Level
   { gameBoard     :: Board
   , nameBoard     :: String    -- TODO combine these into NamedBoard, veel werk!
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
