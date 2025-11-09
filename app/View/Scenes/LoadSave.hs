@@ -26,9 +26,7 @@ exitScene gs0 =
   , lives        = livesSave sav
   , score        = scoreSave sav
   , round        = roundSave sav
-  , pelletsEaten = pelletsEatenSave sav
   , ghostsEaten  = ghostsEatenSave sav
- -- , poweredTimer = poweredTimerSave sav
   }
 
 controlScene :: Key -> GameState -> GameState

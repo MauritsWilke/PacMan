@@ -19,12 +19,13 @@ exitScene gs0 =
   let idx = menuHelper gs0
       brd = boards gs0 !! idx
       lvl = level gs0
+      player'  = (player gs0) {position = getPlayerSpawn (gameBoard newLevel)}
       newLevel = lvl
         { nameBoard = boardName brd
         , gameBoard = boardData brd
         , ghosts = standardGhosts $ boardData brd
         }
-  in gs0 {level = newLevel }
+  in gs0 {player = player', level = newLevel }
 
 controlScene :: Key -> GameState -> GameState
 controlScene (Char 's') gs = gs { menuHelper = min (menuHelper gs + 1) ((length . boards) gs - 1) }
