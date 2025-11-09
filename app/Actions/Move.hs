@@ -19,7 +19,6 @@ updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir
                     Just _  -> dir
                     Nothing -> direction plr
 
-
 playerMove :: GameState -> GameState
 playerMove gs = gs { player = plr' }
   where
@@ -125,13 +124,14 @@ ghostMove gstate ghost@Ghost{..}
                       Just GhostSpawn  -> True
                       Just GhostExit   -> True
                       Just _ -> False
-    ghost' | isRespawning   && distance ghostPosition destination' < 0.8 && movingInSpawn =
-              ghost {destination = Just (getGhostExit (gameBoard (level gstate))), ghostMode = Chase}
-           | isRespawning   && distance ghostPosition destination' < 0.5 =
-              ghost {destination = Just (getGhostSpawn (gameBoard (level gstate)) releaseIndex), ghostMode = Spawn}
-           | hasDestination && distance ghostPosition destination' < 0.1 =
-              ghost {ghostPosition = outsideSpawn,destination = Nothing, ghostMode = Chase}
-           | otherwise      = ghostStep gstate ghost bestDirection speed
+    ghost' 
+      | isRespawning   && distance ghostPosition destination' < 0.8 && movingInSpawn =
+        ghost { destination = Just (getGhostExit (gameBoard (level gstate))), ghostMode = Chase }
+      | isRespawning   && distance ghostPosition destination' < 0.5 =
+        ghost { destination = Just (getGhostSpawn (gameBoard (level gstate)) releaseIndex), ghostMode = Spawn }
+      | hasDestination && distance ghostPosition destination' < 0.1 =
+        ghost { ghostPosition = outsideSpawn, destination = Nothing, ghostMode = Chase }
+      | otherwise      = ghostStep gstate ghost bestDirection speed
 
     -- set outside of spawn
     outsideSpawn = let (x,y) = destination'

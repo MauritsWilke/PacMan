@@ -140,7 +140,7 @@ checkLevelComplete gs = if emptyBoard b
   where currLives = lives gs
         newRound  = M.round gs .+ 1
         currScore = score gs
-        player'    = (player gs) {position = getPlayerSpawn b, direction = East }
+        player'    = (player gs) { position = getPlayerSpawn b, direction = East }
         b = gameBoard $ level gs
 
 
