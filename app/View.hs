@@ -21,21 +21,20 @@ import View.Round
 view :: GameState -> IO Picture
 view = return . viewPure
 
+-- Scene management
 viewPure :: GameState -> Picture
 viewPure gs = case scene gs of
     Homescreen    -> renderHomescreen ((not . null . saves) gs) ((not . null . boards) gs) (screenSize gs) (tileWidth gs)
     LoadGame      -> renderSaveselection gs
     ConfigureGame -> renderBoardSelection gs
-    SinglePlayer  -> if debugView gs == 0
-                     then viewDefault gs
-                     else Pictures [viewDefault gs, viewDebug gs]
-    Paused        -> if debugView gs == 0
-                     then viewDefault gs
-                     else Pictures [viewDefault gs, viewDebug gs]
-    MultiPlayer   -> blank
-    GameOver      -> if debugView gs == 0
-                     then viewDefault gs
-                     else Pictures [viewDefault gs, viewDebug gs]
+    SinglePlayer  -> viewWithOverlay gs
+    Paused        -> viewWithOverlay gs
+    GameOver      -> viewWithOverlay gs
+
+viewWithOverlay :: GameState -> Picture
+viewWithOverlay gs = if debugView gs == 0
+                      then viewDefault gs
+                      else Pictures [viewDefault gs, viewDebug gs]
 
 viewDefault :: GameState -> Picture
 viewDefault gs =

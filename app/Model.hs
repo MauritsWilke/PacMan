@@ -105,7 +105,7 @@ initialPlayer = Player
   , queuedDir = East
   }
 
-data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer | Paused | GameOver
+data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | Paused | GameOver
   deriving (Show, Eq)
 
 data Level = Level
@@ -128,7 +128,7 @@ data Board = Board
 data Direction = North | South | West | East
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
-data Player = NoPlayer | Player
+data Player = Player
   { position  :: (Float, Float) -- offset for player
   , direction :: Direction
   , queuedDir :: Direction

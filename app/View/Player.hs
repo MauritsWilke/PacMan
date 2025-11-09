@@ -28,7 +28,6 @@ positionArrow tw dir = Translate dx dy . Rotate rot
       North -> (0,  offset, 0)
 
 drawPlayer :: AnimationTimer -> Float -> Board -> Player -> Picture
-drawPlayer _ _ _ NoPlayer   = blank
 drawPlayer (AnimationTimer f) tw Board{..} Player{..} =
   let
     (x, y) = position
@@ -58,8 +57,6 @@ openMouth tw =
     ]
 
 drawPlayerDebug :: Float -> Int -> Board -> Player -> Picture
-drawPlayerDebug _ _ _ NoPlayer =
-  Color red $ Text "there is no current level"
 drawPlayerDebug tw i Board{..} Player{..}
   | i == 2 = let (x, y) = position in
     Translate (- (0.5 * tw)) (0.5 * tw)
