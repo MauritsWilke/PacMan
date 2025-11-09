@@ -124,7 +124,7 @@ data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer 
 
 data Level = Level
   { gameBoard     :: Board
-  , nameBoard     :: String    -- TODO combine these into NamedBoard, veel werk!
+  , nameBoard     :: String
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic, ToJSON, FromJSON)
 
