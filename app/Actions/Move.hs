@@ -60,27 +60,27 @@ moveIsPossible gs (x,y) speed dir allowedInSpawn = let
                           else closeEnough speed x
 
   in if isCloseEnough then case get tileToCheck brd of
-   Nothing         -> getWrapAround (desiredX,desiredY) brd -- check for wrap-around if edge of map
-   Just Wall       -> if (x,y) == setToMiddle (x,y) (Just dir)
+   Nothing         -> getWrapAround (desiredX,desiredY) brd           -- check for wrap-around if edge of map
+   Just Wall       -> if (x, y) == setToMiddle (x, y) (Just dir)
                         then Nothing
-                        else Just $ setToMiddle (x,y) Nothing  -- set to end of allyway if not yet exact
+                        else Just $ setToMiddle (x, y) Nothing        -- set to end of allyway if not yet exact
    Just GhostExit  -> if allowedInSpawn
                         then Just (cornerSnap dir desiredX desiredY)
-                        else Nothing --Just $ setToMiddle (x,y) Nothing -- set to end of allyway if a regular player, otherwise do a normal move
+                        else Nothing
    Just GhostSpawn -> if allowedInSpawn
                         then Just (cornerSnap dir desiredX desiredY)
                         else Nothing
-   Just _          -> Just (cornerSnap dir desiredX desiredY) -- if move possible -> update offset of direction and set other direction to some n + 0.5 (to allign with middle)
-  else Nothing -- if to far from edge -> check if move still possible if not, stay in place
+   Just _          -> Just (cornerSnap dir desiredX desiredY)         -- if move possible -> update offset of direction and set other direction to some n + 0.5 (to allign with middle)
+  else Nothing                                                        -- if to far from edge -> check if move still possible if not, stay in place
 
 getWrapAround :: (Float, Float) -> Board -> Maybe (Float, Float)
 getWrapAround (x,y) b
-  | onEdge && accesibleOtherSide = Just otherSide -- if the other side of the board has an accesible slot -> return other side
+  | onEdge && accesibleOtherSide = Just otherSide                     -- if the other side of the board has an accesible slot -> return other side
   | otherwise = Nothing
   where
     onEdge = x <= 0.5
           || y <= 0.5
-          || ceiling (x - 0.499) >= integerFromInt (height b) -- check if in or over middle of tile at the edge of the board
+          || ceiling (x - 0.499) >= integerFromInt (height b)         -- check if in or over middle of tile at the edge of the board
           || ceiling (y - 0.499) >= integerFromInt (width  b)
     accesibleOtherSide = -- only true when not a wall | ghostexit | ghostspawn
       case get (floor otherX, floor otherY) b of
@@ -134,9 +134,9 @@ ghostMove gstate ghost@Ghost{..}
       | otherwise      = ghostStep gstate ghost bestDirection speed
 
     -- set outside of spawn
-    outsideSpawn = let (x,y) = destination'
-                       (a,b) = directionToTuple bestDirection
-                   in (x+0.4*a,y+0.4*b)
+    outsideSpawn = let (x, y) = destination'
+                       (a, b) = directionToTuple bestDirection
+                   in (x + 0.4 * a, y + 0.4 * b)
 
     -- parse destination to its value
     destination' = case destination of
@@ -144,13 +144,17 @@ ghostMove gstate ghost@Ghost{..}
         Just sl -> sl -- return destination
     
     -- determine speed based on ghost mode
-    speed = if ghostMode == Spawn then 2 * ghostSpeed gstate else ghostSpeed gstate
+    speed = if ghostMode == Spawn 
+              then 2 * ghostSpeed gstate 
+              else ghostSpeed gstate
 
     -- fright is applied elsewhere due to randomness
-    shouldntMove = (getCount frightTimer > 0 && isNothing destination) || getCount releaseTimer > 0
+    shouldntMove = (getCount frightTimer > 0 && isNothing destination) 
+                 || getCount releaseTimer > 0
 
     -- check all legal directions except opposite
-    allowedDirections = filter movableDirection $ delete (oppositeDirection ghostDirection) allDirections
+    allowedDirections = filter movableDirection 
+                      $ delete (oppositeDirection ghostDirection) allDirections
 
     -- checks if the provided direction is allowed
     movableDirection dir' =
@@ -233,8 +237,8 @@ goalAlgorithm gstate Ghost{..}
 
 -- base goal tile off of pacman & first Blinky ghost in list, if no Blinky in list -> use provided ghost-location instead
 inky :: GameState -> (Float,Float) -> (Float, Float)
-inky gstate (x,y) = (refX + 2*xOff, refY + 2*yOff)
- where (xOff,yOff) = (pacX-refX,pacY-refY)
+inky gstate (x, y) = (refX + 2 * xOff, refY + 2 * yOff)
+ where (xOff, yOff) = (pacX - refX, pacY - refY)
        (pacX, pacY) = twoInFrontPacman gstate
        (refX, refY) = if null blinkies
                         then (x, y)
@@ -250,5 +254,5 @@ twoInFrontPacman gstate = (x + 2 * xOff, y + 2 * yOff)
 
 distance :: (Float,Float) -> (Float,Float) -> Float
 distance (x, y) (a, b) = sqrt $ (xOff * xOff) + (yOff * yOff)
-  where xOff = x-a
-        yOff = y-b
+  where xOff = x - a
+        yOff = y - b

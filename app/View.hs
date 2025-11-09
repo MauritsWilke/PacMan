@@ -50,23 +50,44 @@ drawLevel' :: GameState -> Picture
 drawLevel' gs = drawLevel (tileWidth gs) (level gs)
 
 drawPlayer' :: GameState -> Picture
-drawPlayer' gs = drawPlayer (animation gs) (tileWidth gs) (gameBoard (level gs)) (player gs)
+drawPlayer' gs = drawPlayer anim tw brd p
+  where
+    anim = animation gs
+    tw   = tileWidth gs
+    brd  = gameBoard (level gs)
+    p    = player gs
+
 
 viewGhosts :: GameState -> Picture
-viewGhosts gs = Pictures $ map (drawGhost (animation gs) (tileWidth gs) (gameBoard (level gs))) (ghosts (level gs))
+viewGhosts gs = Pictures ghostPics
+  where
+    anim      = animation gs
+    tw        = tileWidth gs
+    brd       = gameBoard (level gs)
+    ghostList = ghosts (level gs)
+    ghostPics = map (drawGhost anim tw brd) ghostList
+
 
 viewGhostsDebug :: GameState -> Picture
-viewGhostsDebug gs = Pictures $ map (drawGhostDebug gs (tileWidth gs) (debugView gs) (gameBoard (level gs))) (ghosts (level gs))
+viewGhostsDebug gs = Pictures ghostPics
+  where
+    tw  = tileWidth gs
+    dbg = debugView gs
+    brd = gameBoard (level gs)
+    ghostList = ghosts (level gs)
+    ghostPics = map (drawGhostDebug gs tw dbg brd) ghostList
 
 viewGUI :: GameState -> Picture
-viewGUI gs =
-    Pictures
-      [ drawScore    (tileWidth gs) (gameBoard (level gs)) (score gs)
-      , drawLives    (tileWidth gs) (gameBoard (level gs)) (getCount (lives gs))
-      , drawPaused   (tileWidth gs) (gameBoard (level gs)) (scene gs == Paused)
-      , drawGameOver (tileWidth gs) (gameBoard (level gs)) (scene gs == GameOver) (score gs)
-      , drawRoundIndicator (tileWidth gs) (gameBoard (level gs)) (Model.round gs)
-      ]
+viewGUI gs = Pictures
+  [ drawScore tw brd (score gs)
+  , drawLives tw brd (getCount (lives gs))
+  , drawPaused tw brd (scene gs == Paused)
+  , drawGameOver tw brd (scene gs == GameOver) (score gs)
+  , drawRoundIndicator tw brd (Model.round gs)
+  ]
+  where
+    tw  = tileWidth gs
+    brd = gameBoard (level gs)
 
 insertAt :: Int -> a -> [a] -> [a]
 insertAt i x xs =
@@ -74,9 +95,14 @@ insertAt i x xs =
     in before ++ [x] ++ after
 
 viewDebug :: GameState -> Picture
-viewDebug gs =
-    let i = if null (frightenedGhosts (ghosts (level gs))) then 2 else 1
-    in Pictures $ insertAt i (viewGhostsDebug gs)
-      [ drawLevelDebug  (tileWidth gs) (debugView gs) (level gs)
-      , drawPlayerDebug (tileWidth gs) (debugView gs) (gameBoard (level gs)) (player gs)
-      ]
+viewDebug gs = Pictures $ insertAt ghostIndex (viewGhostsDebug gs) debugPics
+  where
+    tw  = tileWidth gs
+    dbg = debugView gs
+    lvl = level gs
+    brd = gameBoard lvl
+    p   = player gs
+    ghostsLvl  = ghosts lvl
+    ghostIndex = if null (frightenedGhosts ghostsLvl) then 2 else 1
+    debugPics = [ drawLevelDebug tw dbg lvl, drawPlayerDebug tw dbg brd p]
+

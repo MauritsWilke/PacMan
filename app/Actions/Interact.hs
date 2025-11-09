@@ -8,10 +8,17 @@ import Utils.Count
 import Actions.Move
 import Utils.PlayerUtil
 import View.Scenes.SelectBoard (exitScene)
+import Data.Function ((&))
 
 interact :: GameState -> GameState
 interact gs = case scene gs of
-  SinglePlayer -> (checkGameOver . interactGhosts . awardExtraLives . interactPellets . playerMove . reduceTimers) gs
+  SinglePlayer -> gs
+                & reduceTimers
+                & playerMove
+                & interactPellets
+                & interactGhosts
+                & awardExtraLives
+                & checkGameOver
   _            -> gs
 
 -- REDUCE ALL TIMERS BY 1, AUTO STOP AT 0
@@ -33,7 +40,7 @@ awardExtraLives gs = gs
   { lives = currentLives .+ toBeGranted
   , livesAwarded = alreadyawarded + toBeGranted
   } where currentLives     = lives gs
-          livesToBeAwarded = (getCount .score) gs `div` 10000
+          livesToBeAwarded = (getCount . score) gs `div` 10000
           alreadyawarded   = livesAwarded gs
           toBeGranted      = livesToBeAwarded - alreadyawarded
 
@@ -47,22 +54,23 @@ reduceGhostTimers (g@Ghost{..} : gs)
  , releaseTimer = releaseTimer .- 1
  , ghostMode    = ghostMode'
  } : reduceGhostTimers gs
- where resetTimer = case ghostMode' of
-          Chase   -> 20 * 60
-          Scatter -> 7  * 60
-          _       -> 0
+ where 
+  resetTimer = case ghostMode' of
+    Chase   -> 20 * 60
+    Scatter -> 7  * 60
+    _       -> 0
 
-       ghostMode' = if getCount scatterTimer == 0 then switch ghostMode else ghostMode
-       switch m   = case m of
-          Chase   -> Scatter
-          Scatter -> Chase
-          x       -> x
+  ghostMode' = if getCount scatterTimer == 0 then switch ghostMode else ghostMode
+  switch m   = case m of
+    Chase   -> Scatter
+    Scatter -> Chase
+    x       -> x
 
 playerKilled :: GameState -> GameState
 playerKilled gs = gs
   { lives  = lives' .- 1
   , level  = level'  { ghosts = resetGhosts gs ghosts' }
-  , player = player' {position = getPlayerSpawn board', direction = East }
+  , player = player' { position = getPlayerSpawn board', direction = East }
   } where player' = player gs
           board'  = gameBoard $ level gs
           lives'  = lives gs
@@ -76,10 +84,14 @@ resetGhosts gs = reset' where
       { ghostPosition = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)} : reset' ghs
 
 interactGhosts  :: GameState -> GameState
-interactGhosts  gs = case afterCollisionRes of -- check if pacman is eaten
-  Nothing    -> playerKilled gs                   -- if so, soft reset
-  Just (s,a) -> let extraPoints = if s > 0 then ghostPoints (ghostsEaten gs + s) else 0
-    in gs { score = score gs .+ extraPoints, ghostsEaten = ghostsEaten gs +  s, level = lvl { ghosts = a } } -- if not, update ghosts and score
+interactGhosts  gs = 
+  case afterCollisionRes of -- check if pacman is eaten
+    Nothing    -> playerKilled gs                   -- if so, soft reset
+    Just (s,a) -> let extraPoints = if s > 0 then ghostPoints (ghostsEaten gs + s) else 0 in gs
+      { score       = score gs .+ extraPoints
+      , ghostsEaten = ghostsEaten gs +  s
+      , level       = lvl { ghosts = a } 
+      } -- if not, update ghosts and score
   where afterCollisionRes = afterCollision gs currGhostList
         currGhostList     = ghosts $ level gs
         lvl               = level gs
@@ -105,7 +117,6 @@ afterCollision gs ghosts
                     })
       _         -> (0, g)
       where destination = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)
-
 
 interactPellets :: GameState -> GameState
 interactPellets gs = checkLevelComplete $ action gs
@@ -135,16 +146,18 @@ interactPellets gs = checkLevelComplete $ action gs
 
 checkLevelComplete :: GameState -> GameState
 checkLevelComplete gs = if emptyBoard b
-  then (exitScene gs) {player = player', lives = currLives, M.round = newRound, score = currScore}
+  then (exitScene gs) 
+    { player  = player'
+    , lives   = currLives
+    , M.round = newRound
+    , score   = currScore }
   else gs
   where currLives = lives gs
         newRound  = M.round gs .+ 1
         currScore = score gs
-        player'    = (player gs) { position = getPlayerSpawn b, direction = East }
+        player'   = (player gs) { position = getPlayerSpawn b, direction = East }
         b = gameBoard $ level gs
-
-
-
+        
 freightenGhosts :: GameState -> GameState
 freightenGhosts gstate = gstate { level = newLevel }
   where

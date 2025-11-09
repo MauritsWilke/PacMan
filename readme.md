@@ -13,7 +13,7 @@ For extra options:
 - You can 'queue' your next move, making it easier to navigate around. The red arrow around Pac-Man indicates what direction you will go to once it is possible.
 
 ## Saving game
-To save a game, press `s` from the pause menu, a `savegame.json` will appear in the root project.
+To save a game, press `s` from the pause menu, a `gamesave.json` will appear in the root project.
 To load this in, put it in the `/saves` folder (with any name you want) and load it in from the home screen by going to the saves menu (`l`) and pressing `enter` on the save file you want to continue playing from. The game will automatically resume after loading.
 
 ## Creating a Custom Board

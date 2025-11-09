@@ -18,7 +18,7 @@ import Utils.SaveGame (saveGameState)
 step :: Float -> GameState -> IO GameState
 step _ gs
   | shouldQuit gs       = exitSuccess
-  | shouldSave gs       = saveGameState "savegame.json" gs
+  | shouldSave gs       = saveGameState "gamesave.json" gs
   | scene gs == Paused  = pure (inputKey gs)
   | otherwise           = randomMoves $ A.interact $ inputKey gs
 
@@ -33,12 +33,10 @@ resize :: Event-> GameState -> GameState
 resize (EventResize x) gs = gs { screenSize = x }
 resize _ gs               = gs
 
-
 getRandomFrom :: [a] -> IO a
 getRandomFrom [] = error "can't get element from empty list"
-getRandomFrom as = do
-          index <- randomRIO (0,length as -1)
-          return $ as !! index
+getRandomFrom as = do index <- randomRIO (0, length as - 1)
+                      return $ as !! index
 
 randomMoves :: GameState -> IO GameState
 randomMoves gs = do
@@ -54,7 +52,7 @@ randomMoves gs = do
 
   let fullGhostList  = updatedFrightened ++ nonFrightened
       updatedLevel   = lvl { ghosts = fullGhostList }
-      gs'            = gs { level = updatedLevel }
+      gs'            = gs  { level  = updatedLevel  }
 
   return gs'
 
@@ -64,16 +62,17 @@ applyRandom gs ghost = do
       allowedDirections = filter (/= avoid) allDirections
       allowedMoves      = filter (validMove ghost) allowedDirections
 
-      validMove gh d    =
-        isJust $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d False
+      validMove gh d    = isJust 
+                        $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d False
 
   dir <- case allowedMoves of
     []  -> return $ oppositeDirection (ghostDirection ghost)
     [d] -> return d
     _   -> getRandomFrom allowedMoves
 
-  return $ if getCount (releaseTimer ghost) > 0 then ghost else ghostStep gs ghost dir (0.5* ghostSpeed gs)
-
+  return $ if getCount (releaseTimer ghost) > 0 
+            then ghost 
+            else ghostStep gs ghost dir (0.5* ghostSpeed gs)
 
 keysThatCantRepeat :: [Key]
 keysThatCantRepeat = [Char 'p', Char 'w', Char 'a', Char 's', Char 'd']

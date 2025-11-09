@@ -23,9 +23,9 @@ drawLevelDebug tw i Level{ gameBoard = Board{..} }
   | i == 3    = Pictures $ I.elems $ I.mapWithKey renderTileCoords board
   | otherwise = blank
   where 
-    debugTranslation = -(0.5* tw) + 0.15 * tw
+    debugTranslation = -(0.5 * tw) + 0.15 * tw
     renderTileCoords j _ = positionTile tw width height j
-      (Translate debugTranslation (0.5* tw)
+      (Translate debugTranslation (0.5 * tw)
         $ Rotate 45
         $ Scale 0.08 0.08
         $ Color red
@@ -41,7 +41,7 @@ tileAsset :: TileWidth -> Tile -> Picture
 tileAsset tw Wall        = Color blue   $ rectangleWire tw tw
 tileAsset tw Pellet      = Color white  $ rectangleSolid (tw / 4) (tw / 4)
 tileAsset tw PowerPellet = Color white  $ circleSolid (tw / 3)
-tileAsset _  GhostSpawn  = blank --Color green  $ rectangleSolid l l
 tileAsset tw GhostExit   = Color orange $ rectangleSolid tw tw
+tileAsset _  GhostSpawn  = blank
 tileAsset _  PlayerSpawn = blank
 tileAsset _  Empty       = blank

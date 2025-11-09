@@ -247,7 +247,7 @@ standardGhosts b =
 
 getPlayerSpawn :: Board -> (Float, Float)
 getPlayerSpawn Board{..}
- | null ints = (1.5,1.5)
+ | null ints = (1.5, 1.5)
  | otherwise = parseToMiddle $ indexToCoord (fst (head ints)) width
   where ints    = Prelude.filter ((== PlayerSpawn) . snd) (I.toList board)
 
