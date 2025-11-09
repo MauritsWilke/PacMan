@@ -64,7 +64,7 @@ toSaveGameState gs = SaveGameState
   , ghostsEatenSave  = ghostsEaten gs
   }
 
--- initialize gamestate based on provided custom levels and save files
+-- initialize gamestate based on provided custom levels and save files, stored for later use
 initialState :: [NamedBoard] -> [NamedSave] -> GameState
 initialState bs ss = GameState
   { scene        = Homescreen
