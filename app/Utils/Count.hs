@@ -15,8 +15,8 @@ newtype NonNeg = NonNeg Int
 
 class Count a where
   getCount :: a -> Int
-  (.-) :: a -> Int -> a
-  (.+) :: a -> Int -> a
+  (.-) :: a -> Int -> a -- sum function which makes sure the value will be non-negative
+  (.+) :: a -> Int -> a -- subtract function which makes sure the value will be non-negative
 infixl 6 .-, .+
 
 instance Count NonNeg where
@@ -40,6 +40,7 @@ newtype ScoreCounter     = ScoreCounter   Int   deriving (Eq, Show, Count) via N
 newtype ScatterTimer     = ScatterTimer   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype AnimationTimer   = AnimationTimer Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 
+-- Intialize counters and timers as non negatives
 animationTimer :: Int -> AnimationTimer
 animationTimer = AnimationTimer . max 0
 
