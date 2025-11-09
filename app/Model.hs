@@ -128,7 +128,7 @@ data Level = Level
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic, ToJSON, FromJSON)
 
-data Tile = Wall | Empty | Pellet | PowerPellet | Fruit | GhostSpawn | GhostExit | PlayerSpawn
+data Tile = Wall | Empty | Pellet | PowerPellet | GhostSpawn | GhostExit | PlayerSpawn
   deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 data Board = Board

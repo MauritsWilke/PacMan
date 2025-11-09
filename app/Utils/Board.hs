@@ -20,7 +20,6 @@ charToTile 'W' = Wall
 charToTile 'E' = Empty
 charToTile 'P' = Pellet
 charToTile 'S' = PowerPellet
-charToTile 'F' = Fruit
 charToTile 'G' = GhostSpawn
 charToTile 'H' = GhostExit
 charToTile 'X' = PlayerSpawn

@@ -25,7 +25,6 @@ To create a custom board, use the mapping provided below. Create a file and sepa
 | Empty        | E        |
 | Pellet       | P        |
 | Power Pellet | S        |
-| Fruit        | F        |
 | Ghost Spawn  | G        |
 | Ghost Exit   | H        |
 | Player Spawn | X        |

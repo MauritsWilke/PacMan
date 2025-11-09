@@ -38,7 +38,6 @@ newtype RoundCounter     = RoundCounter   Int   deriving (Eq, Show, Count) via N
 newtype FrightTimer      = FrightTimer    Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype ReleaseTimer     = ReleaseTimer   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype ScoreCounter     = ScoreCounter   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
-newtype FruitTimer       = FruitTimer     Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype PoweredTimer     = PoweredTimer   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype ScatterTimer     = ScatterTimer   Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
 newtype AnimationTimer   = AnimationTimer Int   deriving (Eq, Show, Count) via NonNeg deriving (Generic, ToJSON, FromJSON)
@@ -60,9 +59,6 @@ frightTimeCounter = FrightTimer . max 0
 
 releaseTimeCounter :: Int -> ReleaseTimer
 releaseTimeCounter = ReleaseTimer . max 0
-
-fruitTimeCounter :: Int -> FruitTimer
-fruitTimeCounter = FruitTimer . max 0
 
 poweredTimeCounter :: Int -> PoweredTimer
 poweredTimeCounter = PoweredTimer . max 0
