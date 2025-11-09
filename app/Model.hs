@@ -95,9 +95,9 @@ toSaveGameState gs = SaveGameState
 initialState :: [NamedBoard] -> [NamedSave] -> GameState
 initialState bs ss = GameState
   { scene        = Homescreen
-  , level        = initialLevel bs
+  , level        = initialLevel
   , player       = initialPlayerTEMP
-  , boards       = bs
+  , boards       = hardcodedBoard : bs
   , saves        = ss
   -- COUNTERS
   , timer        = timeCounter 0
@@ -117,26 +117,22 @@ initialState bs ss = GameState
   , paused       = False
   , debugView    = 0
   , menuHelper   = 0
-  }
+  } 
+  where 
+    hardcodedBoard = NamedBoard
+      { boardName = nameBoard initialLevel
+      , boardData = gameBoard initialLevel }
 
-initialLevel :: [NamedBoard] -> Level
-initialLevel b = Level
+initialLevel :: Level
+initialLevel = Level
   { spawnPosition = (13.5, 14)
-  , gameBoard = boardData firstBoard
-  , nameBoard = boardName firstBoard
-  , ghosts = standardGhosts $ boardData firstBoard
-  } where firstBoard = head b
+  , gameBoard = originalBoard
+  , nameBoard = "Pac-Man Original"
+  , ghosts = standardGhosts originalBoard
+  } 
 
-initialLevelTEMP :: Level
-initialLevelTEMP = Level
-  { spawnPosition = (13.5, 14)
-  , gameBoard = realBoard
-  , nameBoard = "realBoard"
-  , ghosts = standardGhosts realBoard
-  }
-
-realBoard :: Board
-realBoard = Board {
+originalBoard :: Board
+originalBoard = Board {
   board = I.fromList boardList,
   width = w,
   height = h
@@ -150,7 +146,7 @@ realBoard = Board {
 
 initialPlayerTEMP :: Player
 initialPlayerTEMP = Player
-  { position = spawnPosition initialLevelTEMP
+  { position = spawnPosition initialLevel
   , direction = East
   , queuedDir = East
   , mode = Normal
