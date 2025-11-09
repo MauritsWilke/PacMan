@@ -4,6 +4,8 @@
 Simply execute `cabal run` in the root of this project.
 For extra options:
 - The `/boards` folder holds custom boards (see [Creating a Custom Board](#creating-a-custom-board))
+- The `/saves` folder holds save files
+Both have one example file included!
 
 ### Controls:
 - Navigate around menus using `w` `s` and `enter`
