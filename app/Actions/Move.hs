@@ -10,6 +10,7 @@ import Utils.Count
 import Data.Maybe
 import qualified Data.Bifunctor as B
 
+-- update the direction of the player if allowed, set to que if not
 updatePlayerDir :: GameState -> Direction -> GameState
 updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir } }
   where
@@ -19,6 +20,7 @@ updatePlayerDir gs dir = gs { player = plr { direction = newDir, queuedDir = dir
                     Just _  -> dir
                     Nothing -> direction plr
 
+-- execute a move on player state (uses player direction data to determine action)
 playerMove :: GameState -> GameState
 playerMove gs = gs { player = plr' }
   where
@@ -73,6 +75,7 @@ moveIsPossible gs (x,y) speed dir allowedInSpawn = let
    Just _          -> Just (cornerSnap dir desiredX desiredY)         -- if move possible -> update offset of direction and set other direction to some n + 0.5 (to allign with middle)
   else Nothing                                                        -- if to far from edge -> check if move still possible if not, stay in place
 
+-- find the location of the wrap-around tile, returns Nothing if no accesible tile at other side
 getWrapAround :: (Float, Float) -> Board -> Maybe (Float, Float)
 getWrapAround (x,y) b
   | onEdge && accesibleOtherSide = Just otherSide                     -- if the other side of the board has an accesible slot -> return other side
@@ -91,6 +94,7 @@ getWrapAround (x,y) b
        Just _          -> True
     otherSide@(otherX, otherY) = (mod' x (fromIntegral (height b)), mod' y (fromIntegral (width b)))
 
+-- parse direction into tuple of normalized offsets
 directionToTuple :: Direction -> (Float,Float)
 directionToTuple North = (1 , 0)
 directionToTuple South = (-1, 0)
@@ -203,6 +207,7 @@ tileMove :: (Float,Float) -> Direction -> (Float,Float)
 tileMove (x, y) dir  = (x + xAdd, y + yAdd)
   where (xAdd, yAdd) = directionToTuple dir
 
+-- switch the direction with the opposite direction
 oppositeDirection :: Direction -> Direction
 oppositeDirection North = South
 oppositeDirection South = North
@@ -252,6 +257,7 @@ twoInFrontPacman gstate = (x + 2 * xOff, y + 2 * yOff)
   where (x, y)       = position $ player gstate
         (xOff, yOff) = directionToTuple $ direction $ player gstate
 
+-- calculate the distance between two positions
 distance :: (Float,Float) -> (Float,Float) -> Float
 distance (x, y) (a, b) = sqrt $ (xOff * xOff) + (yOff * yOff)
   where xOff = x - a
