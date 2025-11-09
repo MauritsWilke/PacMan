@@ -54,7 +54,6 @@ data SecondPlayerState = SecondPlayerState
   -- ROUND SPECIFIC
   , pelletsEatenTwo :: Int
   , ghostsEatenTwo  :: Int -- Resets when eating power pellet
-  -- , poweredTimer :: PoweredTimer
   -- GAME CONTROLS
   , keysTwo         :: S.Set Graphics.Gloss.Interface.IO.Game.Key    
   }
@@ -72,7 +71,6 @@ data SaveGameState = SaveGameState
   , livesAwardedSave :: Int
   , pelletsEatenSave :: Int
   , ghostsEatenSave  :: Int -- Resets when eating power pellet
-  -- , poweredTimerSave :: PoweredTimer
   } deriving (Show, Generic, ToJSON, FromJSON)
 
 toSaveGameState :: GameState -> SaveGameState
@@ -89,7 +87,6 @@ toSaveGameState gs = SaveGameState
   , livesAwardedSave = livesAwarded gs
   , pelletsEatenSave = pelletsEaten gs
   , ghostsEatenSave  = ghostsEaten gs
-  -- , poweredTimerSave = poweredTimer gs
   }
 
 initialState :: [NamedBoard] -> [NamedSave] -> GameState
@@ -125,8 +122,7 @@ initialState bs ss = GameState
 
 initialLevel :: Level
 initialLevel = Level
-  { spawnPosition = (13.5, 14)
-  , gameBoard = originalBoard
+  { gameBoard = originalBoard
   , nameBoard = "Pac-Man Original"
   , ghosts = standardGhosts originalBoard
   } 
@@ -146,7 +142,7 @@ originalBoard = Board {
 
 initialPlayerTEMP :: Player
 initialPlayerTEMP = Player
-  { position = spawnPosition initialLevel
+  { position = getPlayerSpawn (gameBoard initialLevel)
   , direction = East
   , queuedDir = East
   , mode = Normal
@@ -193,8 +189,7 @@ data Scene = Homescreen | LoadGame | ConfigureGame | SinglePlayer | MultiPlayer 
   deriving (Show, Eq)
 
 data Level = NoLevel | Level
-  { spawnPosition :: (Float, Float) -- Spawn tile
-  , gameBoard     :: Board
+  { gameBoard     :: Board
   , nameBoard     :: String    -- TODO combine these into NamedBoard, veel werk!
   , ghosts        :: [Ghost]   -- Custom amount of ghosts
   } deriving (Show, Generic, ToJSON, FromJSON)
@@ -302,7 +297,13 @@ ghostSpeed gstate  | roundIndex > 4  = 0.14875
                    | otherwise       = 0.12375
   where roundIndex = getCount $ Model.round gstate
 
---get all ghosts that currently are in frightened mode
+-- get the score of the eaten ghost based on amount of ghosts already eaten
+ghostPoints :: Int -> Int
+ghostPoints n | n == 1    = 200
+              | n >  1    = 2 * ghostPoints (n-1)
+              | otherwise = 0
+
+-- get all ghosts that currently are in frightened mode
 frightenedGhosts :: [Ghost] -> [Ghost]
 frightenedGhosts []     = []
 frightenedGhosts (x:xs) = if frightened x then x : remainder else remainder

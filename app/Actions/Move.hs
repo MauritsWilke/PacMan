@@ -130,10 +130,13 @@ ghostMove gstate ghost@Ghost{..}
            | hasDestination && distance ghostPosition destination' < 0.2 =
               ghost {destination = Nothing, ghostMode = Chase}
            | otherwise      = ghostStep gstate ghost bestDirection speed
--- if isRespawning && distance (ghostPosition ghost) spawn < 0.5 then ghost {destination = Nothing, ghostMode = Chase} else ghostStep gstate ghost bestDirection (ghostSpeed gstate)
+
+    -- parse destination to its value
     destination' = case destination of
         Nothing -> error "this should not be possible due to lazy evaluation"
         Just sl -> sl -- return destination
+    
+    -- determine speed based on ghost mode
     speed = if ghostMode == Spawn then 2 * ghostSpeed gstate else ghostSpeed gstate
 
     -- fright is applied elsewhere due to randomness
@@ -147,6 +150,7 @@ ghostMove gstate ghost@Ghost{..}
       case moveIsPossible gstate ghostPosition speed dir' passThroughExit of
         Nothing   -> False
         Just _    -> True
+    -- check if ghost is allowed through ghost exit
     passThroughExit = isJust destination
 
 -- set current location to middle of current tile or only the coordinate inline with the provided direction
@@ -165,7 +169,7 @@ bestOf gstate ghost directions = bestDirection                                  
  where
   bestDirection = directions !! closestToGoal
   closestToGoal = fromMaybe 0 (elemIndex (foldl1' min distances) distances)                  -- minimum distances `elem` distances
-  distances     = map (distance ghostGoal . preMove currPosition speed) directions -- calculate all the distances of potential moves
+  distances     = map (distance ghostGoal . preMove currPosition speed) directions           -- calculate all the distances of potential moves
   speed         = if ghostMode ghost == Spawn then 2 * ghostSpeed gstate else ghostSpeed gstate
   currPosition  = ghostPosition ghost
   ghostGoal     = goalAlgorithm gstate ghost
@@ -225,14 +229,11 @@ inky :: GameState -> (Float,Float) -> (Float, Float)
 inky gstate (x,y) = (refX + 2*xOff, refY + 2*yOff)
  where (xOff,yOff) = (pacX-refX,pacY-refY)
        (pacX, pacY) = twoInFrontPacman gstate
-       (refX, refY) = if not (null allBlinkies)
-                        then ghostPosition $ head allBlinkies
-                        else (x, y)
-       allBlinkies = filter (isBlinky . ghostType) ghostList
+       (refX, refY) = if null blinkies
+                        then (x, y)
+                        else ghostPosition $ head blinkies
+       blinkies = filter ((== Blinky) . ghostType) ghostList
        ghostList = ghosts $ level gstate
-       isBlinky g = case g of
-        Blinky -> True
-        _ -> False
 
 -- get the index of pacman + 2 times its direction (to predict movement)
 twoInFrontPacman :: GameState -> (Float,Float)

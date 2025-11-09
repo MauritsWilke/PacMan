@@ -29,9 +29,9 @@ checkGameOver gs = case lives gs of
   _             -> gs
 
 awardExtraLives :: GameState -> GameState
-awardExtraLives gs = gs 
+awardExtraLives gs = gs
   { lives = currentLives .+ toBeGranted
-  , livesAwarded = alreadyawarded + toBeGranted 
+  , livesAwarded = alreadyawarded + toBeGranted
   } where currentLives     = lives gs
           livesToBeAwarded = (getCount .score) gs `div` 10000
           alreadyawarded   = livesAwarded gs
@@ -66,31 +66,32 @@ resetGhosts gs = reset' where
 
 interactGhosts  :: GameState -> GameState
 interactGhosts  gs = case afterCollisionRes of -- check if pacman is eaten
-  Nothing -> playerKilled gs                   -- if so, soft reset
-  Just a  -> gs { level = lvl { ghosts = a } } -- if not, update ghosts
+  Nothing    -> playerKilled gs                   -- if so, soft reset
+  Just (s,a) -> gs { score = score gs .+ ghostPoints s, ghostsEaten = ghostsEaten gs +  s, level = lvl { ghosts = a } } -- if not, update ghosts and score
   where afterCollisionRes = afterCollision gs currGhostList
         currGhostList     = ghosts $ level gs
         lvl               = level gs
 
 -- returns nothing if level requires soft reset, 
--- returns Just [Ghost] if pacman not eaten with the updated ghostlist
-afterCollision :: GameState -> [Ghost] -> Maybe [Ghost]
+-- returns Just (eatenGhosts, [Ghost]) if pacman not eaten with the amount of extra eaten ghosts and updated ghostlist
+afterCollision :: GameState -> [Ghost] -> Maybe (Int, [Ghost])
 afterCollision gs ghosts
   | any playerGetsEaten ghosts = Nothing
-  | otherwise                  = Just (map update ghosts)
+  | otherwise                  = Just (sum (map fst updatedGhosts) , map snd updatedGhosts)
   where
+    updatedGhosts = map update ghosts
     hit = eats (player gs)
     playerGetsEaten g = case hit g of -- ghost eats player
-      Just False -> True   
+      Just False -> True
       _          -> False
 
     update g = case hit g of -- player eats ghost
-      Just True -> g 
+      Just True -> (1, g
                     { destination = Just destination
                     , ghostMode   = Spawn
                     , frightTimer = frightTimeCounter 0
-                    }
-      _         -> g
+                    })
+      _         -> (0, g)
       where destination = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)
 
 
@@ -98,7 +99,6 @@ interactPellets :: GameState -> GameState
 interactPellets gs = checkLevelComplete $ action gs
   { level        = lvl { gameBoard = board' }
   , score        = score'
-  -- , poweredTimer = poweredTimeCounter 10
   , ghostsEaten  = ghs'
   } where
     lvl       = level gs
@@ -114,13 +114,16 @@ interactPellets gs = checkLevelComplete $ action gs
                      _                -> brd
 
     (score', action, ghs') = case tile of
-      Just Pellet      -> (score gs .+ 10, id              , ghostsEaten gs)
-      Just PowerPellet -> (score gs .+ 50, freightenGhosts , 0             )
-      _                -> (score gs,       id              , ghostsEaten gs)
+      Just Pellet      -> (score gs .+ 10, id       , ghostsEaten gs)
+      Just PowerPellet -> (score gs .+ 50, transform, 0             )
+      _                -> (score gs      , id       , ghostsEaten gs)
+
+    transform            = resetGhostsEaten . freightenGhosts
+    resetGhostsEaten gs' = gs' {ghostsEaten = 0}
 
 checkLevelComplete :: GameState -> GameState
 checkLevelComplete gs = if emptyBoard b
-  then (exitScene gs) {player = player', lives = currLives, M.round = newRound, score = currScore}--gs {round = M.round gs .+ 1, level = lvl}
+  then (exitScene gs) {player = player', lives = currLives, M.round = newRound, score = currScore}
   else gs
   where currLives = lives gs
         newRound  = M.round gs .+ 1
