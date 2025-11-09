@@ -4,12 +4,13 @@ import Graphics.Gloss.Interface.IO.Game
 import View
 import Controller
 
-import System.Directory (listDirectory)
-import System.FilePath (takeBaseName, (</>))
+import System.Directory (doesDirectoryExist, doesFileExist, listDirectory)
+import System.FilePath  ((</>), takeBaseName)
 import Utils.Board (parseBoard)
 import Model (NamedBoard(..), initialState, NamedSave (..))
 import Data.Aeson (decodeFileStrict)
-import Data.Maybe
+import Control.Monad (filterM)
+import Data.Traversable (forM)
 
 main :: IO ()
 main = do
@@ -26,22 +27,38 @@ main = do
 
 loadBoards :: IO [NamedBoard]
 loadBoards = do
-  files <- listDirectory "boards"
-  let paths = map ("boards" </>) files
-  boardStrings <- mapM readFile paths
+  let dir = "boards"
+  exists <- doesDirectoryExist dir
+  if not exists
+    then pure []
+    else do
+      files <- listDirectory dir
 
-  let names  = map takeBaseName files
-      boards = mapMaybe parseBoard boardStrings 
+      let fullPaths = map (dir </>) files
+      realFiles <- filterM doesFileExist fullPaths
 
-  pure (zipWith NamedBoard names boards)
+      parsed <- forM realFiles $ \fp -> do
+        content <- readFile fp
+        pure (takeBaseName fp, parseBoard content)
+
+      let good = [(name, board) | (name, Just board) <- parsed]
+      pure [NamedBoard name board | (name, board) <- good]
 
 loadSaves :: IO [NamedSave]
 loadSaves = do
-  files <- listDirectory "saves"
-  let paths = map ("saves" </>) files
-  saveStrings <- mapM decodeFileStrict paths
+  let dir = "saves"
+  exists <- doesDirectoryExist dir
+  if not exists
+    then pure []
+    else do
+      files <- listDirectory dir
+      let fullPaths = map (dir </>) files
+      realFiles <- filterM doesFileExist fullPaths
 
-  let names = map takeBaseName files
-      fltr = catMaybes saveStrings
+      decoded <- forM realFiles $ \fp -> do
+        r <- decodeFileStrict fp
+        pure (takeBaseName fp, r)
 
-  pure (zipWith NamedSave names fltr)
+      let good = [(name, s) | (name, Just s) <- decoded]
+      pure [NamedSave name s | (name, s) <- good]
+
