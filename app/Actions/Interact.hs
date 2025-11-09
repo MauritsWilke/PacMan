@@ -54,7 +54,7 @@ reduceGhostTimers (g@Ghost{..} : gs)
  , releaseTimer = releaseTimer .- 1
  , ghostMode    = ghostMode'
  } : reduceGhostTimers gs
- where 
+ where
   resetTimer = case ghostMode' of
     Chase   -> 20 * 60
     Scatter -> 7  * 60
@@ -78,19 +78,18 @@ playerKilled gs = gs
           level'  = level gs
 
 resetGhosts :: GameState -> [Ghost] -> [Ghost]
-resetGhosts gs = reset' where
-    reset' []      = []
-    reset' (g:ghs) = g
-      { ghostPosition = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)} : reset' ghs
+resetGhosts gs = map reset' where
+    reset' g = g
+      { ghostPosition = getGhostSpawn (gameBoard (level gs)) (releaseIndex g)}
 
 interactGhosts  :: GameState -> GameState
-interactGhosts  gs = 
+interactGhosts  gs =
   case afterCollisionRes of -- check if pacman is eaten
-    Nothing    -> playerKilled gs                   -- if so, soft reset
+    Nothing    -> playerKilled gs  -- if so, soft reset
     Just (s,a) -> let extraPoints = if s > 0 then ghostPoints (ghostsEaten gs + s) else 0 in gs
       { score       = score gs .+ extraPoints
       , ghostsEaten = ghostsEaten gs +  s
-      , level       = lvl { ghosts = a } 
+      , level       = lvl { ghosts = a }
       } -- if not, update ghosts and score
   where afterCollisionRes = afterCollision gs currGhostList
         currGhostList     = ghosts $ level gs
@@ -146,7 +145,7 @@ interactPellets gs = checkLevelComplete $ action gs
 
 checkLevelComplete :: GameState -> GameState
 checkLevelComplete gs = if emptyBoard b
-  then (exitScene gs) 
+  then (exitScene gs)
     { player  = player'
     , lives   = currLives
     , M.round = newRound
@@ -157,7 +156,7 @@ checkLevelComplete gs = if emptyBoard b
         currScore = score gs
         player'   = (player gs) { position = getPlayerSpawn b, direction = East }
         b = gameBoard $ level gs
-        
+
 freightenGhosts :: GameState -> GameState
 freightenGhosts gstate = gstate { level = newLevel }
   where
