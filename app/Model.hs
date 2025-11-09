@@ -85,8 +85,8 @@ initialState bs ss = GameState
   , shouldSave   = False
   , debugView    = 0
   , menuHelper   = 0
-  } 
-  where 
+  }
+  where
     hardcodedBoard = NamedBoard
       { boardName = nameBoard initialLevel
       , boardData = gameBoard initialLevel }
@@ -96,7 +96,7 @@ initialLevel = Level
   { gameBoard = originalBoard
   , nameBoard = "Pac-Man Original"
   , ghosts = standardGhosts originalBoard
-  } 
+  }
 
 initialPlayer :: Player
 initialPlayer = Player
@@ -199,16 +199,13 @@ ghostSpeed gstate  | roundIndex > 4  = 0.14875
 
 -- get the score of the eaten ghost based on amount of ghosts already eaten
 ghostPoints :: Int -> Int
-ghostPoints n | n == 1    = 200
-              | n >  1    = 2 * ghostPoints (n-1)
+ghostPoints n | n >= 1    = 200 * 2 ^ n
               | otherwise = 0
 
 -- get all ghosts that currently are in frightened mode
 frightenedGhosts :: [Ghost] -> [Ghost]
-frightenedGhosts []     = []
-frightenedGhosts (x:xs) = if frightened x then x : remainder else remainder
+frightenedGhosts = filter frightened
   where frightened Ghost{..} = getCount frightTimer > 0 && isNothing destination
-        remainder = frightenedGhosts xs
 
 createGhost :: Board -> Int -> GhostType -> Ghost
 createGhost b orderIndex typ = Ghost
