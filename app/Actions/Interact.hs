@@ -67,7 +67,8 @@ resetGhosts gs = reset' where
 interactGhosts  :: GameState -> GameState
 interactGhosts  gs = case afterCollisionRes of -- check if pacman is eaten
   Nothing    -> playerKilled gs                   -- if so, soft reset
-  Just (s,a) -> gs { score = score gs .+ ghostPoints s, ghostsEaten = ghostsEaten gs +  s, level = lvl { ghosts = a } } -- if not, update ghosts and score
+  Just (s,a) -> let extraPoints = if s > 0 then ghostPoints (ghostsEaten gs + s) else 0 
+    in gs { score = score gs .+ extraPoints, ghostsEaten = ghostsEaten gs +  s, level = lvl { ghosts = a } } -- if not, update ghosts and score
   where afterCollisionRes = afterCollision gs currGhostList
         currGhostList     = ghosts $ level gs
         lvl               = level gs

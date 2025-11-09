@@ -65,7 +65,7 @@ applyRandom gs ghost = do
       allowedMoves      = filter (validMove ghost) allowedDirections
 
       validMove gh d    =
-        isJust $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d True
+        isJust $ moveIsPossible gs (ghostPosition gh) (ghostSpeed gs) d False
 
   dir <- case allowedMoves of
     []  -> return $ oppositeDirection (ghostDirection ghost)
