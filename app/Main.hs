@@ -25,10 +25,11 @@ main = do
     input
     step
 
+-- | Load boards from a local directory
 loadBoards :: IO [NamedBoard]
 loadBoards = do
   let dir = "boards"
-  exists <- doesDirectoryExist dir
+  exists <- doesDirectoryExist dir -- Prevent crashes when no directory is found
   if not exists
     then pure []
     else do
@@ -44,10 +45,11 @@ loadBoards = do
       let good = [(name, board) | (name, Just board) <- parsed]
       pure [NamedBoard name board | (name, board) <- good]
 
+-- | Load saves from a local directory
 loadSaves :: IO [NamedSave]
 loadSaves = do
   let dir = "saves"
-  exists <- doesDirectoryExist dir
+  exists <- doesDirectoryExist dir -- Prevent crashes when no directory is found
   if not exists
     then pure []
     else do
