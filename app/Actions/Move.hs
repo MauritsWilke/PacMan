@@ -40,7 +40,7 @@ playerMove gs = gs { player = plr' }
 -- check if provided argument is close enough to some n + 0.5 (for corner snap allowance)
 closeEnough :: Float -> Float -> Bool
 closeEnough speed v = abs (fromInteger (floor v) - v + 0.5) < allowedOffset
-  where allowedOffset = speed - 0.01
+  where allowedOffset = speed - 0.01 -- define amount of offset allowed based on speed (reduced to counter 'snapping')
 
 -- set fractional part of orthogonal direction to some n + 0.5
 cornerSnap :: Direction -> Float -> Float -> (Float, Float)
@@ -81,9 +81,9 @@ getWrapAround (x,y) b
   | onEdge && accesibleOtherSide = Just otherSide                     -- if the other side of the board has an accesible slot -> return other side
   | otherwise = Nothing
   where
-    onEdge = x <= 0.5
+    onEdge = x <= 0.5                                                 -- check if the current position is on the edge of the map
           || y <= 0.5
-          || ceiling (x - 0.499) >= integerFromInt (height b)         -- check if in or over middle of tile at the edge of the board
+          || ceiling (x - 0.499) >= integerFromInt (height b)         -- check if in or over middle of tile at the edge of the board (additional 0.001 space for precision errors)
           || ceiling (y - 0.499) >= integerFromInt (width  b)
     accesibleOtherSide = -- only true when not a wall | ghostexit | ghostspawn
       case get (floor otherX, floor otherY) b of
@@ -168,7 +168,7 @@ ghostMove gstate ghost@Ghost{..}
     -- check if ghost is allowed through ghost exit
     passThroughExit = isJust destination
 
--- set current location to middle of current tile or only the coordinate inline with the provided direction
+-- set current location to middle of current tile or only the coordinate inline with the provided direction (middle => some int n + 0.5), (0,0) => lower left
 setToMiddle :: (Float,Float) -> Maybe Direction -> (Float,Float)
 setToMiddle (row,col) Nothing
   = (fromInteger (floor row) + 0.5, fromInteger (floor col) + 0.5)
@@ -179,13 +179,13 @@ setToMiddle (row,col) (Just dir)
 -- find best direction for move
 -- IMPORTANT: doesn't check for validity, provided list should contain only valid directions
 bestOf :: GameState -> Ghost -> [Direction] -> Direction
-bestOf _ ghost []              = ghostDirection ghost                                        -- if no valid directions, return opposite of current ghostdirection
-bestOf gstate ghost directions = bestDirection                                               -- else find the best direction
+bestOf _ ghost []              = ghostDirection ghost                                           -- if no valid directions, return opposite of current ghostdirection
+bestOf gstate ghost directions = bestDirection                                                  -- else find the best direction
  where
   bestDirection = directions !! closestToGoal
-  closestToGoal = fromMaybe 0 (elemIndex (foldl1' min distances) distances)                  -- minimum distances `elem` distances
-  distances     = map (distance ghostGoal . preMove currPosition speed) directions           -- calculate all the distances of potential moves
-  speed         = if ghostMode ghost == Spawn then 2 * ghostSpeed gstate else ghostSpeed gstate
+  closestToGoal = fromMaybe 0 (elemIndex (foldl1' min distances) distances)                     -- find the index of the direction closest to ghostGoal
+  distances     = map (distance ghostGoal . preMove currPosition speed) directions              -- calculate all the distances of potential moves
+  speed         = if ghostMode ghost == Spawn then 2 * ghostSpeed gstate else ghostSpeed gstate -- if ghost is returning to spawn -> double the speed
   currPosition  = ghostPosition ghost
   ghostGoal     = goalAlgorithm gstate ghost
 
