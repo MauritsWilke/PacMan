@@ -22,8 +22,9 @@ exitScene gs0 =
       newLevel = lvl
         { nameBoard = boardName brd
         , gameBoard = boardData brd
+        , ghosts = standardGhosts $ boardData brd
         }
-  in gs0 { level = newLevel }
+  in gs0 {level = newLevel }
 
 controlScene :: Key -> GameState -> GameState
 controlScene (Char 's') gs = gs { menuHelper = min (menuHelper gs + 1) ((length . boards) gs - 1) }
