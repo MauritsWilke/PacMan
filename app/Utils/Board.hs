@@ -34,12 +34,13 @@ trim :: String -> String
 trim = dropWhileEnd isSpace . dropWhile isSpace
 
 verifyBoard :: String -> Bool
-verifyBoard contents = validRows && hasGhostSpawn && hasPlayerSpawn && hasOnePellet
+verifyBoard contents = validRows && hasGhostSpawn && hasGhostExit && hasPlayerSpawn && hasOnePellet
   where
     rows = map trim (lines contents)
     validRows = sameLengths rows -- indirectly also validates columns
 
     hasGhostSpawn  = 'G' `elem` contents -- trivial
+    hasGhostExit   = 'H' `elem` contents -- tivial
     hasPlayerSpawn = 'X' `elem` contents -- trivial
     hasOnePellet   = 'P' `elem` contents -- else you always win the level
 

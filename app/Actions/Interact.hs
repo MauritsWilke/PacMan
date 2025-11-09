@@ -1,12 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
 module Actions.Interact where
 
-import Model
+import Model as M
 import Utils.Board as GB
 import Data.Bifunctor (bimap)
 import Utils.Count
 import Actions.Move
 import Utils.PlayerUtil
+import View.Scenes.SelectBoard (exitScene)
 
 interact :: GameState -> GameState
 interact gs = case scene gs of
@@ -80,7 +81,7 @@ afterCollision gs ghosts
 
 
 interactPellets :: GameState -> GameState
-interactPellets gs = action gs
+interactPellets gs = checkLevelComplete $ action gs
   { level        = lvl { gameBoard = board' }
   , score        = score'
   -- , poweredTimer = poweredTimeCounter 10
@@ -102,6 +103,15 @@ interactPellets gs = action gs
       Just Pellet      -> (score gs .+ 10, id              , ghostsEaten gs)
       Just PowerPellet -> (score gs .+ 50, freightenGhosts , 0             )
       _                -> (score gs,       id              , ghostsEaten gs)
+
+checkLevelComplete :: GameState -> GameState
+checkLevelComplete gs = if emptyBoard (gameBoard (level gs))
+  then (exitScene gs) {lives = currLives, M.round = newRound, score = currScore}--gs {round = M.round gs .+ 1, level = lvl}
+  else gs
+  where currLives = lives gs
+        newRound  = M.round gs .+ 1
+        currScore = score gs
+
 
 
 freightenGhosts :: GameState -> GameState

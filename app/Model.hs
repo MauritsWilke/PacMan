@@ -142,7 +142,7 @@ standardGhosts b =
   ]
 
 getPlayerSpawn :: Board -> (Float, Float)
-getPlayerSpawn Board{..} 
+getPlayerSpawn Board{..}
  | null ints = (1.5,1.5)
  | otherwise = parseToMiddle $ indexToCoord (fst (head ints)) width
   where ints    = Prelude.filter ((== PlayerSpawn) . snd) (I.toList board)
@@ -156,6 +156,9 @@ getGhostSpawn Board{..} ghostIndex = parseToMiddle $ indexToCoord (fst (ints !! 
 getGhostExit :: Board -> (Float,Float)
 getGhostExit Board{..} = parseToMiddle $ indexToCoord (fst (head ints)) width
   where ints    = Prelude.filter ((== GhostExit) . snd) (I.toList board)
+
+emptyBoard :: Board -> Bool
+emptyBoard b = not (any ((== Pellet) . snd) (I.toList (board b)))
 
 parseToMiddle :: (Int,Int) -> (Float,Float)
 parseToMiddle (x,y) = (fromIntegral x + 0.5, fromIntegral y + 0.5)
