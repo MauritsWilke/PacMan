@@ -214,7 +214,7 @@ createGhost b orderIndex typ = Ghost
   , ghostPosition  = getGhostSpawn b orderIndex
   , ghostDirection = North
   , releaseIndex   = orderIndex
-  , destination    = Just (getGhostExit b)
+  , destination    = Just (getGhostExit b orderIndex)
   , scatterTimer   = scatterTimeCounter 0
   , frightTimer    = frightTimeCounter 0
   , releaseTimer   = releaseTimeCounter (orderIndex * 5 * 60)
@@ -240,9 +240,10 @@ getGhostSpawn Board{..} ghostIndex = parseToMiddle $ indexToCoord (fst (ints !! 
   where ints    = Prelude.filter ((== GhostSpawn) . snd) (I.toList board)
         index   = ghostIndex `mod` length ints
 
-getGhostExit :: Board -> (Float,Float)
-getGhostExit Board{..} = parseToMiddle $ indexToCoord (fst (head ints)) width
+getGhostExit :: Board -> Int -> (Float,Float)
+getGhostExit Board{..} ghostIndex= parseToMiddle $ indexToCoord (fst (ints !! index)) width
   where ints    = Prelude.filter ((== GhostExit) . snd) (I.toList board)
+        index   = ghostIndex `mod` length ints
 
 emptyBoard :: Board -> Bool
 emptyBoard b = not (any (filled . snd) (I.toList (board b)))

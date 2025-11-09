@@ -66,7 +66,7 @@ moveIsPossible gs (x,y) speed dir allowedInSpawn = let
                         else Just $ setToMiddle (x, y) Nothing        -- set to end of allyway if not yet exact
    Just GhostExit  -> if allowedInSpawn
                         then Just (cornerSnap dir desiredX desiredY)
-                        else Nothing
+                        else Just $ setToMiddle (x, y) Nothing
    Just GhostSpawn -> if allowedInSpawn
                         then Just (cornerSnap dir desiredX desiredY)
                         else Nothing
@@ -123,10 +123,10 @@ ghostMove gstate ghost@Ghost{..}
                       Nothing -> False
                       Just GhostSpawn  -> True
                       Just GhostExit   -> True
-                      Just _ -> False
+                      Just _           -> False
     ghost' 
       | isRespawning   && distance ghostPosition destination' < 0.8 && movingInSpawn =
-        ghost { destination = Just (getGhostExit (gameBoard (level gstate))), ghostMode = Chase }
+        ghost { destination = Just (getGhostExit (gameBoard (level gstate)) releaseIndex), ghostMode = Chase }
       | isRespawning   && distance ghostPosition destination' < 0.5 =
         ghost { destination = Just (getGhostSpawn (gameBoard (level gstate)) releaseIndex), ghostMode = Spawn }
       | hasDestination && distance ghostPosition destination' < 0.1 =
