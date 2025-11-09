@@ -40,5 +40,5 @@ Warning: boards need at least 1 pellet, 1 player spawn and 1 ghost spawn tile. I
 - Automatic wrap-around detection for custom boards
 - Saving and loading a game
 - Movement queueing for easier gameplay
-- Different algorithm for different ghosts
+- Different algorithm for all ghosts
 - Pac-Man and ghosts both fully animated
